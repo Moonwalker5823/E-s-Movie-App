@@ -6,6 +6,7 @@ export interface Settings {
   landing: Landing;
   myServices: string[]; // service keys the user subscribes to
   leagues: { yahoo?: string; espn?: string };
+  accessCode?: string; // sent to the AI endpoint when it's gated
 }
 
 const KEY = "ema.settings.v1";
@@ -60,4 +61,8 @@ export function hasService(key: string | null): boolean {
 
 export function setLeague(which: "yahoo" | "espn", url: string) {
   commit({ ...state, leagues: { ...state.leagues, [which]: url } });
+}
+
+export function setAccessCode(code: string) {
+  commit({ ...state, accessCode: code });
 }

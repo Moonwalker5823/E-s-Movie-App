@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Heading from "../components/ui/Heading";
 import { STREAMING_SERVICES, FANTASY_SITES } from "../lib/services";
-import { useSettings, setLanding, toggleService, setLeague } from "../lib/settings";
+import { useSettings, setLanding, toggleService, setLeague, setAccessCode } from "../lib/settings";
 
 function clearKey(key: string, label: string) {
   if (!confirm(`Clear ${label}? This can't be undone.`)) return;
@@ -101,6 +101,28 @@ export default function Settings() {
           {FANTASY_SITES.map((f) => (
             <LeagueRow key={f.key} which={f.key as "yahoo" | "espn"} name={f.name} loginUrl={f.loginUrl} saved={s.leagues[f.key as "yahoo" | "espn"]} />
           ))}
+        </div>
+      </section>
+
+      {/* Access & sharing */}
+      <section className="mt-8">
+        <Heading emoji="🔑" className="mb-3">AI Access Code</Heading>
+        <div className="card p-4">
+          <p className="text-sm text-cream/70">
+            The AI draft assistant costs money to run, so it can be locked with a code. If Eric gave
+            you one, paste it here to unlock it on this device. Everything else works without a code.
+          </p>
+          <input
+            defaultValue={s.accessCode || ""}
+            onBlur={(e) => setAccessCode(e.target.value.trim())}
+            data-focusable
+            placeholder="Access code (optional)"
+            className="mt-3 w-full max-w-xs rounded-lg border-2 border-line bg-white/5 px-3 py-2 text-sm outline-none focus:border-spray/50"
+          />
+          <p className="mt-2 text-xs text-cream/40">
+            Owner: set the allowed codes in Vercel → Environment Variables → <code className="font-mono">APP_ACCESS_CODES</code>
+            {" "}(comma-separated). Remove someone&apos;s code and redeploy to block just them.
+          </p>
         </div>
       </section>
 
