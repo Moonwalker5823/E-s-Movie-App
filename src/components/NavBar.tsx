@@ -38,7 +38,7 @@ export default function NavBar() {
           </span>
         </NavLink>
 
-        <nav className="no-scrollbar flex items-center gap-1 overflow-x-auto sm:gap-2">
+        <nav className="no-scrollbar -my-2 flex items-center gap-1 overflow-x-auto py-2 sm:gap-2">
           {links.map((l) => (
             <NavLink
               key={l.to}

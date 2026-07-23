@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="1000" height="560" font-family="Bangers, Impact, sans-serif">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Bangers&amp;display=swap');</style>
+    <radialGradient id="bg" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#1c1719"/><stop offset="100%" stop-color="#0a0909"/></radialGradient>
+    <linearGradient id="redg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff6a4d"/><stop offset="42%" stop-color="#e0281a"/><stop offset="100%" stop-color="#7c1207"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#e6ac72"/><stop offset="50%" stop-color="#b67e46"/><stop offset="100%" stop-color="#794c26"/></linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="45%" stop-color="#dbe3ec"/><stop offset="78%" stop-color="#aab6c4"/><stop offset="100%" stop-color="#7f8c9b"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe9a8"/><stop offset="50%" stop-color="#e8b400"/><stop offset="100%" stop-color="#9c7400"/></linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe58a"/><stop offset="55%" stop-color="#f4c430"/><stop offset="100%" stop-color="#d19400"/></linearGradient>
+  </defs>
+
+  <rect width="1000" height="560" rx="40" fill="url(#bg)"/>
+  <rect x="6" y="6" width="988" height="548" rx="36" fill="none" stroke="#caa64a" stroke-opacity="0.4" stroke-width="2"/>
+
+  <g transform="translate(210,120) rotate(-6)">
+    <rect x="-64" y="205" width="128" height="60" rx="20" fill="#efe7d6"/>
+    <rect x="-64" y="205" width="128" height="18" rx="9" fill="#000000" opacity="0.14"/>
+    <path d="M-80,215 C-104,120 -86,20 0,20 C86,20 104,120 80,215 Z" fill="url(#redg)"/>
+    <path d="M-80,138 C-116,138 -118,214 -84,216 C-72,196 -72,160 -80,138 Z" fill="url(#redg)"/>
+    <path d="M-80,138 C-108,140 -112,196 -90,210 C-96,180 -94,158 -80,138 Z" fill="#000000" opacity="0.14"/>
+    <ellipse cx="-24" cy="80" rx="34" ry="46" fill="#ffb59f" opacity="0.45"/>
+    <path d="M-36,60 C-8,104 8,104 36,60" fill="none" stroke="#7c1207" stroke-width="7" stroke-linecap="round" opacity="0.75"/>
+    <path d="M0,116 C0,150 0,180 0,205" stroke="#7c1207" stroke-width="4" opacity="0.5" stroke-dasharray="3 9" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(500,125)">
+    <path d="M78,300 L78,214 C120,196 132,250 104,270 C96,262 86,240 78,300 Z" fill="url(#skin)"/>
+    <rect x="-82" y="150" width="164" height="150" rx="30" fill="url(#skin)"/>
+    <circle cx="-55" cy="150" r="31" fill="url(#skin)"/>
+    <circle cx="-18" cy="146" r="33" fill="url(#skin)"/>
+    <circle cx="19" cy="146" r="33" fill="url(#skin)"/>
+    <circle cx="55" cy="150" r="31" fill="url(#skin)"/>
+    <path d="M-82,214 h164 v86 h-164 Z" fill="#3f2812" opacity="0.28"/>
+    <path d="M-37,150 V292 M0,146 V300 M37,150 V292" stroke="#5e3c1c" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+    <path d="M-80,132 C-40,120 40,120 80,132" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.2" stroke-linecap="round"/>
+    <g>
+      <rect x="-71" y="176" width="32" height="24" rx="6" fill="url(#gold)" stroke="#6b5000" stroke-width="1.5"/>
+      <rect x="-34" y="170" width="32" height="24" rx="6" fill="url(#gold)" stroke="#6b5000" stroke-width="1.5"/>
+      <rect x="3" y="170" width="32" height="24" rx="6" fill="url(#gold)" stroke="#6b5000" stroke-width="1.5"/>
+      <rect x="40" y="176" width="32" height="24" rx="6" fill="url(#gold)" stroke="#6b5000" stroke-width="1.5"/>
+      <circle cx="-18" cy="182" r="6" fill="#ffffff"/>
+      <circle cx="19" cy="182" r="6" fill="#bff0ff"/>
+    </g>
+  </g>
+
+  <g transform="translate(790,120) rotate(6)">
+    <path d="M78,300 L78,214 C120,196 132,250 104,270 C96,262 86,240 78,300 Z" fill="url(#silver)"/>
+    <rect x="-82" y="150" width="164" height="150" rx="30" fill="url(#silver)"/>
+    <circle cx="-55" cy="150" r="31" fill="url(#silver)"/>
+    <circle cx="-18" cy="146" r="33" fill="url(#silver)"/>
+    <circle cx="19" cy="146" r="33" fill="url(#silver)"/>
+    <circle cx="55" cy="150" r="31" fill="url(#silver)"/>
+    <path d="M-82,214 h164 v86 h-164 Z" fill="#5b6672" opacity="0.22"/>
+    <path d="M-37,150 V292 M0,146 V300 M37,150 V292" stroke="#8b97a5" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+    <g fill="#ffffff">
+      <circle cx="-52" cy="164" r="3.4"/><circle cx="-24" cy="152" r="3.4"/><circle cx="6" cy="156" r="3.4"/><circle cx="40" cy="160" r="3.4"/>
+      <circle cx="-62" cy="204" r="3.4"/><circle cx="-30" cy="196" r="3.4"/><circle cx="2" cy="202" r="3.4"/><circle cx="34" cy="196" r="3.4"/><circle cx="62" cy="208" r="3.4"/>
+      <circle cx="-48" cy="242" r="3.4"/><circle cx="-14" cy="248" r="3.4"/><circle cx="22" cy="242" r="3.4"/><circle cx="54" cy="250" r="3.4"/>
+      <circle cx="-32" cy="280" r="3.4"/><circle cx="8" cy="282" r="3.4"/><circle cx="44" cy="278" r="3.4"/>
+    </g>
+    <g fill="#dff6ff"><path d="M-20,178 l4,10 10,4 -10,4 -4,10 -4,-10 -10,-4 10,-4 z"/><path d="M40,222 l3,8 8,3 -8,3 -3,8 -3,-8 -8,-3 8,-3 z"/></g>
+    <path d="M-78,134 C-40,122 40,122 78,134" fill="none" stroke="#ffffff" stroke-width="7" opacity="0.55" stroke-linecap="round"/>
+  </g>
+
+  <text x="500" y="512" text-anchor="middle" font-size="76" letter-spacing="4" stroke="#0a0909" stroke-width="4.5" paint-order="stroke"><tspan fill="#e8b400">♛ </tspan><tspan fill="#f6f2ea">ERIC&apos;S </tspan><tspan fill="url(#word)">MOVIES</tspan></text>
+</svg>
