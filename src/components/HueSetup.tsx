@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSettings, setHue } from "../lib/settings";
+import { useSettings, setHue, resetHue } from "../lib/settings";
 import {
   discoverBridge,
   pair,
@@ -64,7 +64,7 @@ export default function HueSetup() {
   };
 
   const forget = () => {
-    setHue({ user: undefined, bridgeIp: undefined, groupId: undefined, scenes: {} });
+    resetHue();
     setGroups([]);
     setScenes([]);
     setStatus("Disconnected.");

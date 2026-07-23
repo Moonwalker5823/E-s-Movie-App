@@ -2,12 +2,17 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import MyTeams from "../components/fantasy/MyTeams";
 import Heading from "../components/ui/Heading";
+import LaunchTile, { type Tile } from "../components/LaunchTile";
+import { FANTASY_SITES } from "../lib/services";
 
-const LEAGUES = [
-  { name: "Yahoo Fantasy", url: "https://football.fantasysports.yahoo.com/", blurb: "Open your league", color: "#6001d2" },
-  { name: "ESPN Fantasy", url: "https://fantasy.espn.com/football/", blurb: "Open your league", color: "#c8102e" },
-  { name: "Sleeper", url: "https://sleeper.com/", blurb: "Open your league", color: "#ff4d6d" },
-];
+// Leagues come from the single source of truth (FANTASY_SITES); add one there
+// and it shows up here and in Settings automatically.
+const LEAGUES: Tile[] = FANTASY_SITES.map((f) => ({
+  name: f.name,
+  url: f.loginUrl,
+  blurb: "Open your league",
+  color: f.color,
+}));
 
 export default function Fantasy() {
   return (
@@ -41,19 +46,7 @@ export default function Fantasy() {
         </p>
         <div className="grid grid-cols-2 gap-4 sm:max-w-2xl sm:grid-cols-3">
           {LEAGUES.map((l) => (
-            <motion.a
-              key={l.name}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              data-focusable
-              whileHover={{ y: -4 }}
-              className="rounded-2xl border border-line p-5 shadow-card"
-              style={{ background: `linear-gradient(160deg, ${l.color}, #0b0b12)` }}
-            >
-              <div className="font-display text-2xl text-cream">{l.name}</div>
-              <div className="mt-1 text-xs text-cream/70">{l.blurb} ↗</div>
-            </motion.a>
+            <LaunchTile key={l.name} t={l} />
           ))}
         </div>
       </div>

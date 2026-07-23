@@ -5,27 +5,20 @@ import Chip from "../components/ui/Chip";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
 import { byProvider } from "../api/tmdb";
-import { myProviderIds } from "../lib/services";
+import { STREAMING_SERVICES, myProviderIds } from "../lib/services";
 import { useSettings } from "../lib/settings";
 import type { MediaType, TmdbItem } from "../lib/types";
 
 type ServicePick = { name: string; id: number | string; free?: boolean; combo?: boolean };
 
-// TMDB US watch-provider IDs. "free" = ad-supported, no subscription.
-// The first entry merges every free service into one endless catalog.
+// The per-service chips come straight from STREAMING_SERVICES (single source of
+// truth) — free ones first — plus the "All Free" combo catalog.
 const FREE_COMBO = "73|300|207|12|613"; // Tubi, Pluto, Roku, Crackle, Freevee
 const SERVICES: ServicePick[] = [
   { name: "🆓 All Free", id: FREE_COMBO, combo: true },
-  { name: "Tubi", id: 73, free: true },
-  { name: "Pluto TV", id: 300, free: true },
-  { name: "Hulu", id: 15 },
-  { name: "Prime Video", id: 9 },
-  { name: "Netflix", id: 8 },
-  { name: "Max", id: 1899 },
-  { name: "Disney+", id: 337 },
-  { name: "Paramount+", id: 531 },
-  { name: "Peacock", id: 386 },
-  { name: "Apple TV+", id: 350 },
+  ...STREAMING_SERVICES.filter((s) => s.tmdbId)
+    .map((s) => ({ name: s.name, id: s.tmdbId as number, free: s.free }))
+    .sort((a, b) => Number(Boolean(b.free)) - Number(Boolean(a.free))),
 ];
 
 export default function Services() {
@@ -61,6 +54,7 @@ export default function Services() {
   }, [svc, media]);
 
   const loadMore = async () => {
+    if (loadingMore) return; // ignore a second OK-press while a page is in flight
     setLoadingMore(true);
     const next = page + 1;
     const r = await byProvider(media, svc.id, next).catch(() => null);

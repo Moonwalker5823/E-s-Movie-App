@@ -19,7 +19,7 @@ export default function SmokersLounge() {
       {/* Bud TV — weed video hub */}
       <section className="mt-6">
         <Heading emoji="📺" className="mb-4">Bud TV</Heading>
-        <VideoHub tabs={BUD_TABS} />
+        <VideoHub tabs={BUD_TABS} autoplay short />
       </section>
 
       {/* Stoner movies from TMDB (hidden automatically if no TMDB key is set) */}

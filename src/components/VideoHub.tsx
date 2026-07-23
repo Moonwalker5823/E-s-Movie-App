@@ -44,10 +44,12 @@ export default function VideoHub({
   tabs,
   defaultKey,
   autoplay = false,
+  short = false,
 }: {
   tabs: HubTab[];
   defaultKey?: string;
   autoplay?: boolean;
+  short?: boolean;
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
   const [items, setItems] = useState<Video[] | null>(null);
@@ -65,13 +67,13 @@ export default function VideoHub({
     setFull(false);
     setFullVid(null);
     let alive = true;
-    videos(tab)
+    videos(tab, { short })
       .then((v) => alive && setItems(v))
       .catch(() => alive && setError(true));
     return () => {
       alive = false;
     };
-  }, [tab]);
+  }, [tab, short]);
 
   function openFull(v: Video) {
     setFullVid(v);
@@ -151,9 +153,10 @@ export default function VideoHub({
         </div>
       )}
 
-      {/* Full-screen overlay player (unmuted, full controls). */}
+      {/* Full-screen overlay player (unmuted, full controls). data-focus-trap keeps
+          the D-pad inside it (see useSpatialNav) so focus can't escape to the nav. */}
       {full && fullVid && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-black">
+        <div data-focus-trap className="fixed inset-0 z-[60] flex flex-col bg-black">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="min-w-0 truncate font-semibold text-cream">{fullVid.title}</div>
             <button ref={closeRef} onClick={closeFull} data-focusable className="btn-ghost shrink-0 !px-3 !py-1 text-sm">

@@ -115,8 +115,3 @@ export function theaterOnPlay() {
   if (!hue?.user || !hue.autoDimOnPlay) return;
   return hue.scenes?.play ? applyScene(hue.scenes.play) : dim(30);
 }
-
-export function hueConnected(): boolean {
-  const hue = getSettings().hue;
-  return Boolean(hue?.bridgeIp && hue?.user);
-}

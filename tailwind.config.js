@@ -5,10 +5,13 @@ export default {
     extend: {
       colors: {
         // Theme: 80s/90s NYC subway/wall graffiti — wildstyle spray on concrete.
-        ink: "#141013", // dark warm concrete wall (page bg)
-        surface: "#1e1a1c", // cards
-        surface2: "#2a2427", // raised cards / inputs
-        line: "rgba(255,255,255,0.12)", // hairline borders
+        // These four flip between light/dark via CSS vars (see index.css). The
+        // accents below stay fixed — they read on both.
+        ink: "rgb(var(--c-ink) / <alpha-value>)", // page bg / concrete wall
+        surface: "rgb(var(--c-surface) / <alpha-value>)", // cards
+        surface2: "rgb(var(--c-surface2) / <alpha-value>)", // raised cards / inputs
+        cream: "rgb(var(--c-cream) / <alpha-value>)", // primary text/foreground
+        line: "var(--c-line)", // hairline borders
         spray: "#e6392b", // primary — true subway red
         sprayhi: "#ff5c47", // bright red-orange highlight
         spraylo: "#a51b0f", // deep oxblood red
@@ -18,7 +21,6 @@ export default {
         yellow: "#ffd400", // classic drip yellow
         orange: "#ff7a1a", // fill/arrow orange
         purple: "#8b3ffb", // pop purple
-        cream: "#f6f2ea", // paint-white text
         live: "#35d07f", // live/status green
       },
       fontFamily: {

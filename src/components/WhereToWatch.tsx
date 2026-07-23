@@ -41,9 +41,9 @@ function ProviderGroup({ label, list, title }: { label: string; list?: Provider[
               data-focusable
               title={`Open ${p.provider_name}`}
               className={`flex items-center gap-2 rounded-xl p-2 pr-4 transition ${
-                mine ? "bg-live/10 hover:bg-live/20" : "bg-white/5 hover:bg-white/10"
+                mine ? "bg-live/10 ring-1 ring-inset ring-live hover:bg-live/20" : "bg-white/5 hover:bg-white/10"
               }`}
-              style={{ boxShadow: `inset 0 0 0 1px ${mine ? "#35d07f" : colorFor(p.provider_name) + "55"}` }}
+              style={mine ? undefined : { boxShadow: `inset 0 0 0 1px ${colorFor(p.provider_name)}55` }}
             >
               <img src={IMG.logo(p.logo_path)} alt={p.provider_name} className="h-9 w-9 rounded-lg" />
               <span className="text-sm font-semibold">{p.provider_name}</span>

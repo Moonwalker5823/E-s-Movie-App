@@ -14,6 +14,27 @@
 
 :root {
   color-scheme: dark;
+  --c-ink: 20 16 19;
+  --c-surface: 30 26 28;
+  --c-surface2: 42 36 39;
+  --c-cream: 246 242 234;
+  --c-line: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --c-ink: 245 241 234;
+  --c-surface: 255 255 255;
+  --c-surface2: 236 231 224;
+  --c-cream: 26 21 24;
+  --c-line: rgba(20, 16, 19, 0.14);
+}
+
+/* In light mode `cream` (the text token) flips dark, but text sitting on an
+   accent-colored button/badge must stay light for contrast. */
+:root[data-theme="light"] .btn-spray,
+:root[data-theme="light"] .chip-active {
+  color: #f6f2ea;
 }
 
 /* Big-screen (10-foot) scaling for TVs like the Hisense U8 100".
@@ -40,10 +61,10 @@ body,
 
 body {
   margin: 0;
-  color: #f6f2ea;
+  color: rgb(var(--c-cream));
   font-family: Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #141013;
+  background-color: rgb(var(--c-ink));
   /* Wildstyle spray blooms (red / electric blue / yellow) + concrete grain + brick lines */
   background-image: radial-gradient(900px 640px at 85% -8%, rgba(230, 57, 43, 0.24), transparent 60%),
     radial-gradient(760px 560px at 6% 8%, rgba(30, 155, 240, 0.18), transparent 58%),
@@ -53,6 +74,17 @@ body {
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 96px);
   background-size: 100% 100%, 100% 100%, 100% 100%, 6px 6px, 100% 100%, 100% 100%;
   background-attachment: fixed;
+}
+
+/* Light mode: same spray blooms but a soft cream wall with faint lines. */
+:root[data-theme="light"] body {
+  background-image: radial-gradient(900px 640px at 85% -8%, rgba(230, 57, 43, 0.12), transparent 60%),
+    radial-gradient(760px 560px at 6% 8%, rgba(30, 155, 240, 0.1), transparent 58%),
+    radial-gradient(680px 520px at 60% 110%, rgba(255, 176, 0, 0.08), transparent 60%),
+    radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 48px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 96px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 6px 6px, 100% 100%, 100% 100%;
 }
 
 @layer base {
@@ -178,4 +210,105 @@ body {
   100% {
     transform: translateX(100%);
   }
+}
+
+/* ============================================================
+   Per-tab "inspired" backgrounds. A fixed tint layer behind the
+   content, keyed to the current route (set in App.tsx via data-tab).
+   Kept subtle/translucent so the base graffiti wall still shows.
+   ============================================================ */
+.tab-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* Home / Movies / Title — cinematic amber spotlight */
+.tab-bg[data-tab="home"],
+.tab-bg[data-tab="title"],
+.tab-bg[data-tab="search"] {
+  background:
+    radial-gradient(1100px 700px at 50% -12%, rgba(255, 176, 60, 0.1), transparent 60%),
+    radial-gradient(700px 520px at 12% 92%, rgba(230, 57, 43, 0.12), transparent 60%);
+}
+
+/* Browse — multi-color spray */
+.tab-bg[data-tab="services"] {
+  background:
+    radial-gradient(700px 520px at 14% 8%, rgba(43, 212, 255, 0.12), transparent 60%),
+    radial-gradient(700px 520px at 86% 18%, rgba(255, 46, 136, 0.12), transparent 60%),
+    radial-gradient(700px 520px at 60% 102%, rgba(158, 229, 32, 0.1), transparent 60%);
+}
+
+/* Live TV — blue glow + scanlines */
+.tab-bg[data-tab="live"] {
+  background:
+    radial-gradient(900px 600px at 50% 0%, rgba(30, 155, 240, 0.16), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
+}
+
+/* Sports — green pitch + stadium spotlights + light streaks */
+.tab-bg[data-tab="sports"] {
+  background:
+    radial-gradient(1100px 560px at 50% -12%, rgba(53, 208, 127, 0.2), transparent 60%),
+    radial-gradient(720px 520px at 86% 88%, rgba(30, 155, 240, 0.1), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 80px);
+}
+
+/* Fantasy — green field with yard lines + hash marks */
+.tab-bg[data-tab="fantasy"] {
+  background:
+    radial-gradient(1000px 640px at 50% 6%, rgba(53, 208, 127, 0.18), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 78px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 26px);
+}
+
+/* Games — neon arcade grid */
+.tab-bg[data-tab="games"] {
+  background:
+    radial-gradient(820px 620px at 50% 112%, rgba(139, 63, 251, 0.18), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(43, 212, 255, 0.05) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(90deg, rgba(43, 212, 255, 0.05) 0 1px, transparent 1px 42px);
+}
+
+/* Lounge — green haze + drifting smoke + leaf motif */
+.tab-bg[data-tab="lounge"] {
+  background:
+    radial-gradient(760px 560px at 20% 28%, rgba(53, 208, 127, 0.2), transparent 60%),
+    radial-gradient(560px 460px at 74% 16%, rgba(220, 235, 220, 0.07), transparent 60%),
+    radial-gradient(680px 560px at 84% 84%, rgba(120, 180, 120, 0.12), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg transform='translate(60,86)' fill='%2335d07f' fill-opacity='0.06'%3E%3Cellipse cx='0' cy='-36' rx='6' ry='36'/%3E%3Cellipse cx='0' cy='-31' rx='5.5' ry='31' transform='rotate(30)'/%3E%3Cellipse cx='0' cy='-31' rx='5.5' ry='31' transform='rotate(-30)'/%3E%3Cellipse cx='0' cy='-24' rx='5' ry='24' transform='rotate(58)'/%3E%3Cellipse cx='0' cy='-24' rx='5' ry='24' transform='rotate(-58)'/%3E%3C/g%3E%3Cpath d='M60 86 v24' stroke='%2335d07f' stroke-opacity='0.06' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size: auto, auto, auto, 120px 120px;
+}
+
+/* Blerd — deep space + circuit board */
+.tab-bg[data-tab="blerd"] {
+  background:
+    radial-gradient(900px 720px at 82% 8%, rgba(43, 212, 255, 0.17), transparent 60%),
+    radial-gradient(720px 620px at 10% 92%, rgba(139, 63, 251, 0.17), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84'%3E%3Cg fill='none' stroke='%232bd4ff' stroke-opacity='0.11' stroke-width='1.2'%3E%3Cpath d='M12 0v22H0M12 22h22v22M46 0v12h22v22h16'/%3E%3C/g%3E%3Cg fill='%232bd4ff' fill-opacity='0.12'%3E%3Ccircle cx='12' cy='22' r='2.4'/%3E%3Ccircle cx='34' cy='44' r='2.4'/%3E%3Ccircle cx='68' cy='34' r='2.4'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-size: auto, auto, 84px 84px;
+}
+
+/* My List — warm gold/red */
+.tab-bg[data-tab="favorites"] {
+  background:
+    radial-gradient(800px 620px at 30% 8%, rgba(230, 57, 43, 0.12), transparent 60%),
+    radial-gradient(700px 520px at 82% 82%, rgba(255, 212, 0, 0.08), transparent 60%);
+}
+
+/* X — after-dark crimson */
+.tab-bg[data-tab="x"] {
+  background:
+    radial-gradient(900px 720px at 50% 0%, rgba(194, 24, 91, 0.18), transparent 60%),
+    radial-gradient(720px 620px at 50% 100%, rgba(120, 10, 40, 0.2), transparent 65%);
+}
+
+/* Settings — neutral cool */
+.tab-bg[data-tab="settings"] {
+  background: radial-gradient(900px 720px at 50% 0%, rgba(43, 212, 255, 0.08), transparent 60%);
 }
