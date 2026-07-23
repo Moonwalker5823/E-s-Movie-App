@@ -4,6 +4,7 @@ import SetupNotice from "./components/SetupNotice";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import LiveTV from "./pages/LiveTV";
+import Services from "./pages/Services";
 import Sports from "./pages/Sports";
 import Fantasy from "./pages/Fantasy";
 import DraftRoom from "./pages/DraftRoom";
@@ -23,6 +24,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={gated(<Home />)} />
         <Route path="/search" element={gated(<Search />)} />
+        <Route path="/services" element={gated(<Services />)} />
         <Route path="/live" element={<LiveTV />} />
         <Route path="/sports" element={<Sports />} />
         <Route path="/fantasy" element={<Fantasy />} />

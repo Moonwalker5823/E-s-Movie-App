@@ -74,6 +74,22 @@ export async function byGenre(media: MediaType, genreId: number, extra: Record<s
   return discover(media, { with_genres: genreId, ...extra });
 }
 
+// Browse a single streaming service's US catalog (JustWatch data via TMDB).
+export async function byProvider(media: MediaType, providerId: number, page = 1) {
+  const data = await tmdb<Paged<TmdbItem>>(`/discover/${media}`, {
+    watch_region: "US",
+    with_watch_providers: providerId,
+    sort_by: "popularity.desc",
+    include_adult: "false",
+    "vote_count.gte": 5,
+    page,
+  });
+  return {
+    items: data.results.map((r) => ({ ...r, media_type: media })),
+    totalPages: data.total_pages || 1,
+  };
+}
+
 export async function search(query: string) {
   if (!query.trim()) return [];
   const data = await tmdb<Paged<TmdbItem>>("/search/multi", {
