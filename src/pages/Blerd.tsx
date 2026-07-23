@@ -26,16 +26,16 @@ const NEWS: Tile[] = [
 export default function Blerd() {
   const fact = factOfTheDay();
   return (
-    <div className="px-4 py-6 sm:px-8">
-      <Heading label="♛ Blerd" emoji="🤓" size="xl">
+    <div className="px-4 pb-8 pt-4 sm:px-10">
+      <Heading label="♛ Blerd" emoji="🤓" size="lg" className="mb-3">
         Black Nerd HQ
       </Heading>
-      <p className="mt-2 text-cream/60">
-        TED talks, deep science, code, new gear, and yes — ancient aliens. Feed the nerd.
-      </p>
+
+      {/* Featured video at the very top */}
+      <VideoHub tabs={BLERD_TABS} autoplay short />
 
       {/* Fact of the Day — rotates daily */}
-      <section className="mt-6">
+      <section className="mt-10">
         <div className="card overflow-hidden p-0">
           <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
             <div className="shrink-0">
@@ -50,14 +50,8 @@ export default function Blerd() {
         </div>
       </section>
 
-      {/* Video hub */}
-      <section className="mt-6">
-        <Heading emoji="📺" className="mb-4">Watch</Heading>
-        <VideoHub tabs={BLERD_TABS} autoplay short />
-      </section>
-
       {/* Nerd news & gear */}
-      <section className="mt-12">
+      <section className="mt-10">
         <Heading emoji="🚀" className="mb-4">Nerd News &amp; New Gear</Heading>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {NEWS.map((t) => (

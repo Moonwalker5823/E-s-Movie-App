@@ -8,6 +8,8 @@ export interface HubTab {
   label: string;
 }
 
+const ROTATE_MS = 15000; // featured strip advances to the NEXT 3 clips (tunable)
+
 function timeAgo(iso: string): string {
   const t = new Date(iso).getTime();
   if (!t) return "";
@@ -21,7 +23,7 @@ function timeAgo(iso: string): string {
   return "just now";
 }
 
-// Players default to SOUND ON. The mini has no chrome (a custom mute toggle drives
+// Players default to SOUND ON. The hero has no chrome (a custom mute toggle drives
 // it via the iframe JS API); the fullscreen player uses YouTube's native controls.
 // (Unmuted autoplay works in the native TV app; browsers may still gate it.)
 function embedUrl(id: string, opts: { mute: boolean; controls: boolean; jsapi?: boolean }): string {
@@ -38,9 +40,10 @@ function embedUrl(id: string, opts: { mute: boolean; controls: boolean; jsapi?: 
 }
 
 /**
- * A YouTube video hub. With `autoplay`, the newest clip auto-plays in a muted
- * mini window; clicking the mini (or any card) expands to a full-screen player
- * with sound. Powers the Sports "Highlights" hub and Smokers Lounge "Bud TV".
+ * A YouTube video hub. With `autoplay`, a FEATURED STRIP sits at the top: one
+ * large sound-on hero (the only live iframe) + two "up next" thumbnails, auto-
+ * rotating through the day's feed 3 at a time. Clicking any tile (or grid item)
+ * opens a fullscreen player. Powers Sports / Blerd / Lounge / Games.
  */
 export default function VideoHub({
   tabs,
@@ -59,10 +62,12 @@ export default function VideoHub({
   const [fullVid, setFullVid] = useState<Video | null>(null);
   const [full, setFull] = useState(false);
   const [muted, setMuted] = useState(false); // players default to SOUND ON
+  const [start, setStart] = useState(0); // window offset into the feed
   const closeRef = useRef<HTMLButtonElement>(null);
   const miniRef = useRef<HTMLIFrameElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null); // rotation pauses while focus is inside
 
-  // Toggle the mini player's sound via the YouTube iframe API (no reload).
+  // Toggle the hero's sound via the YouTube iframe API (no reload).
   function toggleMute() {
     const next = !muted;
     setMuted(next);
@@ -72,8 +77,11 @@ export default function VideoHub({
     );
   }
 
-  // The mini "channel" = newest clip, when autoplay is on.
-  const channel = autoplay && items && items.length ? items[0] : null;
+  // The featured trio: a hero + up to two previews, from a rotating window.
+  const len = items?.length ?? 0;
+  const feat = autoplay && len ? items![start % len] : null;
+  const previews: Video[] = [];
+  if (autoplay && len) for (let i = 1; i < 3 && i < len; i++) previews.push(items![(start + i) % len]);
 
   useEffect(() => {
     setItems(null);
@@ -81,6 +89,7 @@ export default function VideoHub({
     setFull(false);
     setFullVid(null);
     setMuted(false);
+    setStart(0);
     let alive = true;
     videos(tab, { short })
       .then((v) => alive && setItems(v))
@@ -89,6 +98,18 @@ export default function VideoHub({
       alive = false;
     };
   }, [tab, short]);
+
+  // Auto-rotate the featured trio through the feed, 3 at a time. Pauses while
+  // fullscreen is open, the tab is hidden, or focus is inside the strip.
+  useEffect(() => {
+    if (!autoplay || len <= 3) return;
+    const id = setInterval(() => {
+      if (full || document.hidden) return;
+      if (stripRef.current?.contains(document.activeElement)) return;
+      setStart((s) => (s + 3) % len);
+    }, ROTATE_MS);
+    return () => clearInterval(id);
+  }, [autoplay, len, full]);
 
   function openFull(v: Video) {
     setFullVid(v);
@@ -101,12 +122,10 @@ export default function VideoHub({
   }
 
   function closeFull() {
-    if (window.history.state?.hubFull) window.history.back(); // fires popstate → setFull(false)
+    if (window.history.state?.hubFull) window.history.back();
     else setFull(false);
   }
 
-  // While fullscreen: Back button (TV remote / browser) and Escape close the
-  // overlay instead of leaving the page; focus the Close button for the remote.
   useEffect(() => {
     if (!full) return;
     const onPop = () => setFull(false);
@@ -128,6 +147,77 @@ export default function VideoHub({
 
   return (
     <div>
+      {/* FEATURED STRIP — hero (the one live sound-on iframe) + two "up next"
+          thumbnails, auto-rotating 3 at a time. data-autofocus lands the remote
+          on the hero when you open the page. */}
+      {autoplay && !full && (
+        <div ref={stripRef} className="mb-5 w-full max-w-5xl">
+          {items === null ? (
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+              <Skeleton className="aspect-video rounded-2xl lg:col-span-2" />
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+                <Skeleton className="aspect-video rounded-xl" />
+                <Skeleton className="aspect-video rounded-xl" />
+              </div>
+            </div>
+          ) : feat ? (
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card">
+                  <iframe
+                    ref={miniRef}
+                    key={feat.videoId}
+                    src={embedUrl(feat.videoId, { mute: muted, controls: false, jsapi: true })}
+                    title={feat.title}
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                  />
+                  <button
+                    onClick={toggleMute}
+                    data-focusable
+                    aria-label={muted ? "Unmute" : "Mute"}
+                    className="absolute left-2 top-2 z-20 grid h-9 w-9 scroll-mt-24 place-items-center rounded-full bg-black/70 text-base text-cream transition hover:bg-black/90"
+                  >
+                    {muted ? "🔇" : "🔊"}
+                  </button>
+                  <button
+                    onClick={() => openFull(feat)}
+                    data-focusable
+                    data-autofocus
+                    aria-label={`Play ${feat.title} full screen`}
+                    className="absolute inset-0 z-10 flex scroll-mt-24 items-end justify-between bg-gradient-to-t from-black/70 via-transparent to-transparent p-3 text-left transition hover:from-black/50"
+                  >
+                    <span className="rounded bg-black/70 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">▶ Now Playing</span>
+                    <span className="rounded bg-spray px-2 py-1 text-[11px] font-bold text-cream shadow-piece">⛶ Fullscreen</span>
+                  </button>
+                </div>
+                <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
+                <div className="text-xs text-cream/40">{feat.channel} · sound on — 🔊 to mute, OK for full screen</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+                {previews.map((v) => (
+                  <button
+                    key={v.videoId}
+                    onClick={() => openFull(v)}
+                    data-focusable
+                    aria-label={`Play ${v.title}`}
+                    className="group block scroll-mt-24 text-left"
+                  >
+                    <div className="relative aspect-video overflow-hidden rounded-xl border border-line bg-surface2 shadow-card">
+                      <img src={v.thumb} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                      <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cream/80">Up next</span>
+                      <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-cream">▶ Play</span>
+                    </div>
+                    <div className="mt-1 line-clamp-1 text-xs font-semibold text-cream">{v.title}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       {tabs.length > 1 && (
         <div className="mb-4 flex flex-wrap gap-2">
           {tabs.map((t) => (
@@ -138,47 +228,7 @@ export default function VideoHub({
         </div>
       )}
 
-      {/* Mini "channel" window — auto-plays with SOUND ON; click to go full screen. */}
-      {channel && !full && (
-        <div className="mb-5">
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card sm:w-[30rem]">
-            <iframe
-              ref={miniRef}
-              key={channel.videoId}
-              src={embedUrl(channel.videoId, { mute: false, controls: false, jsapi: true })}
-              title={channel.title}
-              allow="autoplay; encrypted-media; picture-in-picture"
-              className="pointer-events-none absolute inset-0 h-full w-full"
-            />
-            {/* Mute toggle (sits above the fullscreen layer). */}
-            <button
-              onClick={toggleMute}
-              data-focusable
-              aria-label={muted ? "Unmute" : "Mute"}
-              className="absolute left-2 top-2 z-20 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-sm text-cream transition hover:bg-black/90"
-            >
-              {muted ? "🔇" : "🔊"}
-            </button>
-            <button
-              onClick={() => openFull(channel)}
-              data-focusable
-              aria-label="Play full screen"
-              className="absolute inset-0 z-10 flex items-end justify-between bg-gradient-to-t from-black/70 via-transparent to-transparent p-2 text-left transition hover:from-black/50"
-            >
-              <span className="rounded bg-black/70 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
-                ▶ Now Playing
-              </span>
-              <span className="rounded bg-spray px-2 py-1 text-[11px] font-bold text-cream shadow-piece">⛶ Fullscreen</span>
-            </button>
-          </div>
-          <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{channel.title}</div>
-          <div className="text-xs text-cream/40">
-            {channel.channel} · sound on — tap 🔊 to mute, or ⛶ for full screen
-          </div>
-        </div>
-      )}
-
-      {/* Full-screen overlay player (unmuted, full controls). data-focus-trap keeps
+      {/* Full-screen overlay player (unmuted, native controls). data-focus-trap keeps
           the D-pad inside it (see useSpatialNav) so focus can't escape to the nav. */}
       {full && fullVid && (
         <div data-focus-trap className="fixed inset-0 z-[60] flex flex-col bg-black">
@@ -219,15 +269,8 @@ export default function VideoHub({
           {items.map((v) => (
             <button key={v.videoId} onClick={() => openFull(v)} data-focusable className="group block text-left">
               <div className="relative aspect-video overflow-hidden rounded-xl border border-line bg-surface2 shadow-card">
-                <img
-                  src={v.thumb}
-                  alt=""
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
-                <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-cream">
-                  ▶ Play
-                </span>
+                <img src={v.thumb} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-cream">▶ Play</span>
               </div>
               <div className="mt-1.5 line-clamp-2 text-sm font-semibold text-cream">{v.title}</div>
               <div className="text-xs text-cream/40">
