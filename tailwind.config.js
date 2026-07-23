@@ -4,18 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Theme: 80s/90s NYC graffiti — spray paint on concrete.
-        ink: "#141014", // dark concrete wall (page bg)
-        surface: "#201a20", // cards
-        surface2: "#2b232b", // raised cards / inputs
+        // Theme: 80s/90s NYC subway/wall graffiti — wildstyle spray on concrete.
+        ink: "#141013", // dark warm concrete wall (page bg)
+        surface: "#1e1a1c", // cards
+        surface2: "#2a2427", // raised cards / inputs
         line: "rgba(255,255,255,0.12)", // hairline borders
-        spray: "#ff2e88", // primary — hot magenta
-        sprayhi: "#ff69b4", // bright pink highlight
-        spraylo: "#c4006b", // deep magenta
-        cyan: "#26e0ff", // secondary accent
-        lime: "#b6ff2e", // tertiary accent
-        yellow: "#ffe600", // pop accent
-        purple: "#9d4edd", // pop accent
+        spray: "#e6392b", // primary — true subway red
+        sprayhi: "#ff5c47", // bright red-orange highlight
+        spraylo: "#a51b0f", // deep oxblood red
+        blue: "#1e9bf0", // electric wildstyle blue
+        cyan: "#2bd4ff", // ice-blue highlight
+        lime: "#9ee520", // green
+        yellow: "#ffd400", // classic drip yellow
+        orange: "#ff7a1a", // fill/arrow orange
+        purple: "#8b3ffb", // pop purple
         cream: "#f6f2ea", // paint-white text
         live: "#35d07f", // live/status green
       },
@@ -27,8 +29,8 @@ export default {
         mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
       boxShadow: {
-        glow: "0 0 24px rgba(255,46,136,0.5)",
-        glowStrong: "0 0 40px rgba(255,46,136,0.65)",
+        glow: "0 0 24px rgba(230,57,43,0.5)",
+        glowStrong: "0 0 40px rgba(230,57,43,0.65)",
         card: "0 14px 44px rgba(0,0,0,0.65)",
         piece: "5px 5px 0 rgba(0,0,0,0.85)", // hard graffiti drop shadow
       },

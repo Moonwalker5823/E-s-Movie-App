@@ -58,6 +58,19 @@ export default function NavBar() {
             className="w-36 rounded-full border border-line bg-white/5 px-4 py-2 text-sm outline-none transition placeholder:text-cream/30 focus:w-56 focus:border-spray/40 focus:bg-white/10 sm:w-52 sm:focus:w-72"
           />
         </form>
+
+        <NavLink
+          to="/settings"
+          data-focusable
+          aria-label="Settings"
+          className={({ isActive }) =>
+            `grid h-9 w-9 place-items-center rounded-full text-lg transition ${
+              isActive ? "bg-spray/15 text-spray" : "text-cream/60 hover:text-cream"
+            }`
+          }
+        >
+          ⚙
+        </NavLink>
       </div>
     </header>
   );
