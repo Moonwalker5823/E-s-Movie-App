@@ -21,17 +21,19 @@ function timeAgo(iso: string): string {
   return "just now";
 }
 
-// Muted for the mini "channel" (so it can always autoplay); unmuted + full controls
-// once the user clicks into fullscreen (that click is the gesture browsers require).
-function embedUrl(id: string, opts: { muted: boolean }): string {
+// Players default to SOUND ON. The mini has no chrome (a custom mute toggle drives
+// it via the iframe JS API); the fullscreen player uses YouTube's native controls.
+// (Unmuted autoplay works in the native TV app; browsers may still gate it.)
+function embedUrl(id: string, opts: { mute: boolean; controls: boolean; jsapi?: boolean }): string {
   const p = new URLSearchParams({
     autoplay: "1",
-    mute: opts.muted ? "1" : "0",
+    mute: opts.mute ? "1" : "0",
     rel: "0",
     playsinline: "1",
     modestbranding: "1",
-    controls: opts.muted ? "0" : "1",
+    controls: opts.controls ? "1" : "0",
   });
+  if (opts.jsapi) p.set("enablejsapi", "1");
   return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
 }
 
@@ -56,7 +58,19 @@ export default function VideoHub({
   const [error, setError] = useState(false);
   const [fullVid, setFullVid] = useState<Video | null>(null);
   const [full, setFull] = useState(false);
+  const [muted, setMuted] = useState(false); // players default to SOUND ON
   const closeRef = useRef<HTMLButtonElement>(null);
+  const miniRef = useRef<HTMLIFrameElement>(null);
+
+  // Toggle the mini player's sound via the YouTube iframe API (no reload).
+  function toggleMute() {
+    const next = !muted;
+    setMuted(next);
+    miniRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: "command", func: next ? "mute" : "unMute", args: [] }),
+      "*"
+    );
+  }
 
   // The mini "channel" = newest clip, when autoplay is on.
   const channel = autoplay && items && items.length ? items[0] : null;
@@ -66,6 +80,7 @@ export default function VideoHub({
     setError(false);
     setFull(false);
     setFullVid(null);
+    setMuted(false);
     let alive = true;
     videos(tab, { short })
       .then((v) => alive && setItems(v))
@@ -123,21 +138,31 @@ export default function VideoHub({
         </div>
       )}
 
-      {/* Mini "channel" window — auto-plays muted; click to go full screen. */}
+      {/* Mini "channel" window — auto-plays with SOUND ON; click to go full screen. */}
       {channel && !full && (
         <div className="mb-5">
           <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card sm:w-[30rem]">
             <iframe
+              ref={miniRef}
               key={channel.videoId}
-              src={embedUrl(channel.videoId, { muted: true })}
+              src={embedUrl(channel.videoId, { mute: false, controls: false, jsapi: true })}
               title={channel.title}
               allow="autoplay; encrypted-media; picture-in-picture"
               className="pointer-events-none absolute inset-0 h-full w-full"
             />
+            {/* Mute toggle (sits above the fullscreen layer). */}
+            <button
+              onClick={toggleMute}
+              data-focusable
+              aria-label={muted ? "Unmute" : "Mute"}
+              className="absolute left-2 top-2 z-20 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-sm text-cream transition hover:bg-black/90"
+            >
+              {muted ? "🔇" : "🔊"}
+            </button>
             <button
               onClick={() => openFull(channel)}
               data-focusable
-              aria-label="Play full screen with sound"
+              aria-label="Play full screen"
               className="absolute inset-0 z-10 flex items-end justify-between bg-gradient-to-t from-black/70 via-transparent to-transparent p-2 text-left transition hover:from-black/50"
             >
               <span className="rounded bg-black/70 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
@@ -148,7 +173,7 @@ export default function VideoHub({
           </div>
           <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{channel.title}</div>
           <div className="text-xs text-cream/40">
-            {channel.channel} · muted — click for sound &amp; full screen
+            {channel.channel} · sound on — tap 🔊 to mute, or ⛶ for full screen
           </div>
         </div>
       )}
@@ -166,7 +191,7 @@ export default function VideoHub({
           <div className="relative flex-1">
             <iframe
               key={"full-" + fullVid.videoId}
-              src={embedUrl(fullVid.videoId, { muted: false })}
+              src={embedUrl(fullVid.videoId, { mute: false, controls: true })}
               title={fullVid.title}
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
               allowFullScreen

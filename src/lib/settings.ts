@@ -34,7 +34,7 @@ const DEFAULTS: Settings = {
   myServices: ["hulu", "prime", "tubi"], // Eric's services by default
   leagues: {},
   hideX: false,
-  hue: {},
+  hue: { bridgeIp: "10.168.168.216" }, // Eric's Hue bridge — just press Pair to link
 };
 
 function read(): Settings {
