@@ -20,9 +20,10 @@ export default function Settings() {
 
       {/* Security note */}
       <p className="mt-3 rounded-xl border border-cyan/30 bg-cyan/5 p-3 text-sm text-cream/80">
-        🔒 Sign-in happens on each service&apos;s <b>own</b> site — this app never sees or stores your
-        passwords. &ldquo;My Services&rdquo; just tells the app what you already pay for so it can flag
-        what you can watch for free.
+        🔒 Sign-in happens on each service&apos;s <b>own</b> site — this app never sees your passwords
+        and <b>can&apos;t detect</b> your real login status (that stays private on each service). These
+        toggles are simply <b>you</b> telling the app which services you&apos;re signed into on your TV,
+        so it can flag what you can watch for free.
       </p>
 
       {/* General */}
@@ -48,15 +49,24 @@ export default function Settings() {
       {/* My Services */}
       <section className="mt-8">
         <Heading emoji="📺" className="mb-3">My Services</Heading>
+        <p className="mb-3 text-sm text-cream/50">
+          Turn on the services you&apos;re signed into on your TV. Connected ones are dimmed with a
+          ✓ — tap <b>Open</b> to jump straight in.
+        </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {STREAMING_SERVICES.map((svc) => {
             const owned = s.myServices.includes(svc.key);
             return (
-              <div key={svc.key} className="card flex items-center gap-3 p-3">
+              <div
+                key={svc.key}
+                className={`card flex items-center gap-3 p-3 transition ${owned ? "opacity-60" : ""}`}
+                style={owned ? { boxShadow: "inset 4px 0 0 #35d07f" } : undefined}
+              >
                 <button
                   onClick={() => toggleService(svc.key)}
                   data-focusable
                   aria-pressed={owned}
+                  title={owned ? "Turn off" : "Mark as signed in"}
                   className={`grid h-7 w-11 place-items-start rounded-full p-0.5 transition ${
                     owned ? "bg-live" : "bg-white/15"
                   }`}
@@ -68,10 +78,12 @@ export default function Settings() {
                     {svc.name}
                     {svc.free ? " · FREE" : ""}
                   </div>
-                  <div className="text-xs text-cream/40">{owned ? "You have this" : "Not subscribed"}</div>
+                  <div className={`text-xs ${owned ? "text-live" : "text-cream/40"}`}>
+                    {owned ? "✓ Signed in" : "Not connected"}
+                  </div>
                 </div>
                 <a href={svc.loginUrl} target="_blank" rel="noreferrer" data-focusable className="btn-ghost !px-3 !py-1 text-xs">
-                  Sign in ↗
+                  {owned ? "Open ↗" : "Sign in ↗"}
                 </a>
               </div>
             );
