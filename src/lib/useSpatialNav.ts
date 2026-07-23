@@ -75,8 +75,9 @@ export function useSpatialNav() {
       const arrows = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
       if (!arrows.includes(e.key)) return;
 
-      // Inside a text field, keep native cursor movement; only Down leaves the field.
-      if (isTextField(active) && e.key !== "ArrowDown") return;
+      // Inside a text field, keep Left/Right for the cursor, but let Up/Down move
+      // focus out so you can never get stuck on an input (common on the TV remote).
+      if (isTextField(active) && (e.key === "ArrowLeft" || e.key === "ArrowRight")) return;
       // Inside a <select>, let the remote scroll options.
       if (active?.tagName === "SELECT") return;
 
