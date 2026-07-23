@@ -1,12 +1,16 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { askAssistant } from "../../api/assistant";
 import { draftPlayer, available, useDraft } from "../../lib/fantasy/draft";
+import { useSettings } from "../../lib/settings";
 import type { AssistantPick } from "../../lib/fantasy/types";
 
 /** The live AI draft assistant — recommends your next pick and answers questions. */
 export default function AssistantPanel() {
   useDraft();
+  const { accessCode } = useSettings();
+  const locked = !accessCode; // no code on this device → live AI is gated
   const [pick, setPick] = useState<AssistantPick | null>(null);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
@@ -28,10 +32,20 @@ export default function AssistantPanel() {
       <div className="mb-3 flex items-center gap-2">
         <span className="grid h-8 w-8 -rotate-6 place-items-center rounded-lg bg-spray text-cream shadow-piece">🧠</span>
         <h3 className="font-display text-2xl text-cream">Draft Assistant</h3>
+        {locked && (
+          <span className="sticker bg-yellow text-ink" title="Live AI is locked">🔒 Locked</span>
+        )}
       </div>
 
+      {locked && (
+        <Link to="/settings" data-focusable className="mb-2 block rounded-lg border border-yellow/40 bg-yellow/10 p-2 text-xs text-cream/90">
+          🔒 Live AI is locked. Add your access code in <b>Settings → AI Access Code</b> to unlock it.
+          Picks below use the built-in offline draft brain.
+        </Link>
+      )}
+
       <button onClick={() => ask()} data-focusable className="btn-spray w-full" disabled={loading}>
-        {loading ? "Thinking…" : "⚡ Who should I pick?"}
+        {loading ? "Thinking…" : locked ? "⚡ Get a pick (offline)" : "⚡ Who should I pick?"}
       </button>
 
       {pick && (
