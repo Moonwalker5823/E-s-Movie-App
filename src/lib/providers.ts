@@ -17,8 +17,8 @@ const PROVIDERS: ProviderLink[] = [
   },
   {
     match: /amazon|prime video/i,
-    home: "https://www.amazon.com/gp/video/storefront",
-    search: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}&i=instant-video`,
+    home: "https://www.primevideo.com/",
+    search: (q) => `https://www.primevideo.com/search/?phrase=${encodeURIComponent(q)}`,
     color: "#00a8e1",
   },
   {

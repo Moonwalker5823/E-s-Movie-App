@@ -2,11 +2,26 @@ import { useSyncExternalStore } from "react";
 
 export type Landing = "home" | "browse";
 
+export type LeagueKey = "yahoo" | "espn" | "sleeper";
+
+// Philips Hue theater-lighting config. The user pairs their local bridge once;
+// we store the bridge IP + app key and which room/scenes to drive. Color-follow
+// is handled by the user's Hue Sync Box — the app only triggers scenes/dimming.
+export interface HueConfig {
+  bridgeIp?: string;
+  user?: string; // Hue application key from link-button pairing
+  groupId?: string; // room/zone to control ("0" = all lights)
+  autoDimOnPlay?: boolean;
+  scenes?: { play?: string; movie?: string; bright?: string };
+}
+
 export interface Settings {
   landing: Landing;
-  myServices: string[]; // service keys the user subscribes to
-  leagues: { yahoo?: string; espn?: string };
+  myServices: string[]; // service keys the user subscribes to / is signed into
+  leagues: Partial<Record<LeagueKey, string>>;
   accessCode?: string; // sent to the AI endpoint when it's gated
+  hideX?: boolean; // hide the adult "X" tab from the nav
+  hue?: HueConfig; // theater lighting
 }
 
 const KEY = "ema.settings.v1";
@@ -14,6 +29,8 @@ const DEFAULTS: Settings = {
   landing: "home",
   myServices: ["hulu", "prime", "tubi"], // Eric's services by default
   leagues: {},
+  hideX: false,
+  hue: {},
 };
 
 function read(): Settings {
@@ -40,7 +57,7 @@ export function useSettings(): Settings {
   );
 }
 
-// Non-reactive read (for routing / one-off checks).
+// Non-reactive read (for routing / one-off checks / the Hue client).
 export const getSettings = () => state;
 
 export function setLanding(landing: Landing) {
@@ -59,10 +76,23 @@ export function hasService(key: string | null): boolean {
   return key ? state.myServices.includes(key) : false;
 }
 
-export function setLeague(which: "yahoo" | "espn", url: string) {
+export function setLeague(which: LeagueKey, url: string) {
   commit({ ...state, leagues: { ...state.leagues, [which]: url } });
 }
 
 export function setAccessCode(code: string) {
   commit({ ...state, accessCode: code });
+}
+
+export function setHideX(hidden: boolean) {
+  commit({ ...state, hideX: hidden });
+}
+
+// Merge a partial Hue config (nested `scenes` merges too).
+export function setHue(patch: Partial<HueConfig>) {
+  const prev = state.hue || {};
+  commit({
+    ...state,
+    hue: { ...prev, ...patch, scenes: { ...prev.scenes, ...patch.scenes } },
+  });
 }

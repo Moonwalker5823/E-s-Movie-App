@@ -5,12 +5,16 @@ import Chip from "../components/ui/Chip";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
 import { byProvider } from "../api/tmdb";
+import { myProviderIds } from "../lib/services";
+import { useSettings } from "../lib/settings";
 import type { MediaType, TmdbItem } from "../lib/types";
+
+type ServicePick = { name: string; id: number | string; free?: boolean; combo?: boolean };
 
 // TMDB US watch-provider IDs. "free" = ad-supported, no subscription.
 // The first entry merges every free service into one endless catalog.
 const FREE_COMBO = "73|300|207|12|613"; // Tubi, Pluto, Roku, Crackle, Freevee
-const SERVICES: { name: string; id: number | string; free?: boolean; combo?: boolean }[] = [
+const SERVICES: ServicePick[] = [
   { name: "🆓 All Free", id: FREE_COMBO, combo: true },
   { name: "Tubi", id: 73, free: true },
   { name: "Pluto TV", id: 300, free: true },
@@ -25,7 +29,14 @@ const SERVICES: { name: string; id: number | string; free?: boolean; combo?: boo
 ];
 
 export default function Services() {
-  const [svc, setSvc] = useState(SERVICES[0]);
+  const { myServices } = useSettings();
+  // "My Services" = one combined catalog of everything you're signed into.
+  const myIds = myProviderIds(myServices);
+  const services: ServicePick[] = myIds
+    ? [{ name: "⭐ My Services", id: myIds, combo: true }, ...SERVICES]
+    : SERVICES;
+
+  const [svc, setSvc] = useState<ServicePick>(services[0]);
   const [media, setMedia] = useState<MediaType>("movie");
   const [items, setItems] = useState<TmdbItem[] | null>(null);
   const [page, setPage] = useState(1);
@@ -72,7 +83,7 @@ export default function Services() {
 
       {/* Service picker */}
       <div className="mt-5 flex flex-wrap gap-2">
-        {SERVICES.map((s) => (
+        {services.map((s) => (
           <Chip key={s.id} active={svc.id === s.id} onClick={() => setSvc(s)}>
             {s.name}
             {s.free ? " · FREE" : ""}

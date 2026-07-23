@@ -1,23 +1,81 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
-// Lightweight D-pad / arrow-key spatial navigation for TV remotes.
-// Moves focus between [data-focusable] elements by on-screen geometry.
+// D-pad / arrow-key spatial navigation for TV remotes.
+// - Arrow keys move focus between [data-focusable] elements by on-screen geometry.
+// - OK / Enter activates the focused link or button (the "click" the remote sends).
+// - A visible `.is-focused` ring is kept in sync (programmatic focus doesn't always
+//   trigger :focus-visible inside TV WebViews, so we drive the class ourselves).
+// - Text inputs keep normal Left/Right/Up cursor behavior; only Down jumps out.
+
+const FOCUSABLE = "[data-focusable]";
+
+function visibleFocusables(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+    (el) => el.offsetParent !== null
+  );
+}
+
+function markFocused(el: HTMLElement) {
+  document.querySelectorAll(".is-focused").forEach((n) => n !== el && n.classList.remove("is-focused"));
+  el.classList.add("is-focused");
+}
+
+function moveTo(el: HTMLElement) {
+  markFocused(el);
+  el.focus();
+  el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+}
+
+function isTextField(el: Element | null): boolean {
+  const tag = (el as HTMLElement | null)?.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA";
+}
+
 export function useSpatialNav() {
+  const location = useLocation();
+
+  // Prime the remote: focus the first control when nothing focusable is focused
+  // (fresh load, or after the previously focused element unmounted on navigation).
+  // If the user already has something focused (e.g. the nav link they just OK'd),
+  // leave it alone.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active.matches?.(FOCUSABLE)) return;
+      const list = visibleFocusables();
+      if (list.length) moveTo(list[0]);
+    }, 120);
+    return () => clearTimeout(t);
+  }, [location.pathname]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
-      if (!keys.includes(e.key)) return;
-
       const active = document.activeElement as HTMLElement | null;
-      const focusables = Array.from(
-        document.querySelectorAll<HTMLElement>("[data-focusable]")
-      ).filter((el) => el.offsetParent !== null);
 
+      // OK / Enter → activate the focused link/button. Let text fields submit their
+      // form and let <select> open its options natively.
+      if (e.key === "Enter") {
+        if (active && active.matches(FOCUSABLE) && !isTextField(active) && active.tagName !== "SELECT") {
+          e.preventDefault();
+          active.click();
+        }
+        return;
+      }
+
+      const arrows = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+      if (!arrows.includes(e.key)) return;
+
+      // Inside a text field, keep native cursor movement; only Down leaves the field.
+      if (isTextField(active) && e.key !== "ArrowDown") return;
+      // Inside a <select>, let the remote scroll options.
+      if (active?.tagName === "SELECT") return;
+
+      const focusables = visibleFocusables();
       if (focusables.length === 0) return;
 
-      // If nothing focused yet, focus the first visible one.
-      if (!active || !active.matches("[data-focusable]")) {
-        focusables[0].focus();
+      if (!active || !active.matches(FOCUSABLE)) {
+        moveTo(focusables[0]);
         e.preventDefault();
         return;
       }
@@ -44,7 +102,6 @@ export function useSpatialNav() {
         if (e.key === "ArrowUp") ok = dy < -8 && Math.abs(dx) < Math.abs(dy) + 200;
         if (!ok) continue;
 
-        // Prefer the closest in the primary direction.
         const primary = e.key === "ArrowLeft" || e.key === "ArrowRight" ? Math.abs(dx) : Math.abs(dy);
         const secondary = e.key === "ArrowLeft" || e.key === "ArrowRight" ? Math.abs(dy) : Math.abs(dx);
         const score = primary + secondary * 2;
@@ -55,13 +112,22 @@ export function useSpatialNav() {
       }
 
       if (best) {
-        best.focus();
-        best.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+        moveTo(best);
         e.preventDefault();
       }
     }
 
+    // Keep the ring in sync when focus changes by other means (click, tab, focus()).
+    function onFocusIn(e: FocusEvent) {
+      const t = e.target as HTMLElement;
+      if (t?.matches?.(FOCUSABLE)) markFocused(t);
+    }
+
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
+    };
   }, []);
 }

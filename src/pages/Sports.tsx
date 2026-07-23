@@ -4,6 +4,19 @@ import GameCard from "../components/GameCard";
 import Heading from "../components/ui/Heading";
 import Chip from "../components/ui/Chip";
 import Skeleton from "../components/ui/Skeleton";
+import VideoHub, { type HubTab } from "../components/VideoHub";
+
+// Your own SportsCenter — highlight clips + shows/pods, none of the talk.
+const HIGHLIGHT_TABS: HubTab[] = [
+  { key: "all", label: "🔥 Top Plays" },
+  { key: "nfl", label: "NFL" },
+  { key: "nba", label: "NBA" },
+  { key: "mlb", label: "MLB" },
+  { key: "nhl", label: "NHL" },
+  { key: "soccer", label: "Soccer" },
+  { key: "cfb", label: "CFB" },
+  { key: "shows", label: "🎙️ Shows & Pods" },
+];
 
 export default function Sports() {
   const [league, setLeague] = useState(LEAGUES[0]);
@@ -27,17 +40,27 @@ export default function Sports() {
       <Heading label="♛ Sports" emoji="🏆" size="xl">
         Game Day
       </Heading>
-      <p className="mt-2 text-cream/60">Today&apos;s games, live scores, and where to catch them.</p>
+      <p className="mt-2 text-cream/60">Your own SportsCenter — last night&apos;s highlights and shows, plus live scores.</p>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        {LEAGUES.map((l) => (
-          <Chip key={l.key} active={league.key === l.key} onClick={() => setLeague(l)}>
-            {l.label}
-          </Chip>
-        ))}
-      </div>
+      {/* Highlights hub: clips only, no talk. */}
+      <section className="mt-6">
+        <Heading emoji="🎬" className="mb-4">Highlights & Shows</Heading>
+        <VideoHub tabs={HIGHLIGHT_TABS} autoplay />
+      </section>
 
-      {error ? (
+      {/* Scores & schedule */}
+      <section className="mt-12">
+        <Heading emoji="📊" className="mb-3">Scores & Schedule</Heading>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {LEAGUES.map((l) => (
+            <Chip key={l.key} active={league.key === l.key} onClick={() => setLeague(l)}>
+              {l.label}
+            </Chip>
+          ))}
+        </div>
+
+        {error ? (
         <p className="mt-8 text-cream/60">Couldn&apos;t load games right now. Try another league.</p>
       ) : games === null ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -53,7 +76,8 @@ export default function Sports() {
             <GameCard key={g.id} g={g} />
           ))}
         </div>
-      )}
+        )}
+      </section>
     </div>
   );
 }

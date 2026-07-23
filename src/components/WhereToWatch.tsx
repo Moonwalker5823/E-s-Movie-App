@@ -2,12 +2,24 @@ import Heading from "./ui/Heading";
 import Skeleton from "./ui/Skeleton";
 import { IMG } from "../api/tmdb";
 import { launchUrlFor, colorFor } from "../lib/providers";
-import { serviceKeyForProvider } from "../lib/services";
+import { serviceByKey, serviceKeyForProvider } from "../lib/services";
 import { hasService, useSettings } from "../lib/settings";
+import { theaterOnPlay } from "../lib/hue";
 import type { Provider, WatchProviders } from "../lib/types";
 
 function owned(p: Provider) {
   return hasService(serviceKeyForProvider(p.provider_name));
+}
+
+// The best service to "just play" on: prefer a free one (no cost), else the
+// first service the user owns that carries this title.
+function pickBest(watchNow: Provider[]): Provider | null {
+  if (watchNow.length === 0) return null;
+  const free = watchNow.find((p) => {
+    const key = serviceKeyForProvider(p.provider_name);
+    return key ? serviceByKey(key)?.free : false;
+  });
+  return free || watchNow[0];
 }
 
 function ProviderGroup({ label, list, title }: { label: string; list?: Provider[]; title: string }) {
@@ -59,10 +71,26 @@ export default function WhereToWatch({ wp, title }: { wp: WatchProviders | null;
   // Services you own where this can be watched now (subscription / free / ads).
   const watchNow = [...(wp.flatrate || []), ...(wp.free || []), ...(wp.ads || [])].filter(owned);
   const names = Array.from(new Set(watchNow.map((p) => p.provider_name)));
+  const best = pickBest(watchNow);
 
   return (
     <div className="card mt-8 p-5">
       <Heading emoji="📺" className="mb-4">Where to Watch</Heading>
+
+      {/* One-tap play: you're signed into this service, so go straight to it
+          (and dim the Hue theater lights if you've set that up). */}
+      {best && (
+        <a
+          href={launchUrlFor(best.provider_name, title)}
+          target="_blank"
+          rel="noreferrer"
+          data-focusable
+          onClick={() => theaterOnPlay()}
+          className="btn-spray mb-4 w-full !justify-center !py-3 text-base"
+        >
+          ▶ Play on {best.provider_name}
+        </a>
+      )}
 
       {names.length > 0 && (
         <div className="mb-4 rounded-xl border border-live/40 bg-live/10 p-3 font-semibold text-cream">

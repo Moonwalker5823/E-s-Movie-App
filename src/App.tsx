@@ -8,6 +8,9 @@ import Services from "./pages/Services";
 import Sports from "./pages/Sports";
 import Fantasy from "./pages/Fantasy";
 import DraftRoom from "./pages/DraftRoom";
+import Games from "./pages/Games";
+import XZone from "./pages/XZone";
+import SmokersLounge from "./pages/SmokersLounge";
 import Favorites from "./pages/Favorites";
 import SettingsPage from "./pages/Settings";
 import Title from "./pages/Title";
@@ -38,6 +41,9 @@ export default function App() {
         <Route path="/sports" element={<Sports />} />
         <Route path="/fantasy" element={<Fantasy />} />
         <Route path="/fantasy/draft" element={<DraftRoom />} />
+        <Route path="/games" element={<Games />} />
+        <Route path="/lounge" element={<SmokersLounge />} />
+        <Route path="/x" element={<XZone />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/title/:media/:id" element={gated(<Title />)} />
       </Routes>
