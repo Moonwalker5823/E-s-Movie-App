@@ -6,3 +6,6 @@ dist
 .idea
 
 *.tsbuildinfo
+
+# Stray screenshots / photos accidentally dropped in the repo root
+/thumbnail*.jpg

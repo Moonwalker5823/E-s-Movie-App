@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Chip from "./ui/Chip";
 import Skeleton from "./ui/Skeleton";
 import { videos, type Video } from "../api/videos";
@@ -7,8 +7,6 @@ export interface HubTab {
   key: string;
   label: string;
 }
-
-const ROTATE_MS = 15000; // featured strip advances to the NEXT 3 clips (tunable)
 
 function timeAgo(iso: string): string {
   const t = new Date(iso).getTime();
@@ -39,6 +37,24 @@ function embedUrl(id: string, opts: { mute: boolean; controls: boolean; jsapi?: 
   return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
 }
 
+// A CONTINUOUS, looping playlist embed: plays the feed's clips back-to-back so the
+// hub behaves like an always-on channel instead of stopping after one video.
+function embedPlaylistUrl(ids: string[], opts: { mute: boolean; controls: boolean; jsapi?: boolean }): string {
+  const list = ids.slice(0, 25); // cap the URL length
+  const p = new URLSearchParams({
+    autoplay: "1",
+    mute: opts.mute ? "1" : "0",
+    rel: "0",
+    playsinline: "1",
+    modestbranding: "1",
+    controls: opts.controls ? "1" : "0",
+    loop: "1",
+    playlist: list.join(","), // the sequence YouTube plays through, then loops
+  });
+  if (opts.jsapi) p.set("enablejsapi", "1");
+  return `https://www.youtube-nocookie.com/embed/${list[0]}?${p.toString()}`;
+}
+
 /**
  * A YouTube video hub. With `autoplay`, a FEATURED STRIP sits at the top: one
  * large sound-on hero (the only live iframe) + two "up next" thumbnails, auto-
@@ -62,10 +78,8 @@ export default function VideoHub({
   const [fullVid, setFullVid] = useState<Video | null>(null);
   const [full, setFull] = useState(false);
   const [muted, setMuted] = useState(false); // players default to SOUND ON
-  const [start, setStart] = useState(0); // window offset into the feed
   const closeRef = useRef<HTMLButtonElement>(null);
   const miniRef = useRef<HTMLIFrameElement>(null);
-  const stripRef = useRef<HTMLDivElement>(null); // rotation pauses while focus is inside
 
   // Toggle the hero's sound via the YouTube iframe API (no reload).
   function toggleMute() {
@@ -77,11 +91,22 @@ export default function VideoHub({
     );
   }
 
-  // The featured trio: a hero + up to two previews, from a rotating window.
+  // The hero plays the whole feed back-to-back as a continuous reel; two "up next"
+  // thumbnails preview what follows.
   const len = items?.length ?? 0;
-  const feat = autoplay && len ? items![start % len] : null;
+  const reelIds = autoplay && items ? items.map((v) => v.videoId) : [];
+  const feat = autoplay && len ? items![0] : null;
   const previews: Video[] = [];
-  if (autoplay && len) for (let i = 1; i < 3 && i < len; i++) previews.push(items![(start + i) % len]);
+  if (autoplay && len) for (let i = 1; i < 3 && i < len; i++) previews.push(items![i]);
+
+  // Build the looping-playlist URL once per feed (NOT on mute toggle — that's driven
+  // by postMessage) so the hero iframe never reloads and restarts mid-play.
+  const reelKey = reelIds.join(",");
+  const heroSrc = useMemo(
+    () => (reelIds.length ? embedPlaylistUrl(reelIds, { mute: false, controls: false, jsapi: true }) : ""),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [reelKey]
+  );
 
   useEffect(() => {
     setItems(null);
@@ -89,7 +114,6 @@ export default function VideoHub({
     setFull(false);
     setFullVid(null);
     setMuted(false);
-    setStart(0);
     let alive = true;
     videos(tab, { short })
       .then((v) => alive && setItems(v))
@@ -98,18 +122,6 @@ export default function VideoHub({
       alive = false;
     };
   }, [tab, short]);
-
-  // Auto-rotate the featured trio through the feed, 3 at a time. Pauses while
-  // fullscreen is open, the tab is hidden, or focus is inside the strip.
-  useEffect(() => {
-    if (!autoplay || len <= 3) return;
-    const id = setInterval(() => {
-      if (full || document.hidden) return;
-      if (stripRef.current?.contains(document.activeElement)) return;
-      setStart((s) => (s + 3) % len);
-    }, ROTATE_MS);
-    return () => clearInterval(id);
-  }, [autoplay, len, full]);
 
   function openFull(v: Video) {
     setFullVid(v);
@@ -151,7 +163,7 @@ export default function VideoHub({
           thumbnails, auto-rotating 3 at a time. data-autofocus lands the remote
           on the hero when you open the page. */}
       {autoplay && !full && (
-        <div ref={stripRef} className="mb-5 w-full max-w-5xl">
+        <div className="mb-5 w-full max-w-5xl">
           {items === null ? (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
               <Skeleton className="aspect-video rounded-2xl lg:col-span-2" />
@@ -166,8 +178,8 @@ export default function VideoHub({
                 <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card">
                   <iframe
                     ref={miniRef}
-                    key={feat.videoId}
-                    src={embedUrl(feat.videoId, { mute: muted, controls: false, jsapi: true })}
+                    key={`hero-${tab}`}
+                    src={heroSrc}
                     title={feat.title}
                     allow="autoplay; encrypted-media; picture-in-picture"
                     className="pointer-events-none absolute inset-0 h-full w-full"
@@ -187,12 +199,12 @@ export default function VideoHub({
                     aria-label={`Play ${feat.title} full screen`}
                     className="absolute inset-0 z-10 flex scroll-mt-24 items-end justify-between bg-gradient-to-t from-black/70 via-transparent to-transparent p-3 text-left transition hover:from-black/50"
                   >
-                    <span className="rounded bg-black/70 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">▶ Now Playing</span>
+                    <span className="rounded bg-black/70 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">▶ Live Reel</span>
                     <span className="rounded bg-spray px-2 py-1 text-[11px] font-bold text-cream shadow-piece">⛶ Fullscreen</span>
                   </button>
                 </div>
-                <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
-                <div className="text-xs text-cream/40">{feat.channel} · sound on — 🔊 to mute, OK for full screen</div>
+                <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">▶ Highlights reel — {len} clips back-to-back</div>
+                <div className="text-xs text-cream/40">Plays continuously · 🔊 to mute · OK for full screen</div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
