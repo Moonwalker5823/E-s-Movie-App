@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   DESIGN RULES — Eric's Movie App
+   Theme: 80s/90s NYC GRAFFITI — spray paint on a concrete wall.
+   Loud "piece" lettering (Bangers), marker tags (Permanent Marker),
+   dripping accents (Rubik Wet Paint), hot-magenta + cyan + yellow
+   spray on dark concrete, hard drop shadows, sticker tags.
+   Keep everything on-system: use tokens from tailwind.config.js and
+   the component classes below — never hardcode ad-hoc colors.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+}
+
+/* Big-screen (10-foot) scaling for TVs like the Hisense U8 100".
+   Tailwind type + spacing are rem-based, so scaling the root font size
+   scales the entire UI proportionally for couch-distance readability. */
+@media (min-width: 1600px) {
+  :root { font-size: 18px; }
+}
+@media (min-width: 1920px) {
+  :root { font-size: 20px; }
+}
+@media (min-width: 2560px) {
+  :root { font-size: 24px; }
+}
+@media (min-width: 3200px) {
+  :root { font-size: 30px; }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: #f6f2ea;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #141014;
+  /* Spray blooms + concrete grain over a dark wall */
+  background-image: radial-gradient(900px 640px at 85% -8%, rgba(255, 46, 136, 0.22), transparent 60%),
+    radial-gradient(760px 560px at 8% 6%, rgba(38, 224, 255, 0.16), transparent 58%),
+    radial-gradient(680px 520px at 60% 108%, rgba(182, 255, 46, 0.12), transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 130px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 6px 6px, 100% 100%, 100% 100%;
+  background-attachment: fixed;
+}
+
+@layer base {
+  ::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 46, 136, 0.35);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Typography */
+  .u-display {
+    @apply font-display tracking-wide;
+    letter-spacing: 0.02em;
+  }
+  .u-label {
+    @apply font-tag text-sm uppercase tracking-wide text-spray;
+    transform: rotate(-1.5deg);
+  }
+  .u-glow {
+    text-shadow: 0 0 16px rgba(255, 46, 136, 0.6), 0 0 2px rgba(255, 46, 136, 0.5);
+  }
+  /* Classic "piece" burner: colored fill, dark outline, hard shadow */
+  .u-piece {
+    color: #ffe600;
+    -webkit-text-stroke: 2px #141014;
+    text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 46, 136, 0.35);
+  }
+  .u-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px #ff2e88;
+    text-shadow: 0 0 22px rgba(255, 46, 136, 0.4);
+  }
+
+  /* Surfaces */
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-card;
+  }
+  .glass {
+    @apply rounded-2xl border border-line;
+    background: rgba(32, 26, 32, 0.62);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  /* Spray-outlined frame */
+  .frame {
+    @apply rounded-2xl;
+    box-shadow: inset 0 0 0 2px rgba(255, 46, 136, 0.7), 5px 5px 0 rgba(0, 0, 0, 0.6);
+  }
+
+  /* Sticker / tag badge — like a slap sticker on a pole */
+  .sticker {
+    @apply inline-block rounded-md px-2 py-0.5 font-tag text-xs uppercase;
+    transform: rotate(-3deg);
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2 text-sm font-bold
+      uppercase tracking-wide transition focus:outline-none;
+  }
+  .btn-spray {
+    @apply btn bg-spray text-cream shadow-piece hover:bg-sprayhi;
+  }
+  .btn-ghost {
+    @apply btn border-2 border-line bg-white/5 text-cream hover:border-spray/60 hover:bg-white/10;
+  }
+
+  /* Chips / pills (filter tabs, tags) */
+  .chip {
+    @apply rounded-lg px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition;
+    @apply border-2 border-line bg-white/5 text-cream/70 hover:text-cream hover:border-spray/50;
+  }
+  .chip-active {
+    @apply border-spray bg-spray text-cream shadow-piece;
+  }
+
+  /* Horizontal rail */
+  .rail {
+    @apply flex gap-4 overflow-x-auto scroll-smooth px-4 pb-2 sm:px-8;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Loading shimmer */
+  .shimmer {
+    @apply relative overflow-hidden bg-surface2;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 46, 136, 0.1), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+/* Focus ring for TV / D-pad navigation */
+[data-focusable]:focus-visible,
+[data-focusable].is-focused {
+  outline: none;
+  box-shadow: 0 0 0 3px #26e0ff, 0 0 26px rgba(255, 46, 136, 0.55);
+  transform: translateY(-2px) scale(1.03);
+  z-index: 5;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
