@@ -8,7 +8,10 @@ import { byProvider } from "../api/tmdb";
 import type { MediaType, TmdbItem } from "../lib/types";
 
 // TMDB US watch-provider IDs. "free" = ad-supported, no subscription.
-const SERVICES = [
+// The first entry merges every free service into one endless catalog.
+const FREE_COMBO = "73|300|207|12|613"; // Tubi, Pluto, Roku, Crackle, Freevee
+const SERVICES: { name: string; id: number | string; free?: boolean; combo?: boolean }[] = [
+  { name: "🆓 All Free", id: FREE_COMBO, combo: true },
   { name: "Tubi", id: 73, free: true },
   { name: "Pluto TV", id: 300, free: true },
   { name: "Hulu", id: 15 },
