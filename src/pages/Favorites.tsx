@@ -69,6 +69,7 @@ function Grid({ items, list }: { items: FavoriteItem[]; list: "favorites" | "wat
               onClick={() =>
                 toggleSave({ id: f.id, media_type: f.media_type, title: f.title, poster_path: f.poster_path }, list)
               }
+              data-focusable
               className="text-cream/40 transition hover:text-spray"
               aria-label="remove"
             >

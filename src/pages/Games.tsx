@@ -1,5 +1,9 @@
 import Heading from "../components/ui/Heading";
 import LaunchTile, { type Tile } from "../components/LaunchTile";
+import VideoHub, { type HubTab } from "../components/VideoHub";
+
+// Short gaming clips, trailers & moments — auto-plays the top clip of the day.
+const CLIP_TABS: HubTab[] = [{ key: "gaming", label: "🎮 Clips" }];
 
 // Browser-based cloud gaming — play right on the TV, no console hookup needed.
 // Sign in with your Microsoft account to reach your Xbox / Game Pass library.
@@ -28,7 +32,13 @@ export default function Games() {
         your own console; it works best via the Xbox app.)
       </p>
 
-      <Heading emoji="🟢" className="mb-4 mt-8">
+      {/* Game clips — auto-playing shorts (5 min & under) */}
+      <section className="mt-6">
+        <Heading emoji="🎬" className="mb-4">Game Clips</Heading>
+        <VideoHub tabs={CLIP_TABS} autoplay short />
+      </section>
+
+      <Heading emoji="🟢" className="mb-4 mt-10">
         Xbox
       </Heading>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

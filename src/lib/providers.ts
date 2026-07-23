@@ -1,6 +1,8 @@
 // Maps TMDB provider names -> where to launch/search. TMDB doesn't give per-title
 // deep links, so we open the service's own site (its own search when possible),
 // which then hands off to the installed app on TV.
+import { serviceByKey, serviceKeyForProvider } from "./services";
+
 interface ProviderLink {
   match: RegExp;
   home: string;
@@ -86,5 +88,9 @@ export function launchUrlFor(providerName: string, title: string): string {
 }
 
 export function colorFor(providerName: string): string {
-  return PROVIDERS.find((x) => x.match.test(providerName))?.color || "#8b5cf6";
+  // Prefer the canonical brand color from STREAMING_SERVICES so colors live in
+  // one place; fall back to the local table (e.g. Roku, which isn't a service).
+  const key = serviceKeyForProvider(providerName);
+  const svc = key ? serviceByKey(key) : undefined;
+  return svc?.color || PROVIDERS.find((x) => x.match.test(providerName))?.color || "#8b5cf6";
 }

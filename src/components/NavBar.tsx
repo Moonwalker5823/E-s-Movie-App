@@ -10,6 +10,7 @@ const BASE_LINKS = [
   { to: "/fantasy", label: "Fantasy" },
   { to: "/games", label: "Games" },
   { to: "/lounge", label: "Lounge" },
+  { to: "/blerd", label: "Blerd" },
   { to: "/favorites", label: "My List" },
 ];
 

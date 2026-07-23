@@ -5,6 +5,7 @@ import { STREAMING_SERVICES, FANTASY_SITES } from "../lib/services";
 import {
   useSettings,
   setLanding,
+  setTheme,
   toggleService,
   setLeague,
   setAccessCode,
@@ -49,6 +50,20 @@ export default function Settings() {
                 className={`chip ${s.landing === l ? "chip-active" : ""}`}
               >
                 {l === "home" ? "Home" : "Browse / All Free"}
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-2 mt-5 u-label !rotate-0 text-cyan">Theme</div>
+          <div className="flex flex-wrap gap-2">
+            {(["dark", "light", "system"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                data-focusable
+                className={`chip ${s.theme === t ? "chip-active" : ""}`}
+              >
+                {t === "dark" ? "🌙 Dark" : t === "light" ? "☀️ Light" : "🖥️ System"}
               </button>
             ))}
           </div>

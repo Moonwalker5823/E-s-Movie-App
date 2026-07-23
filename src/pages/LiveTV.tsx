@@ -1,6 +1,12 @@
 import Heading from "../components/ui/Heading";
 import LaunchTile, { type Tile } from "../components/LaunchTile";
 
+// Eric's paid provider — Spectrum (incl. the Xumo box). Sign in once in the app.
+const PROVIDER: Tile[] = [
+  { name: "Spectrum TV", url: "https://watch.spectrum.net/", blurb: "Your live cable channels & DVR", color: "#0033a0" },
+  { name: "Spectrum Guide", url: "https://www.spectrum.net/tv/channel-lineup", blurb: "Your channel lineup", color: "#1a2b6b" },
+];
+
 // Free ad-supported streaming apps (FAST) — the real path to replacing paid live TV.
 const FAST_APPS: Tile[] = [
   { name: "TheTVApp", url: "https://thetvapp.to/", blurb: "Live TV, sports & PPV", color: "#e11d48" },
@@ -40,6 +46,7 @@ const CHANNELS: { category: string; items: Tile[] }[] = [
   {
     category: "Cars",
     items: [
+      { name: "Top Gear", url: "https://www.youtube.com/@TopGear/streams", blurb: "The classic car show", color: "#000000" },
       { name: "Motor Trend", url: "https://www.youtube.com/@MotorTrend/streams", blurb: "Cars, builds & reviews", color: "#c81d25" },
       { name: "Donut", url: "https://www.youtube.com/@donut/streams", blurb: "Car culture & fun", color: "#e2b100" },
     ],
@@ -56,7 +63,20 @@ export default function LiveTV() {
         Legit free live services — a real way to replace paid live TV. One tap opens the app on your TV.
       </p>
 
-      <Heading emoji="🆓" className="mb-4 mt-8">
+      <Heading emoji="📺" className="mb-4 mt-8">
+        Your Cable — Spectrum
+      </Heading>
+      <p className="mb-4 text-sm text-cream/60">
+        You&apos;re a Spectrum subscriber (with the Xumo box) — jump straight into your live channels.
+        Sign in on Spectrum&apos;s own site.
+      </p>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {PROVIDER.map((a) => (
+          <LaunchTile key={a.name} t={a} />
+        ))}
+      </div>
+
+      <Heading emoji="🆓" className="mb-4 mt-10">
         Free Channel Apps
       </Heading>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">

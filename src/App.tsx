@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import SetupNotice from "./components/SetupNotice";
 import Home from "./pages/Home";
@@ -11,12 +12,13 @@ import DraftRoom from "./pages/DraftRoom";
 import Games from "./pages/Games";
 import XZone from "./pages/XZone";
 import SmokersLounge from "./pages/SmokersLounge";
+import Blerd from "./pages/Blerd";
 import Favorites from "./pages/Favorites";
 import SettingsPage from "./pages/Settings";
 import Title from "./pages/Title";
 import { hasTmdbKey } from "./api/tmdb";
 import { useSpatialNav } from "./lib/useSpatialNav";
-import { useSettings } from "./lib/settings";
+import { useSettings, resolveTheme } from "./lib/settings";
 
 // Honors the user's "default landing page" setting.
 function Landing() {
@@ -26,11 +28,28 @@ function Landing() {
 
 export default function App() {
   useSpatialNav();
+  const { pathname } = useLocation();
+  const { theme } = useSettings();
+
+  // Apply the light/dark theme to <html> (and follow the OS when set to "system").
+  useEffect(() => {
+    const root = document.documentElement;
+    const apply = () => root.setAttribute("data-theme", resolveTheme(theme));
+    apply();
+    if (theme !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [theme]);
+
+  // Each section gets its own tab-inspired background tint (see .tab-bg in index.css).
+  const tab = pathname === "/" ? "home" : pathname.split("/")[1] || "home";
   const ready = hasTmdbKey();
   const gated = (el: JSX.Element) => (ready ? el : <SetupNotice />);
 
   return (
     <div className="min-h-full pb-16">
+      <div className="tab-bg" data-tab={tab} aria-hidden />
       <NavBar />
       <Routes>
         <Route path="/" element={gated(<Landing />)} />
@@ -43,6 +62,7 @@ export default function App() {
         <Route path="/fantasy/draft" element={<DraftRoom />} />
         <Route path="/games" element={<Games />} />
         <Route path="/lounge" element={<SmokersLounge />} />
+        <Route path="/blerd" element={<Blerd />} />
         <Route path="/x" element={<XZone />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/title/:media/:id" element={gated(<Title />)} />

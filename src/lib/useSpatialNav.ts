@@ -11,7 +11,11 @@ import { useLocation } from "react-router-dom";
 const FOCUSABLE = "[data-focusable]";
 
 function visibleFocusables(): HTMLElement[] {
-  return Array.from(document.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+  // While a modal focus-trap is open (e.g. the fullscreen video overlay), only
+  // its descendants are reachable — the remote can't wander onto the nav behind it.
+  const trap = document.querySelector<HTMLElement>("[data-focus-trap]");
+  const scope: ParentNode = trap ?? document;
+  return Array.from(scope.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
     (el) => el.offsetParent !== null
   );
 }
@@ -56,6 +60,11 @@ export function useSpatialNav() {
       // OK / Enter → activate the focused link/button. Let text fields submit their
       // form and let <select> open its options natively.
       if (e.key === "Enter") {
+        const trap = document.querySelector("[data-focus-trap]");
+        if (trap && active && !trap.contains(active)) {
+          e.preventDefault(); // don't activate anything behind an open modal
+          return;
+        }
         if (active && active.matches(FOCUSABLE) && !isTextField(active) && active.tagName !== "SELECT") {
           e.preventDefault();
           active.click();

@@ -50,7 +50,43 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCSDxHir7pmMTmJ_-tlK7NHA", name: "BREAL.TV" },
     { id: "UCxhC-uVCAqX-dSmYwj-U18Q", name: "Macdizzle420" },
   ],
+  // Blerd — the black nerd in you: science, tech, TED, ancient aliens, code.
+  blerd: [
+    { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
+    { id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" },
+    { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
+    { id: "UCNIFiHaLZkYASaWDdkC1njg", name: "HISTORY" },
+    { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
+  ],
+  science: [
+    { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
+    { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" },
+    { id: "UCq6OAftTQOuUBRdtUDq5SUA", name: "PBS Space Time" },
+    { id: "UC9SM7V7J1pAhPabOUST01fw", name: "NASA" },
+    { id: "UCoxcjq-8xIDTYp3uz647V5A", name: "Computerphile" },
+  ],
+  tech: [
+    { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
+    { id: "UCddiUEpeqJcYeBxX1IVBKvQ", name: "The Verge" },
+    { id: "UCdBK94H6oZT2Q7l0-b0xmMg", name: "Linus Tech Tips" },
+  ],
+  ted: [{ id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" }],
+  aliens: [{ id: "UCNIFiHaLZkYASaWDdkC1njg", name: "HISTORY" }],
+  code: [
+    { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
+    { id: "UC1emV4A8liRs9p80CY8ElUQ", name: "freeCodeCamp" },
+    { id: "UC2Xd-TjJByJyK2w1zNwY0zQ", name: "Fireship" },
+  ],
+  // Games — gaming clips, trailers & shorts.
+  gaming: [
+    { id: "UCydtMNspoPAlqBjFSGnigSw", name: "Xbox" },
+    { id: "UCBsbrudhKRrT9zs8iNOEjjw", name: "PlayStation" },
+    { id: "UC5CE6nbu1tjSGha-a_cHAFA", name: "GameSpot" },
+    { id: "UCg5bOg1qVoZ2JDJ7MmjY63A", name: "Kotaku" },
+  ],
 };
+
+const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under
 
 interface Item {
   videoId: string;
@@ -58,6 +94,7 @@ interface Item {
   published: string;
   channel: string;
   thumb: string;
+  durationSec?: number;
 }
 
 const cache: Record<string, { at: number; items: Item[] }> = ((globalThis as any).__vidCache ||= {});
@@ -92,11 +129,62 @@ function parseFeed(xml: string, channel: string): Item[] {
     .filter((x): x is Item => x !== null);
 }
 
+// ISO-8601 duration (PT#H#M#S) → seconds.
+function isoToSec(d?: string): number | null {
+  const m = (d || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return null;
+  return Number(m[1] || 0) * 3600 + Number(m[2] || 0) * 60 + Number(m[3] || 0);
+}
+
+// Look up video durations. Uses the YouTube Data API when YOUTUBE_API_KEY is set
+// (reliable, 1 call per 50 ids); otherwise falls back to scraping lengthSeconds
+// from the watch page (keyless, best-effort). Returns a videoId → seconds map.
+async function durationsFor(ids: string[]): Promise<Record<string, number>> {
+  const out: Record<string, number> = {};
+  const key = process.env.YOUTUBE_API_KEY;
+
+  if (key) {
+    for (let i = 0; i < ids.length; i += 50) {
+      const batch = ids.slice(i, i + 50);
+      try {
+        const r = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(",")}&key=${key}`
+        );
+        const data = await r.json();
+        for (const it of data.items || []) {
+          const s = isoToSec(it.contentDetails?.duration);
+          if (s != null) out[it.id] = s;
+        }
+      } catch {
+        /* ignore — best effort */
+      }
+    }
+    return out;
+  }
+
+  await Promise.all(
+    ids.slice(0, 16).map(async (id) => {
+      try {
+        const r = await fetch(`https://www.youtube.com/watch?v=${id}`, {
+          headers: { "user-agent": "Mozilla/5.0", "accept-language": "en-US,en", cookie: "SOCS=CAI;" },
+        });
+        const m = (await r.text()).match(/"lengthSeconds":"(\d+)"/);
+        if (m) out[id] = Number(m[1]);
+      } catch {
+        /* ignore */
+      }
+    })
+  );
+  return out;
+}
+
 export default async function handler(req: any, res: any) {
   const set = (req.query?.set || "all").toString().toLowerCase();
+  const short = String(req.query?.short || "") === "1";
   const channels = SETS[set] || SETS.all;
+  const cacheKey = short ? `${set}:short` : set;
 
-  const hit = cache[set];
+  const hit = cache[cacheKey];
   if (hit && Date.now() - hit.at < TTL) {
     res.status(200).json({ items: hit.items, cached: true });
     return;
@@ -115,12 +203,24 @@ export default async function handler(req: any, res: any) {
   );
 
   const seen = new Set<string>();
-  const items = lists
+  let items = lists
     .flat()
     .filter((it) => (seen.has(it.videoId) ? false : (seen.add(it.videoId), true)))
     .sort((a, b) => (a.published < b.published ? 1 : -1))
     .slice(0, 48);
 
-  cache[set] = { at: Date.now(), items };
+  // Shorts-only tabs (Lounge / Blerd / Games): keep clips 5 min and under.
+  // If duration lookup is unavailable (e.g. rate-limited), fall back to unfiltered
+  // so the hub is never empty.
+  if (short) {
+    const durs = await durationsFor(items.slice(0, 24).map((i) => i.videoId));
+    if (Object.keys(durs).length > 0) {
+      items = items
+        .filter((i) => durs[i.videoId] != null && durs[i.videoId] <= MAX_SHORT_SEC)
+        .map((i) => ({ ...i, durationSec: durs[i.videoId] }));
+    }
+  }
+
+  cache[cacheKey] = { at: Date.now(), items };
   res.status(200).json({ items });
 }
