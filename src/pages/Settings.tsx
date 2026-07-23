@@ -74,10 +74,11 @@ export default function Settings() {
       <section className="mt-8">
         <Heading emoji="📺" className="mb-3">My Services</Heading>
         <p className="mb-3 text-sm text-cream/50">
-          Tap <b>Sign in</b> to log into a service <b>inside the app</b> — in the TV app your login is
-          remembered, so a title opens ready to play. Then flip the toggle so the app knows it&apos;s
-          yours (connected ones are dimmed with a ✓). Turning them on also builds your{" "}
-          <b>⭐ My Services</b> catalog in Browse.
+          These toggles just <b>tell the app which services you have</b> — they don&apos;t sign you in
+          (the app never sees your password). Turn on the ones you subscribe to so the app can flag what
+          you can watch and build your <b>⭐ My Services</b> catalog in Browse. Tap <b>Sign in</b> to open
+          a service&apos;s own login — use its <b>&ldquo;sign in with a code&rdquo;</b> option on your phone,
+          so there&apos;s no typing on the remote.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {STREAMING_SERVICES.map((svc) => {

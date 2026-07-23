@@ -22,25 +22,21 @@ const CLOUD: Tile[] = [
 
 export default function Games() {
   return (
-    <div className="px-4 py-6 sm:px-8">
-      <Heading label="♛ Games" emoji="🎮" size="xl">
+    <div className="px-4 pb-8 pt-4 sm:px-10">
+      <Heading label="♛ Games" emoji="🎮" size="lg" className="mb-3">
         Cloud Gaming
       </Heading>
-      <p className="mt-2 text-cream/60">
-        Play right on the TV through the browser. Sign in with your Microsoft account to reach your
-        Xbox &amp; Game Pass library — a Bluetooth controller pairs to the TV. (Remote Play streams
-        your own console; it works best via the Xbox app.)
-      </p>
 
-      {/* Game clips — auto-playing shorts (5 min & under) */}
-      <section className="mt-6">
-        <Heading emoji="🎬" className="mb-4">Game Clips</Heading>
-        <VideoHub tabs={CLIP_TABS} autoplay short />
-      </section>
+      {/* Featured game clips at the very top */}
+      <VideoHub tabs={CLIP_TABS} autoplay short />
 
-      <Heading emoji="🟢" className="mb-4 mt-10">
+      <Heading emoji="🟢" className="mb-2 mt-10">
         Xbox
       </Heading>
+      <p className="mb-4 text-sm text-cream/60">
+        Sign in with your Microsoft account to reach your Xbox &amp; Game Pass library — a Bluetooth
+        controller pairs to the TV. (Remote Play streams your own console; it works best via the Xbox app.)
+      </p>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {XBOX.map((t) => (
           <LaunchTile key={t.name} t={t} />

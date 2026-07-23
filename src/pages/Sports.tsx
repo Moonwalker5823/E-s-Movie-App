@@ -36,20 +36,16 @@ export default function Sports() {
   }, [league]);
 
   return (
-    <div className="px-4 py-6 sm:px-8">
-      <Heading label="♛ Sports" emoji="🏆" size="xl">
+    <div className="px-4 pb-8 pt-4 sm:px-10">
+      <Heading label="♛ Sports" emoji="🏆" size="lg" className="mb-3">
         Game Day
       </Heading>
-      <p className="mt-2 text-cream/60">Your own SportsCenter — last night&apos;s highlights and shows, plus live scores.</p>
 
-      {/* Highlights hub: clips only, no talk. */}
-      <section className="mt-6">
-        <Heading emoji="🎬" className="mb-4">Highlights & Shows</Heading>
-        <VideoHub tabs={HIGHLIGHT_TABS} autoplay />
-      </section>
+      {/* Featured highlights auto-play at the very top; clips only, no talk. */}
+      <VideoHub tabs={HIGHLIGHT_TABS} autoplay />
 
       {/* Scores & schedule */}
-      <section className="mt-12">
+      <section className="mt-10">
         <Heading emoji="📊" className="mb-3">Scores & Schedule</Heading>
 
         <div className="mt-3 flex flex-wrap gap-2">
