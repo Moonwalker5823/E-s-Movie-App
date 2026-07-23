@@ -42,6 +42,22 @@ export default function App() {
     return () => mq.removeEventListener("change", apply);
   }, [theme]);
 
+  // In the native Android WebView, target="_blank" links (Sign in / Play / launch
+  // tiles) can silently fail to open. Navigate them in the same window instead —
+  // the app's Back button returns. On the real website this stays new-tab.
+  useEffect(() => {
+    if (!/\bwv\b/.test(navigator.userAgent)) return;
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement)?.closest?.('a[target="_blank"]') as HTMLAnchorElement | null;
+      if (a?.href) {
+        e.preventDefault();
+        window.location.assign(a.href);
+      }
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
   // Each section gets its own tab-inspired background tint (see .tab-bg in index.css).
   const tab = pathname === "/" ? "home" : pathname.split("/")[1] || "home";
   const ready = hasTmdbKey();
