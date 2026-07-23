@@ -1,7 +1,16 @@
 import { useState } from "react";
 import Heading from "../components/ui/Heading";
+import HueSetup from "../components/HueSetup";
 import { STREAMING_SERVICES, FANTASY_SITES } from "../lib/services";
-import { useSettings, setLanding, toggleService, setLeague, setAccessCode } from "../lib/settings";
+import {
+  useSettings,
+  setLanding,
+  toggleService,
+  setLeague,
+  setAccessCode,
+  setHideX,
+  type LeagueKey,
+} from "../lib/settings";
 
 function clearKey(key: string, label: string) {
   if (!confirm(`Clear ${label}? This can't be undone.`)) return;
@@ -50,8 +59,10 @@ export default function Settings() {
       <section className="mt-8">
         <Heading emoji="📺" className="mb-3">My Services</Heading>
         <p className="mb-3 text-sm text-cream/50">
-          Turn on the services you&apos;re signed into on your TV. Connected ones are dimmed with a
-          ✓ — tap <b>Open</b> to jump straight in.
+          Tap <b>Sign in</b> to log into a service <b>inside the app</b> — in the TV app your login is
+          remembered, so a title opens ready to play. Then flip the toggle so the app knows it&apos;s
+          yours (connected ones are dimmed with a ✓). Turning them on also builds your{" "}
+          <b>⭐ My Services</b> catalog in Browse.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {STREAMING_SERVICES.map((svc) => {
@@ -99,8 +110,38 @@ export default function Settings() {
         </p>
         <div className="space-y-3">
           {FANTASY_SITES.map((f) => (
-            <LeagueRow key={f.key} which={f.key as "yahoo" | "espn"} name={f.name} loginUrl={f.loginUrl} saved={s.leagues[f.key as "yahoo" | "espn"]} />
+            <LeagueRow key={f.key} which={f.key as LeagueKey} name={f.name} loginUrl={f.loginUrl} saved={s.leagues[f.key as LeagueKey]} />
           ))}
+        </div>
+      </section>
+
+      {/* Theater lighting */}
+      <section className="mt-8">
+        <Heading emoji="💡" className="mb-3">Theater Lighting</Heading>
+        <HueSetup />
+      </section>
+
+      {/* Privacy */}
+      <section className="mt-8">
+        <Heading emoji="🕶️" className="mb-3">Privacy</Heading>
+        <div className="card flex items-center gap-3 p-4">
+          <button
+            onClick={() => setHideX(!s.hideX)}
+            data-focusable
+            aria-pressed={Boolean(s.hideX)}
+            title={s.hideX ? "Show the X tab" : "Hide the X tab"}
+            className={`grid h-7 w-11 place-items-start rounded-full p-0.5 transition ${
+              s.hideX ? "bg-live" : "bg-white/15"
+            }`}
+          >
+            <span className={`h-6 w-6 rounded-full bg-cream transition ${s.hideX ? "translate-x-4" : ""}`} />
+          </button>
+          <div className="flex-1">
+            <div className="font-semibold text-cream">Hide the “X” tab</div>
+            <div className="text-xs text-cream/40">
+              {s.hideX ? "The adult (18+) tab is hidden from the nav bar." : "The adult (18+) tab is visible in the nav bar."}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -143,7 +184,7 @@ export default function Settings() {
   );
 }
 
-function LeagueRow({ which, name, loginUrl, saved }: { which: "yahoo" | "espn"; name: string; loginUrl: string; saved?: string }) {
+function LeagueRow({ which, name, loginUrl, saved }: { which: LeagueKey; name: string; loginUrl: string; saved?: string }) {
   const [url, setUrl] = useState(saved || "");
   return (
     <div className="card flex flex-wrap items-center gap-3 p-3">

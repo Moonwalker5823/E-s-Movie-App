@@ -1,15 +1,9 @@
-import { motion } from "framer-motion";
 import Heading from "../components/ui/Heading";
-
-interface Tile {
-  name: string;
-  url: string;
-  blurb: string;
-  color: string;
-}
+import LaunchTile, { type Tile } from "../components/LaunchTile";
 
 // Free ad-supported streaming apps (FAST) — the real path to replacing paid live TV.
 const FAST_APPS: Tile[] = [
+  { name: "TheTVApp", url: "https://thetvapp.to/", blurb: "Live TV, sports & PPV", color: "#e11d48" },
   { name: "Pluto TV", url: "https://pluto.tv/en/live-tv", blurb: "100s of free live channels", color: "#0b1636" },
   { name: "Tubi", url: "https://tubitv.com/live", blurb: "Free movies, TV & live news", color: "#7d1aff" },
   { name: "Samsung TV Plus", url: "https://www.samsung.com/us/tvplus/", blurb: "Free live channels", color: "#1428a0" },
@@ -51,24 +45,6 @@ const CHANNELS: { category: string; items: Tile[] }[] = [
     ],
   },
 ];
-
-function LaunchTile({ t }: { t: Tile }) {
-  return (
-    <motion.a
-      href={t.url}
-      target="_blank"
-      rel="noreferrer"
-      data-focusable
-      whileHover={{ y: -6 }}
-      className="rounded-2xl border border-line p-5 shadow-card"
-      style={{ background: `linear-gradient(160deg, ${t.color}, #0b0b12)` }}
-    >
-      <div className="u-display text-2xl text-cream">{t.name}</div>
-      <div className="mt-1 text-xs text-cream/70">{t.blurb}</div>
-      <div className="mt-4 text-sm font-bold text-spray">Launch ↗</div>
-    </motion.a>
-  );
-}
 
 export default function LiveTV() {
   return (

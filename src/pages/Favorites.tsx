@@ -3,7 +3,38 @@ import { motion } from "framer-motion";
 import Heading from "../components/ui/Heading";
 import { useFavorites, toggleSave } from "../lib/favorites";
 import { IMG } from "../api/tmdb";
-import type { FavoriteItem } from "../lib/types";
+import { useAvailability } from "../lib/availability";
+import { serviceByKey } from "../lib/services";
+import { useSettings } from "../lib/settings";
+import type { FavoriteItem, MediaType } from "../lib/types";
+
+// Small "on Hulu / Prime / Tubi" badges — shows which of YOUR services carry
+// this title (from TMDB watch-provider data).
+function ServiceBadges({ media, id }: { media: MediaType; id: number }) {
+  const { myServices } = useSettings();
+  const on = useAvailability(media, id);
+  if (on === null) return <div className="mt-1 h-4" />; // reserve space while loading
+  const mine = myServices.filter((k) => on.includes(k));
+  if (mine.length === 0) return <div className="mt-1 h-4" />;
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      {mine.map((k) => {
+        const svc = serviceByKey(k);
+        if (!svc) return null;
+        return (
+          <span
+            key={k}
+            title={`On ${svc.name}`}
+            className="rounded px-1.5 py-0.5 text-[10px] font-bold text-ink"
+            style={{ background: svc.color }}
+          >
+            {svc.name}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 function Grid({ items, list }: { items: FavoriteItem[]; list: "favorites" | "watchlist" }) {
   if (items.length === 0) {
@@ -44,6 +75,7 @@ function Grid({ items, list }: { items: FavoriteItem[]; list: "favorites" | "wat
               ✕
             </button>
           </div>
+          <ServiceBadges media={f.media_type} id={f.id} />
         </motion.div>
       ))}
     </div>

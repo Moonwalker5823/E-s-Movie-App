@@ -6,6 +6,7 @@ import Heading from "../components/ui/Heading";
 const LEAGUES = [
   { name: "Yahoo Fantasy", url: "https://football.fantasysports.yahoo.com/", blurb: "Open your league", color: "#6001d2" },
   { name: "ESPN Fantasy", url: "https://fantasy.espn.com/football/", blurb: "Open your league", color: "#c8102e" },
+  { name: "Sleeper", url: "https://sleeper.com/", blurb: "Open your league", color: "#ff4d6d" },
 ];
 
 export default function Fantasy() {
@@ -38,7 +39,7 @@ export default function Fantasy() {
           Yahoo &amp; ESPN need a login to sync, so the draft room runs alongside your league site
           (mark picks as they go). Tap to open your league:
         </p>
-        <div className="grid grid-cols-2 gap-4 sm:max-w-lg">
+        <div className="grid grid-cols-2 gap-4 sm:max-w-2xl sm:grid-cols-3">
           {LEAGUES.map((l) => (
             <motion.a
               key={l.name}

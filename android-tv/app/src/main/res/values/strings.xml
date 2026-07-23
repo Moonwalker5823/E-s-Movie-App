@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Eric\'s Movies</string>
+
+    <!-- 👇 Your deployed app. Update this if your Vercel URL ever changes. -->
+    <string name="web_url">https://erics-movies.vercel.app/</string>
+</resources>
