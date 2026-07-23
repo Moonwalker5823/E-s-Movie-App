@@ -33,10 +33,6 @@ const cx = (el: Element) => {
   const r = el.getBoundingClientRect();
   return r.left + r.width / 2;
 };
-const cy = (el: Element) => {
-  const r = el.getBoundingClientRect();
-  return r.top + r.height / 2;
-};
 
 export function useSpatialNav() {
   const location = useLocation();
@@ -85,7 +81,6 @@ export function useSpatialNav() {
 
       const r = active.getBoundingClientRect();
       const ax = r.left + r.width / 2;
-      const ay = r.top + r.height / 2;
       const cands = list.filter((el) => el !== active);
 
       if (key === "ArrowLeft" || key === "ArrowRight") {
@@ -102,12 +97,19 @@ export function useSpatialNav() {
         return true;
       }
 
-      // Up / Down: nearest row in that direction, closest to the remembered column.
+      // Up / Down: move to the nearest DIFFERENT row. A candidate counts as up/down
+      // only if it clears the active element's edge — so items in the SAME row (e.g.
+      // sibling nav tabs a couple pixels off) are never treated as up/down. Land on
+      // the one closest to the remembered column.
       const dir = key === "ArrowDown" ? 1 : -1;
-      const inDir = cands.filter((el) => (dir === 1 ? cy(el) > ay + 1 : cy(el) < ay - 1));
+      const gapOf = (el: HTMLElement) => {
+        const b = el.getBoundingClientRect();
+        return dir === 1 ? b.top - r.bottom : r.top - b.bottom;
+      };
+      const inDir = cands.filter((el) => gapOf(el) >= -4);
       if (!inDir.length) return true;
-      const minGap = Math.min(...inDir.map((el) => Math.abs(cy(el) - ay)));
-      const nextRow = inDir.filter((el) => Math.abs(cy(el) - ay) <= minGap + 24); // same rail
+      const minGap = Math.min(...inDir.map(gapOf));
+      const nextRow = inDir.filter((el) => gapOf(el) <= minGap + 24); // same rail
       const colX = columnX.current ?? ax;
       const best = nextRow.reduce((a, el) => (Math.abs(cx(el) - colX) < Math.abs(cx(a) - colX) ? el : a));
       goTo(best, false);

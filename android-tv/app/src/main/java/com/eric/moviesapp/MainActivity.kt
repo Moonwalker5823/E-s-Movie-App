@@ -1,6 +1,7 @@
 package com.eric.moviesapp
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.os.Message
 import android.view.View
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             setAcceptThirdPartyCookies(web, true)
         }
 
-        web.webViewClient = WebViewClient() // keep normal navigation inside the app
+        web.webViewClient = AppWebViewClient() // hand paid services off to their native app
         web.webChromeClient = ChromeClient() // fullscreen video + new-window handling
 
         web.loadUrl(getString(R.string.web_url))
@@ -77,6 +78,53 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         CookieManager.getInstance().flush() // write cookies to disk
+    }
+
+    // Streaming host → its Android TV app package. When the WebView tries to open
+    // one of these (e.g. a "Play on Hulu" tap), launch the installed native app —
+    // where you're already signed in and DRM plays — instead of loading the site.
+    private fun nativePackageFor(host: String): String? {
+        val h = host.lowercase()
+        return when {
+            h.contains("hulu.com") -> "com.hulu.plus"
+            h.contains("primevideo.com") -> "com.amazon.amazonvideo.livingroom"
+            h.contains("netflix.com") -> "com.netflix.ninja"
+            h.contains("disneyplus.com") -> "com.disney.disneyplus"
+            h.contains("max.com") || h.contains("hbomax.com") -> "com.wbd.stream"
+            h.contains("peacocktv.com") -> "com.peacocktv.peacockandroid"
+            h.contains("paramountplus.com") -> "com.cbs.ott"
+            h.contains("tubitv.com") -> "com.tubitv"
+            h.contains("pluto.tv") -> "tv.pluto.android"
+            h.contains("youtube.com") -> "com.google.android.youtube.tv"
+            else -> null
+        }
+    }
+
+    private inner class AppWebViewClient : WebViewClient() {
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            if (!request.isForMainFrame) return false // let iframes (video players) load in-app
+            val host = request.url.host ?: return false
+            if (host.contains("erics-movies.vercel.app")) return false // our own app stays in the WebView
+            val pkg = nativePackageFor(host) ?: return false
+            return try {
+                // Prefer opening the app AT the link (deep-link if it supports app-links)…
+                val deep = Intent(Intent.ACTION_VIEW, request.url).setPackage(pkg)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                if (deep.resolveActivity(packageManager) != null) {
+                    startActivity(deep)
+                    return true
+                }
+                // …otherwise just open the app (you're already logged in there).
+                val launch = packageManager.getLaunchIntentForPackage(pkg)
+                if (launch != null) {
+                    startActivity(launch)
+                    return true
+                }
+                false // app not installed — fall back to loading the site in the WebView
+            } catch (e: Exception) {
+                false
+            }
+        }
     }
 
     private inner class ChromeClient : WebChromeClient() {
