@@ -55,7 +55,7 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
     { id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" },
     { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
-    { id: "UCNIFiHaLZkYASaWDdkC1njg", name: "HISTORY" },
+    { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" }, // was HISTORY (posts true-crime); keep the Mix pure nerd
     { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
   ],
   science: [
@@ -87,6 +87,18 @@ const SETS: Record<string, Channel[]> = {
 };
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under
+
+// Blerd is nerd turf. The HISTORY channel (our Ancient Aliens source) also uploads
+// true-crime / murder / investigative docs — filter those out by title so the
+// "aliens" tab stays ancient-mysteries, not murder. Only applied to HISTORY-sourced
+// tabs so tech "iPhone killer" headlines aren't caught.
+const CRIME_SETS = new Set(["aliens"]);
+// True-crime / murder / investigative stems. Note: NO bare "abduction" — "alien
+// abduction" is core Ancient Aliens; and no "massacre"/"slain" (ancient-battle
+// false positives). Scoped to CRIME_SETS so tech "iPhone killer" headlines etc. are
+// never touched.
+const CRIME_RE =
+  /\b(murder\w*|homicides?|killers?|serial killers?|true crime|crime scene|cold cases?|manhunt|death row|kidnapp?\w*|assassin\w*|investigat\w*|detectives?|forensics?|stalkers?|killing spree|psychopath|who killed)\b/i;
 
 interface Item {
   videoId: string;
@@ -220,6 +232,9 @@ export default async function handler(req: any, res: any) {
         .map((i) => ({ ...i, durationSec: durs[i.videoId] }));
     }
   }
+
+  // Keep true-crime / murder content off the Blerd nerd tabs.
+  if (CRIME_SETS.has(set)) items = items.filter((i) => !CRIME_RE.test(i.title));
 
   cache[cacheKey] = { at: Date.now(), items };
   res.status(200).json({ items });
