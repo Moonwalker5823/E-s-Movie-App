@@ -480,7 +480,7 @@ export default function VideoHub({
 
   const ctrlCls =
     "z-20 grid h-9 w-9 scroll-mt-24 place-items-center rounded-full bg-black/70 text-cream transition hover:bg-black/90";
-  const fade = `transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`;
+  const fadeStyle: React.CSSProperties = { opacity: showControls ? 1 : 0, transition: "opacity 300ms ease" };
 
   return (
     <div>
@@ -506,7 +506,7 @@ export default function VideoHub({
                   className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
                 >
                   <div ref={hostRef} className="absolute inset-0 h-full w-full [&>iframe]:pointer-events-none" />
-                  <div className={`${fade} absolute inset-0 z-20 pointer-events-none [&>*]:pointer-events-auto`}>
+                  <div style={fadeStyle} className="absolute inset-0 z-20 pointer-events-none [&>*]:pointer-events-auto">
                   <button onClick={toggleMute} data-focusable aria-label={muted ? "Unmute" : "Mute"} className={`absolute left-2 top-2 text-base ${ctrlCls}`}>
                     {muted ? "🔇" : "🔊"}
                   </button>
@@ -566,7 +566,7 @@ export default function VideoHub({
           <div ref={fullHostRef} className="absolute inset-0 h-full w-full" />
 
           {/* Top bar: title + close */}
-          <div className={`absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 py-3 ${fade}`}>
+          <div style={fadeStyle} className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 py-3">
             <div className="min-w-0 truncate font-semibold text-cream">{(order[fsIndex] ?? fullVid).title}</div>
             <button ref={closeRef} onClick={closeFull} data-focusable className="btn-ghost shrink-0 !px-3 !py-1 text-sm">
               Close ✕
@@ -574,7 +574,7 @@ export default function VideoHub({
           </div>
 
           {/* Bottom controls — remote-navigable */}
-          <div className={`absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-4 ${fade}`}>
+          <div style={fadeStyle} className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-4">
             <button onClick={() => fsSeek(-10)} data-focusable aria-label="Rewind 10 seconds" className="btn-ghost !px-4 !py-2">
               ⏪ 10s
             </button>
