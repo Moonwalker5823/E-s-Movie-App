@@ -100,6 +100,7 @@ export interface ScoreSide {
 
 export interface ScoreCard {
   id: string;
+  date: string; // ISO date of the game/event (used to keep only yesterday + today)
   league: string; // label, e.g. "NFL" / "UFC" / "F1"
   kind: RailKind;
   state: "pre" | "in" | "post";
@@ -111,6 +112,13 @@ export interface ScoreCard {
   note?: string; // venue / broadcast / circuit
 }
 
+// YYYYMMDD for today + offsetDays, in the device's local time (for ESPN's ?dates=).
+function ymd(offsetDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return `${d.getFullYear()}${`${d.getMonth() + 1}`.padStart(2, "0")}${`${d.getDate()}`.padStart(2, "0")}`;
+}
+
 function broadcastsOf(comp: any): string[] {
   const out: string[] = [];
   (comp.broadcasts || []).forEach((b: any) => (b.names || []).forEach((n: string) => out.push(n)));
@@ -119,7 +127,12 @@ function broadcastsOf(comp: any): string[] {
 }
 
 async function leagueCards(lg: RailLeague): Promise<ScoreCard[]> {
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${lg.path}/scoreboard`);
+  // Team sports: ask ESPN for yesterday+today specifically, so we get last night's
+  // finals AND today's slate — NOT the next in-season week (e.g. September NFL in
+  // July). Racing/combat are weekly & sparse, so we take their current/next event and
+  // let the date window in railScores() decide whether it's close enough to show.
+  const q = lg.kind === "team" ? `?dates=${ymd(-1)}-${ymd(0)}` : "";
+  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${lg.path}/scoreboard${q}`);
   if (!res.ok) return [];
   const data = await res.json();
   const events = data.events || [];
@@ -129,7 +142,7 @@ async function leagueCards(lg: RailLeague): Promise<ScoreCard[]> {
     const state = (ev.status?.type?.state || "pre") as ScoreCard["state"];
     const status = ev.status?.type?.shortDetail || "";
     const bc = broadcastsOf(comp);
-    const base = { id: ev.id, league: lg.label, kind: lg.kind, state, status };
+    const base = { id: ev.id, date: ev.date || "", league: lg.label, kind: lg.kind, state, status };
 
     if (lg.kind === "racing") {
       const field = (comp.competitors || []).slice().sort((a: any, b: any) => (a.order || 99) - (b.order || 99));
@@ -216,6 +229,7 @@ async function boxingCards(): Promise<ScoreCard[]> {
     }
     return {
       id: `box-${e.idEvent}`,
+      date: e.dateEvent ? `${e.dateEvent}T12:00:00` : "", // noon-local so day classification is clean
       league: "Boxing",
       kind: "combat",
       state,
@@ -241,8 +255,20 @@ export async function railScores(): Promise<ScoreCard[]> {
     ...RAIL_LEAGUES.map((lg) => leagueCards(lg).catch(() => [] as ScoreCard[])),
     boxingCards().catch(() => [] as ScoreCard[]),
   ]);
+  // Keep ONLY yesterday + today (device-local) — last night's results and the day's
+  // games. Anything scheduled further out (e.g. next month's races, the September NFL
+  // slate) is dropped, so in July the rail is what's actually on (mostly MLB).
+  const now = new Date();
+  const startMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime(); // yesterday 00:00
+  const endMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime(); // start of tomorrow (exclusive)
   const rank = (s: ScoreCard["state"]) => (s === "in" ? 0 : s === "pre" ? 1 : 2);
-  return lists.flat().sort((a, b) => rank(a.state) - rank(b.state));
+  return lists
+    .flat()
+    .filter((c) => {
+      const t = c.date ? new Date(c.date).getTime() : NaN;
+      return !Number.isNaN(t) && t >= startMs && t < endMs;
+    })
+    .sort((a, b) => rank(a.state) - rank(b.state));
 }
 
 export async function scoreboard(path: string): Promise<Game[]> {
