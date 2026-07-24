@@ -67,6 +67,25 @@ function loadYouTubeApi(): Promise<any> {
   return ytApiPromise;
 }
 
+// A small "up next" preview tile shown on each side of the main viewer.
+function UpNextTile({ v, onPlay }: { v: Video; onPlay: (v: Video) => void }) {
+  return (
+    <button
+      onClick={() => onPlay(v)}
+      data-focusable
+      aria-label={`Play ${v.title} in the viewer`}
+      className="group block scroll-mt-24 text-left"
+    >
+      <div className="relative aspect-video overflow-hidden rounded-xl border border-line bg-surface2 shadow-card">
+        <img src={v.thumb} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+        <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cream/80">Up next</span>
+        <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-cream">▶ Play</span>
+      </div>
+      <div className="mt-1 line-clamp-1 text-xs font-semibold text-cream">{v.title}</div>
+    </button>
+  );
+}
+
 /**
  * A YouTube video hub. With `autoplay`, a MAIN VIEWER sits at the top and streams
  * the day's clips back-to-back in a shuffled order (via the YouTube Player API, so
@@ -306,19 +325,18 @@ export default function VideoHub({
       {autoplay && (
         <div
           ref={heroWrapRef}
-          className={`mx-auto mb-5 w-full max-w-[min(64rem,110vh)] ${full ? "pointer-events-none" : ""}`}
+          className={`mx-auto mb-5 w-full max-w-[min(64rem,150vh)] ${full ? "pointer-events-none" : ""}`}
         >
           {items === null ? (
-            <div className="grid grid-cols-3 gap-3">
-              <Skeleton className="aspect-video rounded-2xl col-span-2" />
-              <div className="grid grid-cols-1 gap-3">
-                <Skeleton className="aspect-video rounded-xl" />
-                <Skeleton className="aspect-video rounded-xl" />
-              </div>
+            <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
+              <Skeleton className="aspect-video rounded-xl" />
+              <Skeleton className="aspect-video rounded-2xl" />
+              <Skeleton className="aspect-video rounded-xl" />
             </div>
           ) : feat ? (
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2">
+            <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
+              {previews[0] && <UpNextTile v={previews[0]} onPlay={playInHero} />}
+              <div>
                 <div
                   ref={heroPlayerRef}
                   className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
@@ -354,25 +372,7 @@ export default function VideoHub({
                 <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
                 <div className="text-xs text-cream/40">{feat.channel} · ⏮ ⏭ skip · 🔊 mute · ⛶ full screen</div>
               </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                {previews.map((v) => (
-                  <button
-                    key={v.videoId}
-                    onClick={() => playInHero(v)}
-                    data-focusable
-                    aria-label={`Play ${v.title} in the viewer`}
-                    className="group block scroll-mt-24 text-left"
-                  >
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-line bg-surface2 shadow-card">
-                      <img src={v.thumb} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-                      <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cream/80">Up next</span>
-                      <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-cream">▶ Play</span>
-                    </div>
-                    <div className="mt-1 line-clamp-1 text-xs font-semibold text-cream">{v.title}</div>
-                  </button>
-                ))}
-              </div>
+              {previews[1] && <UpNextTile v={previews[1]} onPlay={playInHero} />}
             </div>
           ) : null}
         </div>
