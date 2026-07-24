@@ -7,6 +7,7 @@ import LaunchTile, { type Tile } from "../components/LaunchTile";
 const MUSIC_TABS: HubTab[] = [
   { key: "music", label: "🎧 Mix" },
   { key: "golden", label: "🔥 Golden Era" },
+  { key: "yomtvraps", label: "📼 Yo! MTV Raps" },
   { key: "lyricists", label: "🎤 Lyricists" },
   { key: "soul", label: "🎶 R&B / Soul" },
   { key: "classics", label: "👑 Legends" },

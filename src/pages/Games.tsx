@@ -2,13 +2,15 @@ import Heading from "../components/ui/Heading";
 import LaunchTile, { type Tile } from "../components/LaunchTile";
 import VideoHub, { type HubTab } from "../components/VideoHub";
 
-// Gaming clips, trailers & moments — auto-plays the top clip of the day.
-// Tabbed to what Eric plays: Xbox, fun sports games, and cars/racing.
+// Video games + cars — auto-plays the top clip of the day. Car-heavy: real car
+// shows (Top Gear feels) and racing alongside the gaming tabs.
 const CLIP_TABS: HubTab[] = [
-  { key: "gaming", label: "🎮 Mix" },
+  { key: "gaming", label: "🎮 Games" },
   { key: "xbox", label: "🟢 Xbox" },
+  { key: "cars", label: "🏎️ Cars & Top Gear" },
+  { key: "racing", label: "🏁 Racing" },
+  { key: "anime", label: "🥋 Anime" },
   { key: "gamesports", label: "🏈 Sports" },
-  { key: "gamecars", label: "🏎️ Cars" },
 ];
 
 // Browser-based cloud gaming — play right on the TV, no console hookup needed.
@@ -33,8 +35,9 @@ export default function Games() {
         Cloud Gaming
       </Heading>
 
-      {/* Featured game clips at the very top */}
-      <VideoHub tabs={CLIP_TABS} autoplay short />
+      {/* Featured games + cars at the very top. Full-length (not shorts-only) so
+          car shows / Top Gear segments and anime episodes play in full. */}
+      <VideoHub tabs={CLIP_TABS} autoplay />
 
       <Heading emoji="🟢" className="mb-2 mt-10">
         Xbox

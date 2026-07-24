@@ -9,7 +9,7 @@ const BLERD_TABS: HubTab[] = [
   { key: "science", label: "🔬 Science" },
   { key: "tech", label: "📱 Tech & Gear" },
   { key: "ted", label: "🎤 TED" },
-  { key: "aliens", label: "👽 Ancient Aliens" },
+  { key: "aliens", label: "👽 Aliens & UFOs" },
   { key: "code", label: "💻 Code" },
 ];
 

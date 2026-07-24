@@ -22,15 +22,14 @@ export default function NavBar() {
   const { hideX } = useSettings();
   const headerRef = useRef<HTMLElement>(null);
   const hideTimer = useRef<number | undefined>(undefined);
-  const lastY = useRef(0);
 
   // The adult "X" tab is appended only when it isn't hidden in Settings.
   const links = hideX ? BASE_LINKS : [...BASE_LINKS, { to: "/x", label: "X" }];
 
   // Auto-hiding top bar. It stays out of the way (so content — e.g. the Sports hub —
   // sits centered on the TV) and only slides in when you reach for it: pointer at the
-  // very top edge, a scroll-up, remote/keyboard focus landing on it, or a brief peek
-  // on first load. Then it tucks itself away again.
+  // very top edge, remote/keyboard focus landing on it (press Up from the top row),
+  // or a brief peek on first load. Then it tucks itself away again.
   function clearHide() {
     window.clearTimeout(hideTimer.current);
   }
@@ -51,27 +50,19 @@ export default function NavBar() {
   }
 
   useEffect(() => {
-    lastY.current = window.scrollY;
     reveal(); // peek on load so it's discoverable, then it slides away
 
+    // Mouse: reaching the very top edge brings the bar back. We deliberately do
+    // NOT reveal on scroll — D-pad focus navigation scrolls the page to center
+    // each row, so a scroll-up trigger made the bar pop in on every Up press. On
+    // the remote the bar appears only when focus lands on it (see onFocus below),
+    // i.e. when you press Up from the topmost row.
     const onMove = (e: MouseEvent) => {
       if (e.clientY <= 8) reveal();
     };
-    const onScroll = () => {
-      const y = window.scrollY;
-      const dy = y - lastY.current;
-      if (dy < -8) reveal(); // scrolling up → you want the nav
-      else if (dy > 8 && y > 48) {
-        clearHide();
-        setShow(false); // scrolling down → get out of the way
-      }
-      lastY.current = y;
-    };
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("scroll", onScroll);
       clearHide();
     };
   }, []);

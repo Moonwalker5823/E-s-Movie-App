@@ -40,6 +40,16 @@ const JCOLE = { id: "UCnc6db-y3IU7CkT_yeVXdVg", name: "J. Cole" };
 const LUPE = { id: "UC-zD8J0RLWy3mNB7EMmT7Rg", name: "Lupe Fiasco" };
 const GAMBINO = { id: "UCjYO25ZVJT523TD1iYHzcbw", name: "Childish Gambino" };
 const TEMS = { id: "UCWfi5ELXGAe-DCA6cOP3aNw", name: "Tems" };
+// Golden-era 80s/90s "Yo! MTV Raps" artists (official / VEVO), RSS-verified.
+const RUN_DMC = { id: "UCLPo8s1MY3FOzzSwWZP0ZvQ", name: "Run-DMC" };
+const LL_COOL_J = { id: "UCJk8BhnzYy-KkQ34Q7oZu1Q", name: "LL COOL J" };
+const TRIBE = { id: "UCkZ7qikT6yimOwi-eeSUo5g", name: "A Tribe Called Quest" };
+const WU_TANG = { id: "UCl0q_XqiWDMA-Q9SzUO3y-Q", name: "Wu-Tang Clan" };
+const TUPAC = { id: "UCA_-NVTKOlWgxgTWjqlzZlA", name: "2Pac" };
+const BIGGIE = { id: "UCEtIDoDJlLsaj3OI0k7lWqw", name: "The Notorious B.I.G." };
+const PUBLIC_ENEMY = { id: "UCM3jnzSbwV8mHsZB6DySbyw", name: "Public Enemy" };
+const EPMD = { id: "UCawAeY_1dMrsOWW-WnvJfJQ", name: "EPMD" };
+const BEASTIE_BOYS = { id: "UCpRUSBcRWUQZIj3_jWF19Dg", name: "Beastie Boys" };
 
 // Gaming channels — first-party consoles + fun sports games + racing/cars.
 // RSS-verified live (July 2026 uploads).
@@ -51,6 +61,22 @@ const EA_FC = { id: "UCoyaxd5LQSuP4ChkxK0pnZQ", name: "EA SPORTS FC" }; // socce
 const NBA_2K = { id: "UCYAJjqIukwm4r3GHEpJDhVw", name: "NBA 2K" }; // basketball
 const EA_MADDEN = { id: "UCPpddbTbOr_uWWQT9Pw1rbA", name: "EA SPORTS Madden NFL" }; // football
 const EA_SPORTS = { id: "UCcpK2UHpfhfc23SC8TU16BA", name: "EA SPORTS" };
+
+// Car / motorsport — "Top Gear feels": car shows, reviews, and racing.
+// RSS-verified live (July 2026 uploads).
+const TOP_GEAR = { id: "UCjOl2AUblVmg2rA_cRgZkFg", name: "Top Gear" };
+const GRAND_TOUR = { id: "UCZ1Sc5xjWpUnp_o_lUTkvgQ", name: "The Grand Tour" };
+const CARWOW = { id: "UCUhFaUpnq31m6TNX2VKVSVA", name: "carwow" };
+const DONUT = { id: "UCL6JmiMXKoXS6bpP1D3bk8g", name: "Donut Media" };
+const F1 = { id: "UCB_qr75-ydFVKSF9Dmo6izg", name: "Formula 1" };
+const NASCAR = { id: "UCuN9hYw2RpoAW8rZ3VK3isA", name: "NASCAR" };
+
+// Anime — action / shonen leaning (Baki lives on Netflix Anime): official clips,
+// trailers, and (where licensed) full episodes. RSS-verified live (2026 uploads).
+const CRUNCHYROLL = { id: "UC6pGDc4bFGD1_36IKv3FnYg", name: "Crunchyroll" };
+const NETFLIX_ANIME = { id: "UCBSs9x2KzSLhyyA9IKyt4YA", name: "Netflix Anime" }; // Baki
+const MUSE_ASIA = { id: "UCGbshtvS9t-8CW11W7TooQg", name: "Muse Asia" };
+const ADULT_SWIM = { id: "UCgPClNr5VSYC3syrDUIlzLw", name: "Adult Swim" }; // Toonami
 
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
@@ -99,7 +125,11 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCdBK94H6oZT2Q7l0-b0xmMg", name: "Linus Tech Tips" },
   ],
   ted: [{ id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" }],
-  aliens: [{ id: "UCNIFiHaLZkYASaWDdkC1njg", name: "HISTORY" }],
+  // Alien-inspired (not one specific show): UFOs, aliens, unexplained, alien worlds.
+  aliens: [
+    { id: "UCIFk2uvCNcEmZ77g0ESKLcQ", name: "The Why Files" }, // UFOs / aliens / unexplained
+    { id: "UCweDKPSF65wRw5VHFUJYiow", name: "Curious Archive" }, // alien worlds / xenobiology
+  ],
   code: [
     { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
     { id: "UC1emV4A8liRs9p80CY8ElUQ", name: "freeCodeCamp" },
@@ -113,20 +143,25 @@ const SETS: Record<string, Channel[]> = {
   soul: [TEMS, RNB_NATION, COLORS, NPR_MUSIC], // R&B / neo-soul
   classics: [MJ], // the King — his catalog
   tinydesk: [NPR_MUSIC],
-  // Games — gaming clips & trailers, split into what Eric plays: Xbox, fun sports
-  // games, and cars/racing. "Mix" blends all three.
-  gaming: [XBOX, PLAYSTATION, FORZA, ROCKET_LEAGUE, EA_FC, NBA_2K],
+  // 80s/90s "Yo! MTV Raps" golden era — classic videos + Mass Appeal freestyles/interviews.
+  yomtvraps: [RUN_DMC, LL_COOL_J, TRIBE, WU_TANG, TUPAC, BIGGIE, PUBLIC_ENEMY, BIG_DADDY_KANE, EPMD, BEASTIE_BOYS, MASS_APPEAL],
+  // Games — video-game + CAR heavy. "Mix" blends games with car content; then
+  // Xbox, car shows (Top Gear feels), racing (motorsport + racing games), and
+  // sports games.
+  gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, CARWOW, PLAYSTATION],
   xbox: [XBOX],
-  gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // fun sports games
-  gamecars: [FORZA, ROCKET_LEAGUE], // racing / cars
+  cars: [TOP_GEAR, GRAND_TOUR, CARWOW, DONUT], // car shows & reviews — Top Gear feels
+  racing: [F1, NASCAR, FORZA, ROCKET_LEAGUE], // motorsport + racing games
+  gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // sports games
+  anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
 };
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under
 
-// Blerd is nerd turf. The HISTORY channel (our Ancient Aliens source) also uploads
-// true-crime / murder / investigative docs — filter those out by title so the
-// "aliens" tab stays ancient-mysteries, not murder. Only applied to HISTORY-sourced
-// tabs so tech "iPhone killer" headlines aren't caught.
+// Blerd is nerd turf. The alien/unexplained channels occasionally drift into
+// true-crime / murder / missing-persons mysteries — filter those out by title so
+// the "aliens" tab stays alien-inspired, not murder. Scoped to this set so tech
+// "iPhone killer" headlines etc. are never caught.
 const CRIME_SETS = new Set(["aliens"]);
 // True-crime / murder / investigative stems. Note: NO bare "abduction" — "alien
 // abduction" is core Ancient Aliens; and no "massacre"/"slain" (ancient-battle
@@ -256,15 +291,17 @@ export default async function handler(req: any, res: any) {
     .sort((a, b) => (a.published < b.published ? 1 : -1))
     .slice(0, 48);
 
-  // Shorts-only tabs (Lounge / Blerd / Games): keep clips 5 min and under.
-  // If duration lookup is unavailable (e.g. rate-limited), fall back to unfiltered
-  // so the hub is never empty.
+  // Shorts-only tabs (Lounge / Blerd / Games): prefer clips 5 min and under.
+  // If duration lookup is unavailable (rate-limited) OR a feed has no short clips
+  // (e.g. Snoop's GGN posts full show episodes), fall back to the full-length
+  // uploads so the hub is never empty.
   if (short) {
     const durs = await durationsFor(items.slice(0, 24).map((i) => i.videoId));
     if (Object.keys(durs).length > 0) {
-      items = items
+      const shorts = items
         .filter((i) => durs[i.videoId] != null && durs[i.videoId] <= MAX_SHORT_SEC)
         .map((i) => ({ ...i, durationSec: durs[i.videoId] }));
+      if (shorts.length > 0) items = shorts; // else keep the full episodes as fallback
     }
   }
 
