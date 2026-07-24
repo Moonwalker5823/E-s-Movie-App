@@ -1,103 +1,173 @@
-import { LEAGUES, type Game, type League, type Team } from "../api/espn";
+import { useEffect, useRef, useState } from "react";
+import { railScores, type ScoreCard } from "../api/espn";
 import Skeleton from "./ui/Skeleton";
 
-// Compact team line for the rail: logo + abbreviation + score.
-function ScoreLine({ t, showScore }: { t: Team; showScore: boolean }) {
-  return (
-    <div className="flex items-center justify-between gap-2 py-0.5">
-      <span className="flex min-w-0 items-center gap-1.5">
-        {t.logo ? <img src={t.logo} alt="" className="h-4 w-4 shrink-0" /> : <span className="h-4 w-4 shrink-0" />}
-        <span className={`truncate text-xs font-semibold ${t.winner ? "text-cream" : "text-cream/70"}`}>
-          {t.abbreviation || t.displayName}
-        </span>
-      </span>
-      {showScore && <span className="u-display shrink-0 text-sm text-cream">{t.score ?? "-"}</span>}
-    </div>
-  );
-}
+const ROTATE_MS = 6000; // dwell on each game before advancing
+const REFRESH_MS = 60_000; // re-pull all scores
 
-function MiniGame({ g }: { g: Game }) {
-  const live = g.state === "in";
-  const showScore = live || g.state === "post";
+const MEDAL = ["🥇", "🥈", "🥉"];
+
+// One game/event, shown in full: teams+scores, a fight card, or a race podium.
+function Spotlight({ card }: { card: ScoreCard }) {
+  const live = card.state === "in";
   return (
     <div
-      className="rounded-lg border border-line bg-black/20 p-2"
+      className="rounded-xl border border-line bg-black/25 p-3"
       style={{ boxShadow: live ? "inset 0 0 0 1px rgba(53,208,127,.5)" : undefined }}
     >
-      <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
-        <span className={live ? "font-bold text-live" : "text-cream/45"}>
+      <div className="mb-2 flex items-center justify-between gap-2 text-[10px]">
+        <span className="rounded bg-white/10 px-1.5 py-0.5 font-bold text-cream/80">{card.league}</span>
+        <span className={live ? "font-bold text-live" : "text-cream/50"}>
           {live && "● "}
-          {g.statusDetail}
+          {card.status}
         </span>
-        {g.broadcasts[0] && <span className="truncate text-cream/40">{g.broadcasts[0]}</span>}
       </div>
-      <ScoreLine t={g.away} showScore={showScore} />
-      <ScoreLine t={g.home} showScore={showScore} />
+
+      {card.kind === "racing" ? (
+        <div>
+          <div className="mb-2 line-clamp-2 text-sm font-semibold text-cream">🏁 {card.title}</div>
+          {card.standings.length > 0 ? (
+            <div className="space-y-1">
+              {card.standings.map((s, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-xs">
+                  <span className="w-4 shrink-0 text-center">{MEDAL[idx] ?? idx + 1}</span>
+                  <span className="truncate text-cream/85">{s.who}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-cream/50">{card.note || "Upcoming race"}</div>
+          )}
+        </div>
+      ) : (
+        <div>
+          {card.kind === "combat" && (
+            <div className="mb-1.5 line-clamp-1 text-xs font-semibold text-cream/80">{card.title}</div>
+          )}
+          <div className="space-y-1.5">
+            {card.sides.map((s, idx) => (
+              <div key={idx} className="flex items-center justify-between gap-2">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  {s.logo ? (
+                    <img src={s.logo} alt="" className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <span className="grid h-4 w-4 shrink-0 place-items-center text-[10px]">{card.kind === "combat" ? "🥊" : ""}</span>
+                  )}
+                  <span className={`truncate text-xs font-semibold ${s.winner ? "text-cream" : "text-cream/70"}`}>
+                    {s.abbr || s.name}
+                  </span>
+                  {s.record && <span className="shrink-0 text-[10px] text-cream/35">{s.record}</span>}
+                </span>
+                {s.score != null && s.score !== "" && (
+                  <span className="u-display shrink-0 text-sm text-cream">{s.score}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {card.stats.length > 0 && (
+        <div className="mt-2 space-y-0.5 border-t border-line pt-2">
+          {card.stats.map((st, idx) => (
+            <div key={idx} className="flex items-center justify-between gap-2 text-[10px]">
+              <span className="shrink-0 text-cream/40">{st.label}</span>
+              <span className="truncate text-cream/70">{st.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {card.note && card.kind !== "racing" && (
+        <div className="mt-1.5 truncate text-[10px] text-cream/35">{card.note}</div>
+      )}
     </div>
   );
 }
 
 /**
- * The live scores/stats rail shown beside the Sports viewer. Compact league chips at
- * the top drive the SAME league state as the full board below, so the two stay in
- * sync. Live games float to the top and are highlighted.
+ * The Sports rail. Auto-rotates through EVERY game/event across all categories
+ * (NFL, NBA, MLB, NHL, CFB, Soccer, UFC, Boxing, F1, IndyCar) — scores/stats,
+ * skipping any league with nothing on. ⏮/⏸/⏭ step or hold; it pauses while focused
+ * or hovered so you can read.
  */
-export default function ScoreRail({
-  league,
-  onLeague,
-  games,
-  error,
-}: {
-  league: League;
-  onLeague: (l: League) => void;
-  games: Game[] | null;
-  error: boolean;
-}) {
-  // Live first, then upcoming, then finals — the most watchable order for a rail.
-  const sorted = games
-    ? [...games].sort((a, b) => {
-        const rank = (s: Game["state"]) => (s === "in" ? 0 : s === "pre" ? 1 : 2);
-        return rank(a.state) - rank(b.state);
-      })
-    : null;
+export default function ScoreRail() {
+  const [cards, setCards] = useState<ScoreCard[] | null>(null);
+  const [error, setError] = useState(false);
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const holdRef = useRef(false); // hover/focus hold (separate from the ⏸ toggle)
+
+  // Fetch all categories up front, then refresh on an interval.
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      railScores()
+        .then((c) => alive && (setCards(c), setError(false)))
+        .catch(() => alive && setError(true));
+    load();
+    const id = window.setInterval(load, REFRESH_MS);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  const n = cards?.length || 0;
+
+  // Auto-advance through the games.
+  useEffect(() => {
+    if (paused || n <= 1) return;
+    const id = window.setInterval(() => {
+      if (!holdRef.current) setI((x) => (x + 1) % n);
+    }, ROTATE_MS);
+    return () => window.clearInterval(id);
+  }, [paused, n]);
+
+  const idx = n ? i % n : 0;
+  const card = n ? cards![idx] : null;
+  const step = (d: number) => n && setI((x) => (((x + d) % n) + n) % n);
+  const hold = (on: boolean) => (holdRef.current = on);
+
+  const ctrl =
+    "grid h-7 w-7 place-items-center rounded-full bg-white/10 text-cream/80 text-xs transition hover:bg-white/20";
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
+    <div
+      onMouseEnter={() => hold(true)}
+      onMouseLeave={() => hold(false)}
+      onFocusCapture={() => hold(true)}
+      onBlurCapture={() => hold(false)}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="u-display text-sm text-cream">📊 Live Scores</h3>
+        {n > 0 && <span className="text-[10px] text-cream/40">{idx + 1}/{n}</span>}
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-1">
-        {LEAGUES.map((l) => (
+      {n > 1 && (
+        <div className="mb-3 flex items-center gap-1.5">
+          <button onClick={() => step(-1)} data-focusable aria-label="Previous game" className={ctrl}>⏮</button>
           <button
-            key={l.key}
-            onClick={() => onLeague(l)}
+            onClick={() => setPaused((p) => !p)}
             data-focusable
-            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition ${
-              league.key === l.key ? "bg-spray text-ink" : "bg-white/10 text-cream/70 hover:bg-white/20"
-            }`}
+            aria-label={paused ? "Resume auto-scroll" : "Pause auto-scroll"}
+            className={ctrl}
           >
-            {l.label}
+            {paused ? "▶" : "⏸"}
           </button>
-        ))}
-      </div>
+          <button onClick={() => step(1)} data-focusable aria-label="Next game" className={ctrl}>⏭</button>
+          <span className="ml-1 truncate text-[10px] text-cream/40">{paused ? "paused" : "auto"} · all sports</span>
+        </div>
+      )}
 
       {error ? (
         <p className="text-xs text-cream/50">Scores unavailable right now.</p>
-      ) : sorted === null ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
-          ))}
-        </div>
-      ) : sorted.length === 0 ? (
-        <p className="text-xs text-cream/50">No {league.label} games today.</p>
+      ) : cards === null ? (
+        <Skeleton className="h-40 rounded-xl" />
+      ) : n === 0 ? (
+        <p className="text-xs text-cream/50">No games on right now — check back on game day.</p>
       ) : (
-        <div className="space-y-2">
-          {sorted.slice(0, 12).map((g) => (
-            <MiniGame key={g.id} g={g} />
-          ))}
-        </div>
+        card && <Spotlight card={card} />
       )}
     </div>
   );

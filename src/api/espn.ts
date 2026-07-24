@@ -63,6 +63,188 @@ export async function teamInfo(path: string, id: string): Promise<TeamInfo> {
   };
 }
 
+// ── Sports rail: cycle through EVERY category ──────────────────────────────────
+// The rail auto-rotates through each game/event across all these leagues (skipping
+// any with nothing on). Three shapes: `team` (two teams + score), `combat` (a fight
+// card — two fighters, no running score), `racing` (a field of drivers → podium).
+export type RailKind = "team" | "combat" | "racing";
+
+export interface RailLeague {
+  key: string;
+  label: string;
+  path: string; // sport/league for the ESPN scoreboard
+  kind: RailKind;
+}
+
+export const RAIL_LEAGUES: RailLeague[] = [
+  { key: "nfl", label: "NFL", path: "football/nfl", kind: "team" },
+  { key: "nba", label: "NBA", path: "basketball/nba", kind: "team" },
+  { key: "mlb", label: "MLB", path: "baseball/mlb", kind: "team" },
+  { key: "nhl", label: "NHL", path: "hockey/nhl", kind: "team" },
+  { key: "cfb", label: "CFB", path: "football/college-football", kind: "team" },
+  { key: "epl", label: "Soccer", path: "soccer/eng.1", kind: "team" },
+  { key: "ufc", label: "UFC", path: "mma/ufc", kind: "combat" },
+  { key: "f1", label: "F1", path: "racing/f1", kind: "racing" },
+  { key: "indy", label: "IndyCar", path: "racing/irl", kind: "racing" },
+  // Boxing isn't in ESPN's free API — it comes from TheSportsDB instead (boxingCards).
+];
+
+export interface ScoreSide {
+  name: string;
+  abbr?: string;
+  logo?: string;
+  score?: string;
+  record?: string;
+  winner?: boolean;
+}
+
+export interface ScoreCard {
+  id: string;
+  league: string; // label, e.g. "NFL" / "UFC" / "F1"
+  kind: RailKind;
+  state: "pre" | "in" | "post";
+  status: string; // short status/detail
+  title: string; // "NE @ SEA" / fight-card name / race name
+  sides: ScoreSide[]; // 2 for team/combat, 0 for racing
+  standings: { who: string }[]; // racing podium / running order (top 3)
+  stats: { label: string; value: string }[]; // extra stat lines when available
+  note?: string; // venue / broadcast / circuit
+}
+
+function broadcastsOf(comp: any): string[] {
+  const out: string[] = [];
+  (comp.broadcasts || []).forEach((b: any) => (b.names || []).forEach((n: string) => out.push(n)));
+  (comp.geoBroadcasts || []).forEach((b: any) => b.media?.shortName && out.push(b.media.shortName));
+  return Array.from(new Set(out));
+}
+
+async function leagueCards(lg: RailLeague): Promise<ScoreCard[]> {
+  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${lg.path}/scoreboard`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  const events = data.events || [];
+
+  return events.map((ev: any): ScoreCard => {
+    const comp = ev.competitions?.[0] || {};
+    const state = (ev.status?.type?.state || "pre") as ScoreCard["state"];
+    const status = ev.status?.type?.shortDetail || "";
+    const bc = broadcastsOf(comp);
+    const base = { id: ev.id, league: lg.label, kind: lg.kind, state, status };
+
+    if (lg.kind === "racing") {
+      const field = (comp.competitors || []).slice().sort((a: any, b: any) => (a.order || 99) - (b.order || 99));
+      const standings = state === "pre" ? [] : field.slice(0, 3).map((c: any) => ({ who: c.athlete?.displayName || c.athlete?.shortName || "—" }));
+      return {
+        ...base,
+        title: ev.name || ev.shortName || lg.label,
+        sides: [],
+        standings,
+        stats: [],
+        note: comp.venue?.fullName || bc[0],
+      };
+    }
+
+    if (lg.kind === "combat") {
+      const bouts = ev.competitions || [];
+      const main = bouts[bouts.length - 1] || comp; // last bout = main event
+      const sides: ScoreSide[] = (main.competitors || []).map((c: any) => ({
+        name: c.athlete?.displayName || c.athlete?.shortName || "TBD",
+        record: c.records?.[0]?.summary,
+        winner: c.winner,
+      }));
+      return {
+        ...base,
+        title: ev.shortName || ev.name || lg.label,
+        sides,
+        standings: [],
+        stats: bouts.length > 1 ? [{ label: "Card", value: `${bouts.length} bouts` }] : [],
+        note: comp.venue?.fullName || bc[0],
+      };
+    }
+
+    // Team game.
+    const cs = comp.competitors || [];
+    const pick = (ha: string) => cs.find((c: any) => c.homeAway === ha) || {};
+    const toSide = (c: any): ScoreSide => ({
+      name: c.team?.shortDisplayName || c.team?.displayName || "TBD",
+      abbr: c.team?.abbreviation,
+      logo: c.team?.logo,
+      score: c.score,
+      record: c.records?.[0]?.summary,
+      winner: c.winner,
+    });
+    const away = toSide(pick("away"));
+    const home = toSide(pick("home"));
+    const stats = (comp.leaders || [])
+      .slice(0, 2)
+      .map((L: any) => ({
+        label: L.shortDisplayName || L.displayName || L.name || "",
+        value: L.leaders?.[0] ? `${L.leaders[0].athlete?.shortName || ""} ${L.leaders[0].displayValue || ""}`.trim() : "",
+      }))
+      .filter((s: any) => s.label && s.value);
+    return {
+      ...base,
+      title: `${away.abbr || away.name} @ ${home.abbr || home.name}`,
+      sides: [away, home],
+      standings: [],
+      stats,
+      note: bc[0] || comp.venue?.fullName,
+    };
+  });
+}
+
+// Boxing has no ESPN feed, so it comes from TheSportsDB (free). Fighters aren't in
+// structured fields — they're in the event title ("A vs B") — so we split on "vs".
+// Best-effort: any failure just drops boxing from the rail (skipped).
+async function boxingCards(): Promise<ScoreCard[]> {
+  const TSDB = "https://www.thesportsdb.com/api/v1/json/3";
+  const LEAGUE = "4445"; // TheSportsDB "Boxing"
+  const grab = (u: string) => fetch(u).then((r) => (r.ok ? r.json() : { events: [] })).catch(() => ({ events: [] }));
+  const [next, past] = await Promise.all([
+    grab(`${TSDB}/eventsnextleague.php?id=${LEAGUE}`),
+    grab(`${TSDB}/eventspastleague.php?id=${LEAGUE}`),
+  ]);
+
+  const toCard = (e: any, state: "pre" | "post"): ScoreCard => {
+    const parts = String(e.strEvent || "").split(/\s+vs\.?\s+/i);
+    const sides: ScoreSide[] = parts.length === 2 ? parts.map((p) => ({ name: p.trim() })) : [];
+    let status = "Upcoming";
+    if (state === "post") status = "Final";
+    else if (e.dateEvent) {
+      const [, m, d] = e.dateEvent.split("-");
+      status = `${Number(m)}/${Number(d)}${e.strTime ? ` · ${String(e.strTime).slice(0, 5)}` : ""}`;
+    }
+    return {
+      id: `box-${e.idEvent}`,
+      league: "Boxing",
+      kind: "combat",
+      state,
+      status,
+      title: e.strEvent || "Boxing",
+      sides,
+      standings: [],
+      stats: [],
+      note: e.strVenue || undefined,
+    };
+  };
+
+  return [
+    ...(next.events || []).slice(0, 4).map((e: any) => toCard(e, "pre")),
+    ...(past.events || []).slice(0, 2).map((e: any) => toCard(e, "post")),
+  ];
+}
+
+/** Every game/event across all rail leagues, live first, then upcoming, then final.
+ *  Leagues that error or have nothing on simply contribute nothing (skipped). */
+export async function railScores(): Promise<ScoreCard[]> {
+  const lists = await Promise.all([
+    ...RAIL_LEAGUES.map((lg) => leagueCards(lg).catch(() => [] as ScoreCard[])),
+    boxingCards().catch(() => [] as ScoreCard[]),
+  ]);
+  const rank = (s: ScoreCard["state"]) => (s === "in" ? 0 : s === "pre" ? 1 : 2);
+  return lists.flat().sort((a, b) => rank(a.state) - rank(b.state));
+}
+
 export async function scoreboard(path: string): Promise<Game[]> {
   const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`);
   if (!res.ok) throw new Error(`ESPN ${res.status}`);
