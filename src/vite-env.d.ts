@@ -8,3 +8,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// Injected at build time by Vite (see vite.config.ts) — the running build's id.
+declare const __APP_VERSION__: string;

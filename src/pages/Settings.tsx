@@ -19,6 +19,21 @@ function clearKey(key: string, label: string) {
   location.reload();
 }
 
+// Reload the app to pull the latest deploy — no TV restart needed. Best-effort clears
+// any Cache Storage first (WebViews cache hard) so the fresh build is fetched; your
+// settings live in localStorage and are left untouched.
+async function reloadApp() {
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* ignore — reload still works */
+  }
+  location.reload();
+}
+
 export default function Settings() {
   const s = useSettings();
 
@@ -67,6 +82,21 @@ export default function Settings() {
               </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* App updates */}
+      <section className="mt-8">
+        <Heading emoji="🔄" className="mb-3">App Updates</Heading>
+        <div className="card flex flex-wrap items-center gap-3 p-4">
+          <button onClick={reloadApp} data-focusable className="btn-spray">
+            🔄 Reload app
+          </button>
+          <div className="min-w-[10rem] flex-1 text-sm text-cream/60">
+            Pulls the latest version without restarting the TV — use this after an update ships. The
+            <b> Build</b> code below changes once the new version loads.
+          </div>
+          <div className="u-label !rotate-0 shrink-0 text-cream/40">Build {__APP_VERSION__}</div>
         </div>
       </section>
 
