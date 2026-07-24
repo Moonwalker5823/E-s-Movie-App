@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Chip from "./ui/Chip";
 import Skeleton from "./ui/Skeleton";
 import { videos, type Video } from "../api/videos";
@@ -21,8 +21,8 @@ function timeAgo(iso: string): string {
   return "just now";
 }
 
-// Fisher–Yates shuffle (returns a fresh copy). We randomize the play order on every
-// visit so a stale/cached feed never streams the same clips in the same order.
+// Fisher–Yates shuffle (fresh copy). We randomize the play order on every visit so a
+// stale/cached feed never streams the same clips in the same order.
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -32,10 +32,8 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// A single-video embed. Players default to SOUND ON; the hero has no chrome (a
-// custom mute toggle drives it via the iframe JS API), the fullscreen player uses
-// YouTube's native controls. (Unmuted autoplay works in the native TV app.)
-function embedUrl(id: string, opts: { mute: boolean; controls: boolean; jsapi?: boolean }): string {
+// Single-video embed — used by the fullscreen overlay (native controls, sound on).
+function embedUrl(id: string, opts: { mute: boolean; controls: boolean }): string {
   const p = new URLSearchParams({
     autoplay: "1",
     mute: opts.mute ? "1" : "0",
@@ -43,40 +41,38 @@ function embedUrl(id: string, opts: { mute: boolean; controls: boolean; jsapi?: 
     playsinline: "1",
     modestbranding: "1",
     controls: opts.controls ? "1" : "0",
-    cc_load_policy: "0", // captions OFF by default (native CC button still available)
+    cc_load_policy: "0", // captions off by default; native CC button toggles them
   });
-  if (opts.jsapi) p.set("enablejsapi", "1");
   return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
 }
 
-// A CONTINUOUS, looping playlist embed: the first id plays, then the REST play in
-// order, then it loops back — so the hub streams clips back-to-back like a channel.
-// The rest go in `playlist`; if you instead repeat the first id there, YouTube reads
-// it as a single-video loop and replays the SAME clip forever (the bug we're fixing).
-function embedPlaylistUrl(ids: string[], opts: { mute: boolean; cc: boolean; controls: boolean; jsapi?: boolean }): string {
-  const list = ids.slice(0, 30); // cap the URL length
-  const rest = list.length > 1 ? list.slice(1) : list; // 1 clip → loop that one
-  const p = new URLSearchParams({
-    autoplay: "1",
-    mute: opts.mute ? "1" : "0",
-    rel: "0",
-    playsinline: "1",
-    modestbranding: "1",
-    controls: opts.controls ? "1" : "0",
-    cc_load_policy: opts.cc ? "1" : "0", // 1 force-loads captions; 0 = viewer default (usually off)
-    loop: "1",
-    playlist: rest.join(","),
+// Load the YouTube IFrame Player API once (module singleton). We drive the main
+// viewer through this real API — NOT the embed `playlist=` URL param, which plays
+// the wrong clip (it ignores the path video). `playVideoAt(i)` plays the EXACT clip.
+let ytApiPromise: Promise<any> | null = null;
+function loadYouTubeApi(): Promise<any> {
+  const w = window as any;
+  if (w.YT && w.YT.Player) return Promise.resolve(w.YT);
+  if (ytApiPromise) return ytApiPromise;
+  ytApiPromise = new Promise((resolve) => {
+    const prev = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => {
+      if (typeof prev === "function") prev();
+      resolve(w.YT);
+    };
+    const s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(s);
   });
-  if (opts.jsapi) p.set("enablejsapi", "1");
-  return `https://www.youtube-nocookie.com/embed/${list[0]}?${p.toString()}`;
+  return ytApiPromise;
 }
 
 /**
  * A YouTube video hub. With `autoplay`, a MAIN VIEWER sits at the top and streams
- * the day's clips back-to-back in a shuffled order (so a stale feed never repeats),
- * with two "up next" thumbnails. Selecting any tile loads it INTO the main viewer
- * (not straight to fullscreen) and it keeps rolling from there; a Fullscreen button
- * blows up the current clip. Powers Sports / Blerd / Lounge / Games.
+ * the day's clips back-to-back in a shuffled order (via the YouTube Player API, so
+ * the clip you pick is the clip that plays), with ⏮/⏭ controls and two "up next"
+ * thumbnails. Picking a tile loads it in the viewer (not straight to fullscreen); a
+ * Fullscreen button blows up the current clip. Powers Sports / Blerd / Lounge / etc.
  */
 export default function VideoHub({
   tabs,
@@ -91,61 +87,148 @@ export default function VideoHub({
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
   const [items, setItems] = useState<Video[] | null>(null);
-  const [order, setOrder] = useState<Video[]>([]); // shuffled play order for the viewer
-  const [heroStart, setHeroStart] = useState(0); // index in `order` the viewer starts at
+  const [order, setOrder] = useState<Video[]>([]); // shuffled play order (the viewer's playlist)
+  const [current, setCurrent] = useState(0); // index in `order` currently playing
   const [error, setError] = useState(false);
   const [fullVid, setFullVid] = useState<Video | null>(null);
   const [full, setFull] = useState(false);
   const [muted, setMuted] = useState(false); // players default to SOUND ON
-  const [cc, setCc] = useState(false); // closed captions OFF by default
+  const [cc, setCc] = useState(false); // captions OFF by default
   const closeRef = useRef<HTMLButtonElement>(null);
-  const miniRef = useRef<HTMLIFrameElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
+  const playerRef = useRef<any>(null);
   const heroWrapRef = useRef<HTMLDivElement>(null);
   const heroPlayerRef = useRef<HTMLDivElement>(null); // the player box, centered on select
 
-  // Toggle the hero's sound via the YouTube iframe API (no reload).
+  const len = order.length;
+  const feat = autoplay && len ? order[current % len] : null;
+  const previews = len ? [order[(current + 1) % len], order[(current + 2) % len]] : [];
+
+  // Build/tear down the API player whenever the feed (order) changes.
+  useEffect(() => {
+    if (!autoplay || !order.length) return;
+    let killed = false;
+    const ids = order.map((v) => v.videoId).slice(0, 200);
+    loadYouTubeApi().then((YT) => {
+      if (killed || !hostRef.current) return;
+      hostRef.current.innerHTML = "";
+      const el = document.createElement("div"); // YT replaces this node with its iframe
+      hostRef.current.appendChild(el);
+      playerRef.current = new YT.Player(el, {
+        host: "https://www.youtube-nocookie.com",
+        width: "100%",
+        height: "100%",
+        videoId: ids[0],
+        playerVars: { autoplay: 1, mute: 0, rel: 0, playsinline: 1, modestbranding: 1, controls: 0, cc_load_policy: 0 },
+        events: {
+          onReady: (e: any) => {
+            if (killed) return;
+            try {
+              e.target.loadPlaylist(ids, 0); // the whole shuffled queue, start at 0
+              e.target.setLoop(true); // channel never ends
+            } catch {
+              /* ignore */
+            }
+          },
+          onStateChange: (e: any) => {
+            // Keep the title/up-next in sync with what's ACTUALLY playing (also as it
+            // auto-advances), so the label can never disagree with the video.
+            try {
+              const i = e.target.getPlaylistIndex();
+              if (typeof i === "number" && i >= 0) setCurrent(i);
+            } catch {
+              /* ignore */
+            }
+          },
+        },
+      });
+    });
+    return () => {
+      killed = true;
+      try {
+        playerRef.current && playerRef.current.destroy();
+      } catch {
+        /* ignore */
+      }
+      playerRef.current = null;
+    };
+  }, [autoplay, order]);
+
+  // Pause the viewer while the fullscreen overlay is up (no double audio); resume after.
+  useEffect(() => {
+    const p = playerRef.current;
+    if (!p) return;
+    try {
+      if (full) p.pauseVideo();
+      else p.playVideo();
+    } catch {
+      /* ignore */
+    }
+  }, [full]);
+
   function toggleMute() {
-    const next = !muted;
-    setMuted(next);
-    miniRef.current?.contentWindow?.postMessage(
-      JSON.stringify({ event: "command", func: next ? "mute" : "unMute", args: [] }),
-      "*"
-    );
+    const p = playerRef.current;
+    if (!p) return;
+    try {
+      if (muted) {
+        p.unMute();
+        setMuted(false);
+      } else {
+        p.mute();
+        setMuted(true);
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
-  // Captions are driven by the embed URL (cc_load_policy) + a remount — reliable,
-  // unlike the iframe API's setOption for captions. Flipping `cc` rebuilds the hero.
+  // Best-effort caption toggle via the player API (captions may be baked into some
+  // clips, which no API can remove; default is off).
   function toggleCc() {
-    setCc((v) => !v);
+    const p = playerRef.current;
+    const next = !cc;
+    setCc(next);
+    try {
+      if (next) {
+        p.loadModule("captions");
+        p.loadModule("cc");
+        p.setOption("captions", "track", { languageCode: "en" });
+        p.setOption("cc", "track", { languageCode: "en" });
+      } else {
+        p.setOption("captions", "track", {});
+        p.setOption("cc", "track", {});
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
-  // The main viewer streams the feed starting at `heroStart`, wrapping around; the
-  // two "up next" thumbnails preview what plays next.
-  const rotated =
-    autoplay && order.length ? [...order.slice(heroStart), ...order.slice(0, heroStart)] : [];
-  const feat = rotated[0] ?? null;
-  const previews = rotated.slice(1, 3);
+  function playPrev() {
+    const p = playerRef.current;
+    if (!p || !len) return;
+    try {
+      p.previousVideo();
+    } catch {
+      /* ignore */
+    }
+    setCurrent((c) => (c - 1 + len) % len);
+  }
 
-  // Build the looping-playlist URL once per (order + start) — NOT on mute toggle,
-  // which is postMessage-driven — so the viewer only reloads when you pick a clip.
-  const rotatedKey = rotated.map((v) => v.videoId).join(",");
-  // Rebuild the viewer URL when the order/start changes OR captions toggle. `muted`
-  // is read but intentionally NOT a dep: mute is applied live via postMessage (no
-  // reload); each rebuild still captures the current mute + cc state so a remount
-  // (picking a clip / toggling CC) keeps sound and captions in sync with the buttons.
-  const heroSrc = useMemo(
-    () =>
-      rotated.length
-        ? embedPlaylistUrl(rotated.map((v) => v.videoId), { mute: muted, cc, controls: false, jsapi: true })
-        : "",
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotatedKey, cc]
-  );
+  function playNext() {
+    const p = playerRef.current;
+    if (!p || !len) return;
+    try {
+      p.nextVideo();
+    } catch {
+      /* ignore */
+    }
+    setCurrent((c) => (c + 1) % len);
+  }
 
   useEffect(() => {
     setItems(null);
     setOrder([]);
-    setHeroStart(0);
+    setCurrent(0);
     setError(false);
     setFull(false);
     setFullVid(null);
@@ -164,12 +247,18 @@ export default function VideoHub({
     };
   }, [tab, short, autoplay]);
 
-  // Load a picked clip into the MAIN VIEWER (not fullscreen) and bring it into view.
+  // Load a picked clip into the MAIN VIEWER (not fullscreen) and center it on screen.
   function playInHero(v: Video) {
     const idx = order.findIndex((o) => o.videoId === v.videoId);
-    if (idx >= 0) setHeroStart(idx);
-    // Center the PLAYER on screen so a picked clip is front-and-center (not tucked
-    // under the heading) before you choose fullscreen.
+    const p = playerRef.current;
+    if (idx >= 0) {
+      try {
+        p && p.playVideoAt(idx); // EXACT clip — the whole point of using the API
+      } catch {
+        /* ignore */
+      }
+      setCurrent(idx);
+    }
     (heroPlayerRef.current ?? heroWrapRef.current)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
@@ -207,12 +296,15 @@ export default function VideoHub({
     };
   }, [full]);
 
+  const ctrlCls =
+    "z-20 grid h-9 w-9 scroll-mt-24 place-items-center rounded-full bg-black/70 text-cream transition hover:bg-black/90";
+
   return (
     <div>
-      {/* MAIN VIEWER — streams clips back-to-back (shuffled). Pick any tile to load it
-          here (never straight to fullscreen). data-autofocus lands the remote here. */}
-      {autoplay && !full && (
-        <div ref={heroWrapRef} className="mb-5 w-full max-w-5xl">
+      {/* MAIN VIEWER — the API-driven player. Stays mounted (even under fullscreen) so
+          the player instance survives; picking a tile plays that EXACT clip here. */}
+      {autoplay && (
+        <div ref={heroWrapRef} className={`mb-5 w-full max-w-5xl ${full ? "pointer-events-none" : ""}`}>
           {items === null ? (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
               <Skeleton className="aspect-video rounded-2xl lg:col-span-2" />
@@ -224,21 +316,12 @@ export default function VideoHub({
           ) : feat ? (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <div ref={heroPlayerRef} className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24">
-                  <iframe
-                    ref={miniRef}
-                    key={`hero-${tab}-${feat.videoId}-${cc ? "cc" : "x"}`}
-                    src={heroSrc}
-                    title={feat.title}
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    className="pointer-events-none absolute inset-0 h-full w-full"
-                  />
-                  <button
-                    onClick={toggleMute}
-                    data-focusable
-                    aria-label={muted ? "Unmute" : "Mute"}
-                    className="absolute left-2 top-2 z-20 grid h-9 w-9 scroll-mt-24 place-items-center rounded-full bg-black/70 text-base text-cream transition hover:bg-black/90"
-                  >
+                <div
+                  ref={heroPlayerRef}
+                  className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
+                >
+                  <div ref={hostRef} className="absolute inset-0 h-full w-full [&>iframe]:pointer-events-none" />
+                  <button onClick={toggleMute} data-focusable aria-label={muted ? "Unmute" : "Mute"} className={`absolute left-2 top-2 text-base ${ctrlCls}`}>
                     {muted ? "🔇" : "🔊"}
                   </button>
                   <button
@@ -249,8 +332,14 @@ export default function VideoHub({
                   >
                     CC
                   </button>
+                  <button onClick={playPrev} data-focusable aria-label="Previous clip" className={`absolute bottom-2 left-2 text-sm ${ctrlCls}`}>
+                    ⏮
+                  </button>
+                  <button onClick={playNext} data-focusable aria-label="Next clip" className={`absolute bottom-2 left-14 text-sm ${ctrlCls}`}>
+                    ⏭
+                  </button>
                   <button
-                    onClick={() => openFull(feat)}
+                    onClick={() => feat && openFull(feat)}
                     data-focusable
                     data-autofocus
                     aria-label={`Watch ${feat.title} full screen`}
@@ -260,7 +349,7 @@ export default function VideoHub({
                   </button>
                 </div>
                 <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
-                <div className="text-xs text-cream/40">{feat.channel} · streams back-to-back · 🔊 mute · ⛶ full screen</div>
+                <div className="text-xs text-cream/40">{feat.channel} · ⏮ ⏭ skip · 🔊 mute · ⛶ full screen</div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
@@ -296,8 +385,8 @@ export default function VideoHub({
         </div>
       )}
 
-      {/* Full-screen overlay player (unmuted, native controls). data-focus-trap keeps
-          the D-pad inside it (see useSpatialNav) so focus can't escape to the nav. */}
+      {/* Full-screen overlay player (single video, native controls). data-focus-trap
+          keeps the D-pad inside it (see useSpatialNav) so focus can't escape. */}
       {full && fullVid && (
         <div data-focus-trap className="fixed inset-0 z-[60] flex flex-col bg-black">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
