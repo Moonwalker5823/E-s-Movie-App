@@ -85,7 +85,9 @@ export default async function handler(req: any, res: any) {
 
   // Pick the exact title: TMDB id is authoritative; otherwise match type + name
   // (+ year when we have it), else the first result that actually has offers.
-  const byTmdb = tmdbId ? nodes.find((n) => n.content?.externalIds?.tmdbId === tmdbId) : undefined;
+  const byTmdb = tmdbId
+    ? nodes.find((n) => (!wantType || n.objectType === wantType) && n.content?.externalIds?.tmdbId === tmdbId)
+    : undefined;
   const byMeta = nodes.find(
     (n) =>
       (!wantType || n.objectType === wantType) &&
@@ -99,7 +101,7 @@ export default async function handler(req: any, res: any) {
   const links: Record<string, string> = {};
   const bestRank: Record<string, number> = {};
   for (const o of node?.offers || []) {
-    if (!o?.standardWebURL || !o.package) continue;
+    if (!o?.standardWebURL || !o.standardWebURL.startsWith("https://") || !o.package) continue; // https only — this becomes an <a href>
     const key = norm(o.package.clearName) || norm(o.package.technicalName);
     if (!key) continue;
     const rank = RANK[o.monetizationType] ?? 9;

@@ -105,6 +105,7 @@ export default function VideoHub({
   const closeRef = useRef<HTMLButtonElement>(null);
   const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
   const playerRef = useRef<any>(null);
+  const playingRef = useRef(true); // user's intended play state (survives fullscreen)
   const heroWrapRef = useRef<HTMLDivElement>(null);
   const heroPlayerRef = useRef<HTMLDivElement>(null); // the player box, centered on select
   const fullHostRef = useRef<HTMLDivElement>(null); // fullscreen player mount
@@ -151,8 +152,13 @@ export default function VideoHub({
             }
             // Keep the play/pause button in sync (1 = playing, 2 = paused; ignore
             // buffering/cued so the icon doesn't flicker mid-load).
-            if (e.data === 1) setPlaying(true);
-            else if (e.data === 2) setPlaying(false);
+            if (e.data === 1) {
+              setPlaying(true);
+              playingRef.current = true;
+            } else if (e.data === 2) {
+              setPlaying(false);
+              playingRef.current = false;
+            }
           },
         },
       });
@@ -174,7 +180,7 @@ export default function VideoHub({
     if (!p) return;
     try {
       if (full) p.pauseVideo();
-      else p.playVideo();
+      else if (playingRef.current) p.playVideo(); // don't override a deliberate pause
     } catch {
       /* ignore */
     }
@@ -201,7 +207,7 @@ export default function VideoHub({
         events: {
           onStateChange: (e: any) => {
             if (e.data === 1) setFsPlaying(true);
-            else if (e.data === 2) setFsPlaying(false);
+            else if (e.data === 2 || e.data === 0) setFsPlaying(false); // 0 = ended → show ▶ to replay
           },
         },
       });
@@ -302,9 +308,11 @@ export default function VideoHub({
       if (playing) {
         p.pauseVideo();
         setPlaying(false);
+        playingRef.current = false;
       } else {
         p.playVideo();
         setPlaying(true);
+        playingRef.current = true;
       }
     } catch {
       /* ignore */

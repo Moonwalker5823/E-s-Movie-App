@@ -30,10 +30,11 @@ export function deepLinkFor(providerName: string, links?: DeepLinks): string | u
   if (!links) return undefined;
   const n = norm(providerName);
   if (!n) return undefined;
-  if (links[n]) return links[n];
+  const safe = (u?: string) => (u && u.startsWith("https://") ? u : undefined); // href guard (defense in depth)
+  if (links[n]) return safe(links[n]);
   // Tolerate naming drift ("Tubi TV" vs "Tubi", "Peacock Premium" vs "Peacock",
   // "Disney Plus" vs "Disney+"). Prefix-only so short names don't cross-match
   // (e.g. "Max" must not grab "Cinemax").
   const k = Object.keys(links).find((key) => key.startsWith(n) || n.startsWith(key));
-  return k ? links[k] : undefined;
+  return k ? safe(links[k]) : undefined;
 }
