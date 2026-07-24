@@ -6,8 +6,9 @@ import LaunchTile, { type Tile } from "../components/LaunchTile";
 // stays fresh as these channels post; Tidal covers your personalized/era library.
 const MUSIC_TABS: HubTab[] = [
   { key: "music", label: "🎧 Mix" },
-  { key: "rnb", label: "🎶 R&B / Soul" },
-  { key: "hiphop", label: "🎤 Hip-Hop" },
+  { key: "golden", label: "🔥 Golden Era" },
+  { key: "lyricists", label: "🎤 Lyricists" },
+  { key: "soul", label: "🎶 R&B / Soul" },
   { key: "classics", label: "👑 Legends" },
   { key: "tinydesk", label: "🎙️ Tiny Desk" },
 ];
@@ -38,8 +39,8 @@ export default function Music() {
           ))}
         </div>
         <p className="mt-4 text-sm text-cream/50">
-          Curated grown-folks music — lyrical hip-hop, neo-soul, classics &amp; the King, no ratchet or drill. Your
-          deep 90s/00s catalog and personalized mixes live in Tidal — open it above (you stay signed in on the TV).
+          Golden-era &amp; lyrical — Jay-Z, Nas, DMX, Big Daddy Kane, Kendrick, J. Cole, Lupe, Gambino, Tems, the King &amp;
+          more, no ratchet or drill. Your deep catalog and personalized mixes live in Tidal (you stay signed in on the TV).
         </p>
       </section>
     </div>

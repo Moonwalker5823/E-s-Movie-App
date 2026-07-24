@@ -30,7 +30,16 @@ const COLORS = { id: "UC2Qw1dzXDBAZPwS7zm37g8g", name: "COLORS" }; // curated ly
 const MASS_APPEAL = { id: "UCerm0xrYv04HvPd_G5ZLN0w", name: "Mass Appeal" }; // elevated / golden-era hip-hop
 const MJ = { id: "UC5OrDvL9DscpcAstz7JnQGA", name: "Michael Jackson" }; // the King (above all)
 const RNB_NATION = { id: "UCRrCiR_F-olJgMClfsl7YAg", name: "R&B Nation" }; // R&B / soul
-const LEGACY = { id: "UCf7g15p1fY26A0ZsGlX_6tA", name: "Legacy Recordings" }; // classic rock / soul catalog
+// Named artists — official / VEVO channels, RSS-verified.
+const JAYZ = { id: "UC_Bf08Y-3m6CMAvTms3EkKg", name: "JAY-Z" };
+const NAS = { id: "UChE4aVxHHk5Mx9fZ2DaPJGw", name: "Nas" };
+const DMX = { id: "UCQcTmBevae2jDeFEZ6VEQPw", name: "DMX" };
+const BIG_DADDY_KANE = { id: "UC8YswipxhrINUUEbEAHcDNw", name: "Big Daddy Kane" };
+const KENDRICK = { id: "UC3lBXcrKFnFAFkfVk5WuKcQ", name: "Kendrick Lamar" };
+const JCOLE = { id: "UCnc6db-y3IU7CkT_yeVXdVg", name: "J. Cole" };
+const LUPE = { id: "UC-zD8J0RLWy3mNB7EMmT7Rg", name: "Lupe Fiasco" };
+const GAMBINO = { id: "UCjYO25ZVJT523TD1iYHzcbw", name: "Childish Gambino" };
+const TEMS = { id: "UCWfi5ELXGAe-DCA6cOP3aNw", name: "Tems" };
 
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
@@ -85,12 +94,13 @@ const SETS: Record<string, Channel[]> = {
     { id: "UC1emV4A8liRs9p80CY8ElUQ", name: "freeCodeCamp" },
     { id: "UC2Xd-TjJByJyK2w1zNwY0zQ", name: "Fireship" },
   ],
-  // Music — a grown, golden-era, lyrical/soul palette (curated channels only, no
+  // Music — a grown, golden-era, lyrical/soul palette (curated + named artists, no
   // ratchet or drill). Tidal covers the personalized / deep-catalog library.
-  music: [COLORS, NPR_MUSIC, MASS_APPEAL, RNB_NATION, MJ, LEGACY],
-  rnb: [RNB_NATION, COLORS, NPR_MUSIC],
-  hiphop: [MASS_APPEAL, COLORS, NPR_MUSIC], // lyrical / golden-era — no ratchet or drill
-  classics: [MJ, LEGACY], // MJ + classic soul/rock catalog (Black rock, throwbacks)
+  music: [MJ, KENDRICK, JAYZ, MASS_APPEAL, TEMS, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
+  golden: [JAYZ, NAS, DMX, BIG_DADDY_KANE, MASS_APPEAL], // 90s/00s classic hip-hop
+  lyricists: [KENDRICK, JCOLE, LUPE, GAMBINO, MASS_APPEAL], // conscious / lyrical
+  soul: [TEMS, RNB_NATION, COLORS, NPR_MUSIC], // R&B / neo-soul
+  classics: [MJ], // the King — his catalog
   tinydesk: [NPR_MUSIC],
   // Games — gaming clips, trailers & shorts.
   gaming: [
