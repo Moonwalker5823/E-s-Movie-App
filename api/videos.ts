@@ -25,10 +25,12 @@ const HOH = { id: "UC5qUhMoqke0mnJtgVoEn0aw", name: "House of Highlights" };
 const BR = { id: "UCO7BZhCe-EJxXIOU_O53n9g", name: "Bleacher Report" };
 
 // Music-video channels (verified active, July 2026).
-const NPR_MUSIC = { id: "UC4eYXhJI4-7wSWc8UNRwD4A", name: "NPR Music" }; // Tiny Desk — R&B/soul/hip-hop/rock live
-const WSHH = { id: "UC-yXuc1__OzjwpsJPlxYUCQ", name: "WorldStarHipHop" }; // hip-hop / rap videos
+const NPR_MUSIC = { id: "UC4eYXhJI4-7wSWc8UNRwD4A", name: "NPR Music" }; // Tiny Desk — lyrical/soul/R&B live
+const COLORS = { id: "UC2Qw1dzXDBAZPwS7zm37g8g", name: "COLORS" }; // curated lyrical / neo-soul / global
+const MASS_APPEAL = { id: "UCerm0xrYv04HvPd_G5ZLN0w", name: "Mass Appeal" }; // elevated / golden-era hip-hop
+const MJ = { id: "UC5OrDvL9DscpcAstz7JnQGA", name: "Michael Jackson" }; // the King (above all)
 const RNB_NATION = { id: "UCRrCiR_F-olJgMClfsl7YAg", name: "R&B Nation" }; // R&B / soul
-const LEGACY = { id: "UCf7g15p1fY26A0ZsGlX_6tA", name: "Legacy Recordings" }; // classic rock / catalog throwbacks
+const LEGACY = { id: "UCf7g15p1fY26A0ZsGlX_6tA", name: "Legacy Recordings" }; // classic rock / soul catalog
 
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
@@ -83,12 +85,12 @@ const SETS: Record<string, Channel[]> = {
     { id: "UC1emV4A8liRs9p80CY8ElUQ", name: "freeCodeCamp" },
     { id: "UC2Xd-TjJByJyK2w1zNwY0zQ", name: "Fireship" },
   ],
-  // Music — music videos & live sessions across the user's tastes (R&B, soul,
-  // hip-hop, rock, classics). Tidal covers the personalized / era-specific library.
-  music: [NPR_MUSIC, RNB_NATION, WSHH, LEGACY],
-  rnb: [RNB_NATION, NPR_MUSIC],
-  hiphop: [WSHH],
-  rock: [LEGACY],
+  // Music — a grown, golden-era, lyrical/soul palette (curated channels only, no
+  // ratchet or drill). Tidal covers the personalized / deep-catalog library.
+  music: [COLORS, NPR_MUSIC, MASS_APPEAL, RNB_NATION, MJ, LEGACY],
+  rnb: [RNB_NATION, COLORS, NPR_MUSIC],
+  hiphop: [MASS_APPEAL, COLORS, NPR_MUSIC], // lyrical / golden-era — no ratchet or drill
+  classics: [MJ, LEGACY], // MJ + classic soul/rock catalog (Black rock, throwbacks)
   tinydesk: [NPR_MUSIC],
   // Games — gaming clips, trailers & shorts.
   gaming: [

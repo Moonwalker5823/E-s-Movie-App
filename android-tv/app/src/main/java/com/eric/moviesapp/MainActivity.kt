@@ -80,52 +80,96 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().flush() // write cookies to disk
     }
 
-    // Streaming host → its Android TV app package. When the WebView tries to open
-    // one of these (e.g. a "Play on Hulu" tap), launch the installed native app —
-    // where you're already signed in and DRM plays — instead of loading the site.
-    private fun nativePackageFor(host: String): String? {
+    // Streaming host → candidate Android app packages (TV variant first, phone
+    // fallback — package names differ across devices, e.g. Hulu is
+    // com.hulu.livingroomplus on Google TV but com.hulu.plus on phones). When the
+    // WebView tries to open one of these (a "Play on Hulu" tap), we launch the
+    // installed native app — where you're already signed in and DRM plays — instead
+    // of loading the un-signable website.
+    private fun nativePackagesFor(host: String): List<String> {
         val h = host.lowercase()
         return when {
-            h.contains("hulu.com") -> "com.hulu.plus"
-            h.contains("primevideo.com") -> "com.amazon.amazonvideo.livingroom"
-            h.contains("netflix.com") -> "com.netflix.ninja"
-            h.contains("disneyplus.com") -> "com.disney.disneyplus"
-            h.contains("max.com") || h.contains("hbomax.com") -> "com.wbd.stream"
-            h.contains("peacocktv.com") -> "com.peacocktv.peacockandroid"
-            h.contains("paramountplus.com") -> "com.cbs.ott"
-            h.contains("tubitv.com") -> "com.tubitv"
-            h.contains("pluto.tv") -> "tv.pluto.android"
-            h.contains("tidal.com") -> "com.aspiro.tidal"
-            h.contains("music.youtube.com") -> "com.google.android.apps.youtube.music"
-            h.contains("youtube.com") -> "com.google.android.youtube.tv"
-            else -> null
+            h.contains("hulu.com") -> listOf("com.hulu.livingroomplus", "com.hulu.plus")
+            h.contains("primevideo.com") || h.contains("amazon.com") ->
+                listOf("com.amazon.amazonvideo.livingroom", "com.amazon.avod.thirdpartyclient")
+            h.contains("netflix.com") -> listOf("com.netflix.ninja")
+            h.contains("disneyplus.com") -> listOf("com.disney.disneyplus")
+            h.contains("max.com") || h.contains("hbomax.com") -> listOf("com.wbd.stream")
+            h.contains("peacocktv.com") -> listOf("com.peacocktv.peacockandroid")
+            h.contains("paramountplus.com") -> listOf("com.cbs.ott")
+            h.contains("tubitv.com") -> listOf("com.tubitv")
+            h.contains("pluto.tv") -> listOf("tv.pluto.android")
+            h.contains("tidal.com") -> listOf("com.aspiro.tidal")
+            h.contains("music.youtube.com") ->
+                listOf("com.google.android.youtube.tvmusic", "com.google.android.apps.youtube.music")
+            h.contains("youtube.com") -> listOf("com.google.android.youtube.tv")
+            else -> emptyList()
         }
     }
 
-    private inner class AppWebViewClient : WebViewClient() {
-        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-            if (!request.isForMainFrame) return false // let iframes (video players) load in-app
-            val host = request.url.host ?: return false
-            if (host.contains("erics-movies.vercel.app")) return false // our own app stays in the WebView
-            val pkg = nativePackageFor(host) ?: return false
-            return try {
-                // Prefer opening the app AT the link (deep-link if it supports app-links)…
-                val deep = Intent(Intent.ACTION_VIEW, request.url).setPackage(pkg)
+    // Open the first installed candidate app — deep-linked to the URL when the app
+    // claims it, otherwise just launched (you're already signed in). Returns true if
+    // one opened, false if none are installed (caller falls back to the website).
+    private fun openNativeApp(packages: List<String>, url: android.net.Uri): Boolean {
+        for (pkg in packages) {
+            try {
+                val deep = Intent(Intent.ACTION_VIEW, url).setPackage(pkg)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 if (deep.resolveActivity(packageManager) != null) {
                     startActivity(deep)
                     return true
                 }
-                // …otherwise just open the app (you're already logged in there).
                 val launch = packageManager.getLaunchIntentForPackage(pkg)
                 if (launch != null) {
+                    launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(launch)
                     return true
                 }
-                false // app not installed — fall back to loading the site in the WebView
-            } catch (e: Exception) {
-                false
+            } catch (_: Exception) {
+                // try the next candidate package
             }
+        }
+        return false
+    }
+
+    // Launch a non-http(s) URL (intent:// deep link or a custom app scheme such as
+    // amazonvideo:// / hulu://) as an Android Intent. A WebView CAN'T load these, so
+    // without this an "Open in app" button throws a net::ERR_UNKNOWN_URL_SCHEME error
+    // page. Always returns true so the WebView never tries to load the scheme itself.
+    private fun openExternalScheme(url: String): Boolean {
+        try {
+            val intent = if (url.startsWith("intent:"))
+                Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+            else Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                startActivity(intent)
+            } catch (_: android.content.ActivityNotFoundException) {
+                // intent:// URLs can carry a web fallback (usually the app's site).
+                val fallback = intent.getStringExtra("browser_fallback_url")
+                if (fallback != null) web.loadUrl(fallback)
+            }
+        } catch (_: Exception) {
+            // malformed URL — swallow rather than error the WebView
+        }
+        return true
+    }
+
+    private inner class AppWebViewClient : WebViewClient() {
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            val url = request.url
+            val scheme = url.scheme?.lowercase()
+            // Non-web schemes (intent://, market://, hulu://, amazonvideo://, …) can't
+            // load in a WebView — launch them as an Intent so app deep-links work.
+            if (scheme != null && scheme != "http" && scheme != "https") {
+                return openExternalScheme(url.toString())
+            }
+            if (!request.isForMainFrame) return false // let iframes (video players) load in-app
+            val host = url.host ?: return false
+            if (host.contains("erics-movies.vercel.app")) return false // our own app stays in the WebView
+            val pkgs = nativePackagesFor(host)
+            if (pkgs.isEmpty()) return false
+            return openNativeApp(pkgs, url) // false → app not installed, fall back to the site
         }
     }
 
@@ -143,7 +187,11 @@ class MainActivity : AppCompatActivity() {
             val temp = WebView(this@MainActivity)
             temp.webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(v: WebView, request: WebResourceRequest): Boolean {
-                    view.loadUrl(request.url.toString())
+                    val host = request.url.host
+                    val pkgs = if (host != null) nativePackagesFor(host) else emptyList()
+                    // target="_blank" "Play" links → hand off to the native app first…
+                    if (pkgs.isNotEmpty() && openNativeApp(pkgs, request.url)) return true
+                    view.loadUrl(request.url.toString()) // …else load in the main WebView
                     return true
                 }
             }

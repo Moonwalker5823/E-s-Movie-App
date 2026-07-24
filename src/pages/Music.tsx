@@ -8,7 +8,7 @@ const MUSIC_TABS: HubTab[] = [
   { key: "music", label: "🎧 Mix" },
   { key: "rnb", label: "🎶 R&B / Soul" },
   { key: "hiphop", label: "🎤 Hip-Hop" },
-  { key: "rock", label: "🎸 Rock / Classics" },
+  { key: "classics", label: "👑 Legends" },
   { key: "tinydesk", label: "🎙️ Tiny Desk" },
 ];
 
@@ -38,8 +38,8 @@ export default function Music() {
           ))}
         </div>
         <p className="mt-4 text-sm text-cream/50">
-          Old-school &amp; 90s throwbacks and your personalized mixes live in Tidal — open it above (you stay signed
-          in on the TV). The reel up top keeps fresh across R&amp;B, soul, hip-hop, rock &amp; classics.
+          Curated grown-folks music — lyrical hip-hop, neo-soul, classics &amp; the King, no ratchet or drill. Your
+          deep 90s/00s catalog and personalized mixes live in Tidal — open it above (you stay signed in on the TV).
         </p>
       </section>
     </div>

@@ -101,6 +101,7 @@ export default function VideoHub({
   const closeRef = useRef<HTMLButtonElement>(null);
   const miniRef = useRef<HTMLIFrameElement>(null);
   const heroWrapRef = useRef<HTMLDivElement>(null);
+  const heroPlayerRef = useRef<HTMLDivElement>(null); // the player box, centered on select
 
   // Toggle the hero's sound via the YouTube iframe API (no reload).
   function toggleMute() {
@@ -167,7 +168,9 @@ export default function VideoHub({
   function playInHero(v: Video) {
     const idx = order.findIndex((o) => o.videoId === v.videoId);
     if (idx >= 0) setHeroStart(idx);
-    heroWrapRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Center the PLAYER on screen so a picked clip is front-and-center (not tucked
+    // under the heading) before you choose fullscreen.
+    (heroPlayerRef.current ?? heroWrapRef.current)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function openFull(v: Video) {
@@ -221,7 +224,7 @@ export default function VideoHub({
           ) : feat ? (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card">
+                <div ref={heroPlayerRef} className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24">
                   <iframe
                     ref={miniRef}
                     key={`hero-${tab}-${feat.videoId}-${cc ? "cc" : "x"}`}
