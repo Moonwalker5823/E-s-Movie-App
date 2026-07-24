@@ -38,18 +38,24 @@ export function useSpatialNav() {
   const location = useLocation();
   const columnX = useRef<number | null>(null); // remembered column for up/down
 
-  function goTo(el: HTMLElement, isHorizontal: boolean) {
+  function goTo(el: HTMLElement, isHorizontal: boolean, gentle = false) {
     markFocused(el);
-    el.focus();
+    el.focus({ preventScroll: gentle });
     // Column memory updates only on horizontal moves (or first focus).
     if (isHorizontal || columnX.current === null) columnX.current = cx(el);
-    el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+    // "gentle" (initial page focus) only scrolls if the target is off-screen, so a
+    // page opens at the TOP (nav + heading visible) instead of jumping down to
+    // center the first control. Arrow-key moves still center the focused element.
+    el.scrollIntoView({ block: gentle ? "nearest" : "center", inline: gentle ? "nearest" : "center", behavior: "smooth" });
   }
 
   // On each page, land the remote on the featured video ([data-autofocus]) once it
   // loads; until then keep something focused. Never steal focus once the user has
   // moved into page content (a focusable that isn't in the sticky <header> nav).
   useEffect(() => {
+    // Start every page at the very top so the nav + heading are in view (not scrolled
+    // past). The gentle focus below won't pull it back down.
+    window.scrollTo(0, 0);
     let tries = 0;
     let timer: number;
     const tick = () => {
@@ -58,14 +64,14 @@ export function useSpatialNav() {
       if (inContent) return;
       const auto = scopeRoot().querySelector<HTMLElement>("[data-autofocus]");
       if (auto && auto.offsetParent !== null) {
-        goTo(auto, true);
+        goTo(auto, true, true);
         return;
       }
-      // Prefer landing on page content, not the auto-hiding top nav — otherwise the
-      // bar would hold focus and never tuck away.
+      // Prefer landing on page content, not the top nav. Focus gently so the page
+      // stays at the top instead of scrolling down to center the first control.
       const list = focusables();
       const first = list.find((el) => !el.closest("header")) ?? list[0];
-      if ((!active || !active.matches?.(FOCUSABLE)) && first) goTo(first, true);
+      if ((!active || !active.matches?.(FOCUSABLE)) && first) goTo(first, true, true);
       if (tries++ < 7) timer = window.setTimeout(tick, 180); // poll ~1.4s for the video
     };
     timer = window.setTimeout(tick, 120);

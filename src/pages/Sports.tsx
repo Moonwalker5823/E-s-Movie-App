@@ -9,6 +9,7 @@ import VideoHub, { type HubTab } from "../components/VideoHub";
 // Your own SportsCenter — highlight clips + shows/pods, none of the talk.
 const HIGHLIGHT_TABS: HubTab[] = [
   { key: "all", label: "🔥 Top Plays" },
+  { key: "wrap", label: "🌅 Daily Wrap" },
   { key: "nfl", label: "NFL" },
   { key: "nba", label: "NBA" },
   { key: "mlb", label: "MLB" },

@@ -20,9 +20,9 @@ const NBA = { id: "UCWJ2lWNubArHWmf3FIHbfcQ", name: "NBA" };
 const MLB = { id: "UCoLrcjPV5PbUrUyXq5mjc_A", name: "MLB" };
 const NHL = { id: "UCK3CHl-6e3hq4gQaz_TOyoQ", name: "NHL" };
 const EPL = { id: "UCpryVRk_VDudG8SHXgWcG0w", name: "Premier League" };
-const ESPN = { id: "UCiio0ydw439X13KyZgMIcHw", name: "ESPN" };
-const HOH = { id: "UC5qUhMoqke0mnJtgVoEn0aw", name: "House of Highlights" };
-const BR = { id: "UCO7BZhCe-EJxXIOU_O53n9g", name: "Bleacher Report" };
+const ESPN = { id: "UCiWLfSweyRNmLpgEHekhoAg", name: "ESPN" }; // main ESPN (daily recaps)
+const HOH = { id: "UCqQo7ewe87aYAe7ub5UqXMw", name: "House of Highlights" };
+const BR = { id: "UC9-OpMMVoNP5o10_Iyq7Ndw", name: "Bleacher Report" };
 
 // Music-video channels (verified active, July 2026).
 const NPR_MUSIC = { id: "UC4eYXhJI4-7wSWc8UNRwD4A", name: "NPR Music" }; // Tiny Desk — lyrical/soul/R&B live
@@ -82,6 +82,9 @@ const ADULT_SWIM = { id: "UCgPClNr5VSYC3syrDUIlzLw", name: "Adult Swim" }; // To
 const SETS: Record<string, Channel[]> = {
   // Sports "Highlights" tabs
   all: [HOH, ESPN, BR, NFL, NBA, MLB, NHL],
+  // Morning "Daily Wrap" — yesterday's games recapped (newest-first), for a
+  // sports-show feel when you sit down. ESPN/HOH/BR post overnight recaps.
+  wrap: [ESPN, HOH, BR, NFL, NBA, MLB],
   nfl: [NFL],
   nba: [NBA, HOH],
   mlb: [MLB],

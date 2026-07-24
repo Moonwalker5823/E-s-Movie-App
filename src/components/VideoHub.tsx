@@ -32,20 +32,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// Single-video embed — used by the fullscreen overlay (native controls, sound on).
-function embedUrl(id: string, opts: { mute: boolean; controls: boolean }): string {
-  const p = new URLSearchParams({
-    autoplay: "1",
-    mute: opts.mute ? "1" : "0",
-    rel: "0",
-    playsinline: "1",
-    modestbranding: "1",
-    controls: opts.controls ? "1" : "0",
-    cc_load_policy: "0", // captions off by default; native CC button toggles them
-  });
-  return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
-}
-
 // Load the YouTube IFrame Player API once (module singleton). We drive the main
 // viewer through this real API — NOT the embed `playlist=` URL param, which plays
 // the wrong clip (it ignores the path video). `playVideoAt(i)` plays the EXACT clip.
@@ -114,11 +100,15 @@ export default function VideoHub({
   const [muted, setMuted] = useState(false); // players default to SOUND ON
   const [cc, setCc] = useState(false); // captions OFF by default
   const [playing, setPlaying] = useState(true); // autoplay starts playing
+  const [fsPlaying, setFsPlaying] = useState(true); // fullscreen player play state
+  const [fsMuted, setFsMuted] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
   const playerRef = useRef<any>(null);
   const heroWrapRef = useRef<HTMLDivElement>(null);
   const heroPlayerRef = useRef<HTMLDivElement>(null); // the player box, centered on select
+  const fullHostRef = useRef<HTMLDivElement>(null); // fullscreen player mount
+  const fullPlayerRef = useRef<any>(null);
 
   const len = order.length;
   const feat = autoplay && len ? order[current % len] : null;
@@ -189,6 +179,84 @@ export default function VideoHub({
       /* ignore */
     }
   }, [full]);
+
+  // Fullscreen player — its own API instance so the TV remote can drive it via our
+  // focusable buttons (the native YouTube controls can't be reached by the D-pad).
+  useEffect(() => {
+    if (!full || !fullVid) return;
+    let killed = false;
+    setFsPlaying(true);
+    setFsMuted(false);
+    loadYouTubeApi().then((YT) => {
+      if (killed || !fullHostRef.current) return;
+      fullHostRef.current.innerHTML = "";
+      const el = document.createElement("div");
+      fullHostRef.current.appendChild(el);
+      fullPlayerRef.current = new YT.Player(el, {
+        host: "https://www.youtube-nocookie.com",
+        width: "100%",
+        height: "100%",
+        videoId: fullVid.videoId,
+        playerVars: { autoplay: 1, mute: 0, rel: 0, playsinline: 1, modestbranding: 1, controls: 0, cc_load_policy: 0 },
+        events: {
+          onStateChange: (e: any) => {
+            if (e.data === 1) setFsPlaying(true);
+            else if (e.data === 2) setFsPlaying(false);
+          },
+        },
+      });
+    });
+    return () => {
+      killed = true;
+      try {
+        fullPlayerRef.current && fullPlayerRef.current.destroy();
+      } catch {
+        /* ignore */
+      }
+      fullPlayerRef.current = null;
+    };
+  }, [full, fullVid]);
+
+  function fsTogglePlay() {
+    const p = fullPlayerRef.current;
+    if (!p) return;
+    try {
+      if (fsPlaying) {
+        p.pauseVideo();
+        setFsPlaying(false);
+      } else {
+        p.playVideo();
+        setFsPlaying(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  function fsSeek(delta: number) {
+    const p = fullPlayerRef.current;
+    if (!p) return;
+    try {
+      const t = (p.getCurrentTime && p.getCurrentTime()) || 0;
+      p.seekTo(Math.max(0, t + delta), true);
+    } catch {
+      /* ignore */
+    }
+  }
+  function fsToggleMute() {
+    const p = fullPlayerRef.current;
+    if (!p) return;
+    try {
+      if (fsMuted) {
+        p.unMute();
+        setFsMuted(false);
+      } else {
+        p.mute();
+        setFsMuted(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   function toggleMute() {
     const p = playerRef.current;
@@ -412,25 +480,36 @@ export default function VideoHub({
         </div>
       )}
 
-      {/* Full-screen overlay player (single video, native controls). data-focus-trap
-          keeps the D-pad inside it (see useSpatialNav) so focus can't escape. */}
+      {/* Full-screen overlay player. Video fills the screen; our OWN focusable
+          controls overlay it so the TV remote (D-pad) can play/pause/seek/mute —
+          the native YouTube controls can't be reached by the D-pad. data-focus-trap
+          keeps focus inside the overlay (see useSpatialNav). */}
       {full && fullVid && (
-        <div data-focus-trap className="fixed inset-0 z-[60] flex flex-col bg-black">
-          <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <div data-focus-trap className="fixed inset-0 z-[60] bg-black">
+          <div ref={fullHostRef} className="absolute inset-0 h-full w-full" />
+
+          {/* Top bar: title + close */}
+          <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 py-3">
             <div className="min-w-0 truncate font-semibold text-cream">{fullVid.title}</div>
             <button ref={closeRef} onClick={closeFull} data-focusable className="btn-ghost shrink-0 !px-3 !py-1 text-sm">
               Close ✕
             </button>
           </div>
-          <div className="relative flex-1">
-            <iframe
-              key={"full-" + fullVid.videoId}
-              src={embedUrl(fullVid.videoId, { mute: false, controls: true })}
-              title={fullVid.title}
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
-              className="absolute inset-0 h-full w-full"
-            />
+
+          {/* Bottom controls — remote-navigable */}
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-4">
+            <button onClick={() => fsSeek(-10)} data-focusable aria-label="Rewind 10 seconds" className="btn-ghost !px-4 !py-2">
+              ⏪ 10s
+            </button>
+            <button onClick={fsTogglePlay} data-focusable data-autofocus aria-label={fsPlaying ? "Pause" : "Play"} className="btn-spray !px-6 !py-2 text-xl">
+              {fsPlaying ? "⏸" : "▶"}
+            </button>
+            <button onClick={() => fsSeek(10)} data-focusable aria-label="Forward 10 seconds" className="btn-ghost !px-4 !py-2">
+              10s ⏩
+            </button>
+            <button onClick={fsToggleMute} data-focusable aria-label={fsMuted ? "Unmute" : "Mute"} className="btn-ghost !px-4 !py-2">
+              {fsMuted ? "🔇" : "🔊"}
+            </button>
           </div>
         </div>
       )}
