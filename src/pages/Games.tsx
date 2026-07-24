@@ -2,8 +2,14 @@ import Heading from "../components/ui/Heading";
 import LaunchTile, { type Tile } from "../components/LaunchTile";
 import VideoHub, { type HubTab } from "../components/VideoHub";
 
-// Short gaming clips, trailers & moments — auto-plays the top clip of the day.
-const CLIP_TABS: HubTab[] = [{ key: "gaming", label: "🎮 Clips" }];
+// Gaming clips, trailers & moments — auto-plays the top clip of the day.
+// Tabbed to what Eric plays: Xbox, fun sports games, and cars/racing.
+const CLIP_TABS: HubTab[] = [
+  { key: "gaming", label: "🎮 Mix" },
+  { key: "xbox", label: "🟢 Xbox" },
+  { key: "gamesports", label: "🏈 Sports" },
+  { key: "gamecars", label: "🏎️ Cars" },
+];
 
 // Browser-based cloud gaming — play right on the TV, no console hookup needed.
 // Sign in with your Microsoft account to reach your Xbox / Game Pass library.

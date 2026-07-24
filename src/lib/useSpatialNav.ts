@@ -61,8 +61,11 @@ export function useSpatialNav() {
         goTo(auto, true);
         return;
       }
+      // Prefer landing on page content, not the auto-hiding top nav — otherwise the
+      // bar would hold focus and never tuck away.
       const list = focusables();
-      if ((!active || !active.matches?.(FOCUSABLE)) && list.length) goTo(list[0], true);
+      const first = list.find((el) => !el.closest("header")) ?? list[0];
+      if ((!active || !active.matches?.(FOCUSABLE)) && first) goTo(first, true);
       if (tries++ < 7) timer = window.setTimeout(tick, 180); // poll ~1.4s for the video
     };
     timer = window.setTimeout(tick, 120);

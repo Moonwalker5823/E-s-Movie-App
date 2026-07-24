@@ -5,6 +5,7 @@ import { launchUrlFor, colorFor } from "../lib/providers";
 import { serviceByKey, serviceKeyForProvider } from "../lib/services";
 import { hasService, useSettings } from "../lib/settings";
 import { theaterOnPlay } from "../lib/hue";
+import type { DeepLinks } from "../api/deeplink";
 import type { Provider, WatchProviders } from "../lib/types";
 
 function owned(p: Provider) {
@@ -22,7 +23,17 @@ function pickBest(watchNow: Provider[]): Provider | null {
   return free || watchNow[0];
 }
 
-function ProviderGroup({ label, list, title }: { label: string; list?: Provider[]; title: string }) {
+function ProviderGroup({
+  label,
+  list,
+  title,
+  deepLinks,
+}: {
+  label: string;
+  list?: Provider[];
+  title: string;
+  deepLinks?: DeepLinks;
+}) {
   if (!list || list.length === 0) return null;
   // Services you already have float to the front.
   const sorted = [...list].sort((a, b) => Number(owned(b)) - Number(owned(a)));
@@ -35,7 +46,7 @@ function ProviderGroup({ label, list, title }: { label: string; list?: Provider[
           return (
             <a
               key={p.provider_id}
-              href={launchUrlFor(p.provider_name, title)}
+              href={launchUrlFor(p.provider_name, title, deepLinks)}
               target="_blank"
               rel="noreferrer"
               data-focusable
@@ -61,7 +72,15 @@ function ProviderGroup({ label, list, title }: { label: string; list?: Provider[
 }
 
 /** "Where to watch" panel — highlights the services the user already has. */
-export default function WhereToWatch({ wp, title }: { wp: WatchProviders | null; title: string }) {
+export default function WhereToWatch({
+  wp,
+  title,
+  deepLinks,
+}: {
+  wp: WatchProviders | null;
+  title: string;
+  deepLinks?: DeepLinks;
+}) {
   useSettings(); // re-render when My Services change
 
   if (wp === null) return <Skeleton className="mt-8 h-24 rounded-2xl" />;
@@ -81,7 +100,7 @@ export default function WhereToWatch({ wp, title }: { wp: WatchProviders | null;
           (and dim the Hue theater lights if you've set that up). */}
       {best && (
         <a
-          href={launchUrlFor(best.provider_name, title)}
+          href={launchUrlFor(best.provider_name, title, deepLinks)}
           target="_blank"
           rel="noreferrer"
           data-focusable
@@ -112,11 +131,11 @@ export default function WhereToWatch({ wp, title }: { wp: WatchProviders | null;
         </p>
       ) : (
         <>
-          <ProviderGroup label="Included with subscription" list={wp.flatrate} title={title} />
-          <ProviderGroup label="Free" list={wp.free} title={title} />
-          <ProviderGroup label="Free with ads" list={wp.ads} title={title} />
-          <ProviderGroup label="Rent" list={wp.rent} title={title} />
-          <ProviderGroup label="Buy" list={wp.buy} title={title} />
+          <ProviderGroup label="Included with subscription" list={wp.flatrate} title={title} deepLinks={deepLinks} />
+          <ProviderGroup label="Free" list={wp.free} title={title} deepLinks={deepLinks} />
+          <ProviderGroup label="Free with ads" list={wp.ads} title={title} deepLinks={deepLinks} />
+          <ProviderGroup label="Rent" list={wp.rent} title={title} deepLinks={deepLinks} />
+          <ProviderGroup label="Buy" list={wp.buy} title={title} deepLinks={deepLinks} />
           <p className="mt-1 text-xs text-cream/40">
             Tapping a service opens it (and hands off to the app on your TV). Set what you subscribe to
             in Settings → My Services to highlight what you can watch free.

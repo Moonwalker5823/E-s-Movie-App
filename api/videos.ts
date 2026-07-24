@@ -41,6 +41,17 @@ const LUPE = { id: "UC-zD8J0RLWy3mNB7EMmT7Rg", name: "Lupe Fiasco" };
 const GAMBINO = { id: "UCjYO25ZVJT523TD1iYHzcbw", name: "Childish Gambino" };
 const TEMS = { id: "UCWfi5ELXGAe-DCA6cOP3aNw", name: "Tems" };
 
+// Gaming channels — first-party consoles + fun sports games + racing/cars.
+// RSS-verified live (July 2026 uploads).
+const XBOX = { id: "UCjBp_7RuDBUYbd1LegWEJ8g", name: "Xbox" };
+const PLAYSTATION = { id: "UC-2Y8dQb0S6DtpxNgAKoJKA", name: "PlayStation" };
+const FORZA = { id: "UCydtMNspoPAlqBjFSGnigSw", name: "Forza" }; // racing / cars
+const ROCKET_LEAGUE = { id: "UCBjQwd62OJgixzW49TKGERg", name: "Rocket League" }; // cars + soccer
+const EA_FC = { id: "UCoyaxd5LQSuP4ChkxK0pnZQ", name: "EA SPORTS FC" }; // soccer
+const NBA_2K = { id: "UCYAJjqIukwm4r3GHEpJDhVw", name: "NBA 2K" }; // basketball
+const EA_MADDEN = { id: "UCPpddbTbOr_uWWQT9Pw1rbA", name: "EA SPORTS Madden NFL" }; // football
+const EA_SPORTS = { id: "UCcpK2UHpfhfc23SC8TU16BA", name: "EA SPORTS" };
+
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
   // Sports "Highlights" tabs
@@ -102,13 +113,12 @@ const SETS: Record<string, Channel[]> = {
   soul: [TEMS, RNB_NATION, COLORS, NPR_MUSIC], // R&B / neo-soul
   classics: [MJ], // the King — his catalog
   tinydesk: [NPR_MUSIC],
-  // Games — gaming clips, trailers & shorts.
-  gaming: [
-    { id: "UCydtMNspoPAlqBjFSGnigSw", name: "Xbox" },
-    { id: "UCBsbrudhKRrT9zs8iNOEjjw", name: "PlayStation" },
-    { id: "UC5CE6nbu1tjSGha-a_cHAFA", name: "GameSpot" },
-    { id: "UCg5bOg1qVoZ2JDJ7MmjY63A", name: "Kotaku" },
-  ],
+  // Games — gaming clips & trailers, split into what Eric plays: Xbox, fun sports
+  // games, and cars/racing. "Mix" blends all three.
+  gaming: [XBOX, PLAYSTATION, FORZA, ROCKET_LEAGUE, EA_FC, NBA_2K],
+  xbox: [XBOX],
+  gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // fun sports games
+  gamecars: [FORZA, ROCKET_LEAGUE], // racing / cars
 };
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under

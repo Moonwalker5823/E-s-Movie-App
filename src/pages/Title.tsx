@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { details, IMG, recommendations, titleOf, watchProviders, yearOf } from "../api/tmdb";
+import { fetchDeepLinks, type DeepLinks } from "../api/deeplink";
 import { isSaved, toggleSave, useFavorites } from "../lib/favorites";
 import type { MediaType, TitleDetails, WatchProviders } from "../lib/types";
 import Row from "../components/Row";
@@ -14,15 +15,29 @@ export default function Title() {
   const numId = Number(id);
   const [data, setData] = useState<TitleDetails | null>(null);
   const [wp, setWp] = useState<WatchProviders | null>(null);
+  const [deepLinks, setDeepLinks] = useState<DeepLinks>({});
   useFavorites(); // re-render on save changes
 
   useEffect(() => {
     if (!media || !numId) return;
     setData(null);
     setWp(null);
+    setDeepLinks({});
     window.scrollTo(0, 0);
-    details(media, numId).then(setData).catch(() => {});
-    watchProviders(media, numId).then(setWp).catch(() => {});
+    let alive = true;
+    details(media, numId)
+      .then((d) => {
+        if (!alive) return;
+        setData(d);
+        // Resolve exact per-title deep links (Hulu/Prime/Disney/…) once we know the
+        // precise title + year, so "Play on X" opens the exact title, not a search.
+        fetchDeepLinks(media, numId, titleOf(d), yearOf(d)).then((l) => alive && setDeepLinks(l));
+      })
+      .catch(() => {});
+    watchProviders(media, numId).then((p) => alive && setWp(p)).catch(() => {});
+    return () => {
+      alive = false;
+    };
   }, [media, numId]);
 
   if (!media) return null;
@@ -85,7 +100,7 @@ export default function Title() {
           </div>
         </div>
 
-        <WhereToWatch wp={wp} title={name} />
+        <WhereToWatch wp={wp} title={name} deepLinks={deepLinks} />
       </div>
 
       {data && (

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSettings } from "../lib/settings";
 
 const BASE_LINKS = [
@@ -17,11 +17,64 @@ const BASE_LINKS = [
 
 export default function NavBar() {
   const [q, setQ] = useState("");
+  const [show, setShow] = useState(false);
   const nav = useNavigate();
   const { hideX } = useSettings();
+  const headerRef = useRef<HTMLElement>(null);
+  const hideTimer = useRef<number | undefined>(undefined);
+  const lastY = useRef(0);
 
   // The adult "X" tab is appended only when it isn't hidden in Settings.
   const links = hideX ? BASE_LINKS : [...BASE_LINKS, { to: "/x", label: "X" }];
+
+  // Auto-hiding top bar. It stays out of the way (so content — e.g. the Sports hub —
+  // sits centered on the TV) and only slides in when you reach for it: pointer at the
+  // very top edge, a scroll-up, remote/keyboard focus landing on it, or a brief peek
+  // on first load. Then it tucks itself away again.
+  function clearHide() {
+    window.clearTimeout(hideTimer.current);
+  }
+  function hide() {
+    const h = headerRef.current;
+    // Never yank it away while it's in use (hovered or holding remote/keyboard focus).
+    if (h && (h.matches(":hover") || h.contains(document.activeElement))) {
+      clearHide();
+      hideTimer.current = window.setTimeout(hide, 1200);
+      return;
+    }
+    setShow(false);
+  }
+  function reveal(sticky = false) {
+    clearHide();
+    setShow(true);
+    if (!sticky) hideTimer.current = window.setTimeout(hide, 2600);
+  }
+
+  useEffect(() => {
+    lastY.current = window.scrollY;
+    reveal(); // peek on load so it's discoverable, then it slides away
+
+    const onMove = (e: MouseEvent) => {
+      if (e.clientY <= 8) reveal();
+    };
+    const onScroll = () => {
+      const y = window.scrollY;
+      const dy = y - lastY.current;
+      if (dy < -8) reveal(); // scrolling up → you want the nav
+      else if (dy > 8 && y > 48) {
+        clearHide();
+        setShow(false); // scrolling down → get out of the way
+      }
+      lastY.current = y;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", onScroll);
+      clearHide();
+    };
+  }, []);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +82,19 @@ export default function NavBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ink/70 backdrop-blur-xl">
+    <header
+      ref={headerRef}
+      onMouseEnter={() => reveal(true)}
+      onMouseLeave={() => reveal(false)}
+      onFocus={() => reveal(true)}
+      onBlur={() => {
+        clearHide();
+        hideTimer.current = window.setTimeout(hide, 500);
+      }}
+      className={`fixed inset-x-0 top-0 z-40 border-b border-line bg-ink/80 backdrop-blur-xl transition-transform duration-300 ${
+        show ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="flex items-center gap-4 px-4 py-3 sm:px-8">
         <NavLink to="/" className="mr-1 flex shrink-0 items-center gap-2.5">
           <span className="grid h-9 w-9 -rotate-6 place-items-center rounded-lg border-2 border-cyan bg-gradient-to-br from-spraylo to-spray text-lg text-cream shadow-piece">

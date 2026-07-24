@@ -304,7 +304,7 @@ export default function VideoHub({
       {/* MAIN VIEWER — the API-driven player. Stays mounted (even under fullscreen) so
           the player instance survives; picking a tile plays that EXACT clip here. */}
       {autoplay && (
-        <div ref={heroWrapRef} className={`mb-5 w-full max-w-5xl ${full ? "pointer-events-none" : ""}`}>
+        <div ref={heroWrapRef} className={`mx-auto mb-5 w-full max-w-5xl ${full ? "pointer-events-none" : ""}`}>
           {items === null ? (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
               <Skeleton className="aspect-video rounded-2xl lg:col-span-2" />

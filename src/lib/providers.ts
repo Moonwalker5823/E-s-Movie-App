@@ -1,7 +1,10 @@
 // Maps TMDB provider names -> where to launch/search. TMDB doesn't give per-title
 // deep links, so we open the service's own site (its own search when possible),
-// which then hands off to the installed app on TV.
+// which then hands off to the installed app on TV. When an EXACT per-title deep
+// link is available (resolved via JustWatch in /api/deeplink), we prefer it — it
+// opens the precise title (Prime auto-plays; Hulu no longer errors).
 import { serviceByKey, serviceKeyForProvider } from "./services";
+import { deepLinkFor, type DeepLinks } from "../api/deeplink";
 
 interface ProviderLink {
   match: RegExp;
@@ -81,7 +84,10 @@ const PROVIDERS: ProviderLink[] = [
   },
 ];
 
-export function launchUrlFor(providerName: string, title: string): string {
+export function launchUrlFor(providerName: string, title: string, deepLinks?: DeepLinks): string {
+  // Exact per-title deep link wins when we have one (right title, no app error).
+  const exact = deepLinkFor(providerName, deepLinks);
+  if (exact) return exact;
   const p = PROVIDERS.find((x) => x.match.test(providerName));
   if (!p) return `https://www.google.com/search?q=${encodeURIComponent(`watch ${title} ${providerName}`)}`;
   return p.search ? p.search(title) : p.home;
