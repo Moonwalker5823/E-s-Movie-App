@@ -103,8 +103,10 @@ export default function VideoHub({
   const [fsPlaying, setFsPlaying] = useState(true); // fullscreen player play state
   const [fsMuted, setFsMuted] = useState(false);
   const [fsIndex, setFsIndex] = useState(0); // fullscreen playlist index (drives the title)
+  const [showControls, setShowControls] = useState(true); // auto-hide player controls when idle
   const closeRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null); // refocus target when fullscreen closes
+  const controlsTimer = useRef<number>();
   const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
   const playerRef = useRef<any>(null);
   const playingRef = useRef(true); // user's intended play state (survives fullscreen)
@@ -160,6 +162,12 @@ export default function VideoHub({
             } else if (e.data === 2) {
               setPlaying(false);
               playingRef.current = false;
+            } else if (e.data === 0) {
+              try {
+                e.target.nextVideo(); // ended → advance (loadPlaylist auto-advance is unreliable)
+              } catch {
+                /* ignore */
+              }
             }
           },
         },
@@ -232,7 +240,14 @@ export default function VideoHub({
               /* ignore */
             }
             if (e.data === 1) setFsPlaying(true);
-            else if (e.data === 2) setFsPlaying(false); // playlist auto-advances, so no ENDED handling
+            else if (e.data === 2) setFsPlaying(false);
+            else if (e.data === 0) {
+              try {
+                e.target.nextVideo(); // ended → advance to the next clip (reliable)
+              } catch {
+                /* ignore */
+              }
+            }
           },
         },
       });
@@ -442,8 +457,30 @@ export default function VideoHub({
     };
   }, [full]);
 
+  // Auto-hide the player controls when the remote/mouse is idle; any activity re-shows
+  // them. They stay in the DOM + focusable while faded, so the D-pad can re-summon
+  // them (the next key press both reveals and acts).
+  function bumpControls() {
+    setShowControls(true);
+    if (controlsTimer.current) window.clearTimeout(controlsTimer.current);
+    controlsTimer.current = window.setTimeout(() => setShowControls(false), 3200);
+  }
+  useEffect(() => {
+    bumpControls();
+    const on = () => bumpControls();
+    window.addEventListener("keydown", on);
+    window.addEventListener("pointermove", on);
+    return () => {
+      window.removeEventListener("keydown", on);
+      window.removeEventListener("pointermove", on);
+      if (controlsTimer.current) window.clearTimeout(controlsTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const ctrlCls =
     "z-20 grid h-9 w-9 scroll-mt-24 place-items-center rounded-full bg-black/70 text-cream transition hover:bg-black/90";
+  const fade = `transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`;
 
   return (
     <div>
@@ -469,6 +506,7 @@ export default function VideoHub({
                   className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
                 >
                   <div ref={hostRef} className="absolute inset-0 h-full w-full [&>iframe]:pointer-events-none" />
+                  <div className={`${fade} absolute inset-0 z-20 pointer-events-none [&>*]:pointer-events-auto`}>
                   <button onClick={toggleMute} data-focusable aria-label={muted ? "Unmute" : "Mute"} className={`absolute left-2 top-2 text-base ${ctrlCls}`}>
                     {muted ? "🔇" : "🔊"}
                   </button>
@@ -498,6 +536,7 @@ export default function VideoHub({
                   >
                     ⛶ Fullscreen
                   </button>
+                  </div>
                 </div>
                 <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
                 <div className="text-xs text-cream/40">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
@@ -527,7 +566,7 @@ export default function VideoHub({
           <div ref={fullHostRef} className="absolute inset-0 h-full w-full" />
 
           {/* Top bar: title + close */}
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 py-3">
+          <div className={`absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 py-3 ${fade}`}>
             <div className="min-w-0 truncate font-semibold text-cream">{(order[fsIndex] ?? fullVid).title}</div>
             <button ref={closeRef} onClick={closeFull} data-focusable className="btn-ghost shrink-0 !px-3 !py-1 text-sm">
               Close ✕
@@ -535,7 +574,7 @@ export default function VideoHub({
           </div>
 
           {/* Bottom controls — remote-navigable */}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-4">
+          <div className={`absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-4 ${fade}`}>
             <button onClick={() => fsSeek(-10)} data-focusable aria-label="Rewind 10 seconds" className="btn-ghost !px-4 !py-2">
               ⏪ 10s
             </button>

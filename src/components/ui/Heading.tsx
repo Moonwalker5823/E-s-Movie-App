@@ -1,5 +1,5 @@
 interface Props {
-  emoji?: string;
+  emoji?: React.ReactNode; // an emoji string OR a custom icon element
   label?: string; // small tag kicker above the title
   children: React.ReactNode;
   size?: "lg" | "xl";

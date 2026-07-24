@@ -27,7 +27,24 @@ export default function Blerd() {
   const fact = factOfTheDay();
   return (
     <div className="px-4 pb-8 pt-4 sm:px-10">
-      <Heading label="♛ Blerd" emoji="🤓" size="lg" className="mb-3">
+      <Heading
+        label="♛ Blerd"
+        emoji={
+          <svg viewBox="0 0 100 100" aria-hidden className="inline-block h-[0.95em] w-[0.95em]" style={{ verticalAlign: "-0.12em" }}>
+            <circle cx="50" cy="53" r="41" fill="#8d5524" />
+            <path d="M36 68 Q50 80 64 68" stroke="#3a2416" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+            <g stroke="#141414" strokeWidth="5">
+              <circle cx="34" cy="47" r="15" fill="#eef0e6" />
+              <circle cx="66" cy="47" r="15" fill="#eef0e6" />
+              <line x1="47" y1="45" x2="53" y2="45" />
+            </g>
+            <circle cx="34" cy="48" r="4.5" fill="#241a12" />
+            <circle cx="66" cy="48" r="4.5" fill="#241a12" />
+          </svg>
+        }
+        size="lg"
+        className="mb-3"
+      >
         Black Nerd HQ
       </Heading>
 

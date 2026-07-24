@@ -91,8 +91,12 @@ const SETS: Record<string, Channel[]> = {
   nhl: [NHL],
   soccer: [EPL],
   cfb: [ESPN],
-  // Sports "Shows" — highlights-alternative podcasts (The Pivot, KG Certified, …)
+  // Sports "Shows" — longer-form highlight/analysis shows + podcasts (Pat McAfee,
+  // Up & Adams, Secret Base mini-docs, The Pivot, …). Not short clips.
   shows: [
+    { id: "UCxcTeAKWJca6XyJ37_ZoKIQ", name: "The Pat McAfee Show" },
+    { id: "UC3X-L84yCBq0XUd1Whe5u7A", name: "Up & Adams" },
+    { id: "UCDRmGMSgrtZkOsh_NQl4_xw", name: "Secret Base" },
     { id: "UCUnxiP7q4RDDyeioZFZLnXA", name: "The Pivot" },
     { id: "UC2ozVs4pg2K3uFLw6-0ayCQ", name: "KG Certified" },
     { id: "UCMJAKnrVv1sRzlq_vqige3Q", name: "All The Smoke" },
