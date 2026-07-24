@@ -122,6 +122,7 @@ export default function WhereToWatch({
           No US streaming source listed right now.{" "}
           <a
             className="text-spray underline"
+            data-focusable
             target="_blank"
             rel="noreferrer"
             href={`https://www.google.com/search?q=${encodeURIComponent(`where to watch ${title}`)}`}

@@ -67,6 +67,7 @@ export default function Hero() {
           {items.map((_, i) => (
             <button
               key={i}
+              data-focusable
               aria-label={`slide ${i + 1}`}
               onClick={() => setIdx(i)}
               className={`h-1.5 rounded-full transition-all ${i === idx ? "w-8 bg-spray" : "w-3 bg-white/30"}`}

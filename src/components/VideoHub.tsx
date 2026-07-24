@@ -103,6 +103,7 @@ export default function VideoHub({
   const [fsPlaying, setFsPlaying] = useState(true); // fullscreen player play state
   const [fsMuted, setFsMuted] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null); // refocus target when fullscreen closes
   const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
   const playerRef = useRef<any>(null);
   const playingRef = useRef(true); // user's intended play state (survives fullscreen)
@@ -379,6 +380,7 @@ export default function VideoHub({
   }
 
   function openFull(v: Video) {
+    openerRef.current = document.activeElement as HTMLElement | null; // restore this on close
     setFullVid(v);
     setFull(true);
     try {
@@ -409,6 +411,10 @@ export default function VideoHub({
       window.removeEventListener("popstate", onPop);
       window.removeEventListener("keydown", onKey);
       clearTimeout(id);
+      // Return focus to whatever opened fullscreen (the overlay's Close button is
+      // unmounting, which would otherwise drop focus to <body>).
+      const opener = openerRef.current;
+      if (opener && opener.isConnected) setTimeout(() => opener.focus(), 40);
     };
   }, [full]);
 

@@ -37,6 +37,8 @@ const cx = (el: Element) => {
 export function useSpatialNav() {
   const location = useLocation();
   const columnX = useRef<number | null>(null); // remembered column for up/down
+  const lastFocused = useRef<HTMLElement | null>(null); // last focused element (resume after unmount)
+  const lastRect = useRef<DOMRect | null>(null); // where focus last was (position resume)
 
   function goTo(el: HTMLElement, isHorizontal: boolean, gentle = false) {
     markFocused(el);
@@ -84,7 +86,29 @@ export function useSpatialNav() {
       const list = focusables();
       if (!list.length) return false;
       if (!active || !active.matches(FOCUSABLE)) {
-        goTo(list[0], true);
+        // Focus fell to <body> (the focused element unmounted after an action, or a
+        // modal closed). Resume where the user was — the last-focused element if it
+        // survives, else the nearest surviving focusable to its old spot — so a D-pad
+        // press doesn't teleport up to the top nav.
+        const last = lastFocused.current;
+        if (last && last.isConnected && last.offsetParent !== null && last.matches(FOCUSABLE)) {
+          goTo(last, true);
+          return true;
+        }
+        const rect = lastRect.current;
+        let target = list[0];
+        if (rect) {
+          let nearest = Infinity;
+          for (const el of list) {
+            const b = el.getBoundingClientRect();
+            const d = Math.hypot(b.left - rect.left, b.top - rect.top);
+            if (d < nearest) {
+              nearest = d;
+              target = el;
+            }
+          }
+        }
+        goTo(target, true);
         return true;
       }
 
@@ -142,8 +166,17 @@ export function useSpatialNav() {
       }
 
       if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
-      // Text field: keep Left/Right for the cursor; Up/Down move focus out.
-      if (isTextField(active) && (e.key === "ArrowLeft" || e.key === "ArrowRight")) return;
+      // Text field: keep Left/Right for the caret ONLY while it can still move; at the
+      // field's edge fall through to step() so focus can leave. Otherwise the search box
+      // is a horizontal dead-end that traps the remote before the ⚙ gear beyond it.
+      if (isTextField(active) && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        const inp = active as HTMLInputElement;
+        const s = inp.selectionStart ?? 0;
+        const en = inp.selectionEnd ?? 0;
+        const canMove =
+          e.key === "ArrowLeft" ? !(s === 0 && en === 0) : !(s === inp.value.length && en === inp.value.length);
+        if (canMove) return; // caret still has room — keep it native
+      }
       // <select>: let it open/scroll natively.
       if (active?.tagName === "SELECT") return;
 
@@ -157,6 +190,8 @@ export function useSpatialNav() {
       if (t?.matches?.(FOCUSABLE)) {
         markFocused(t);
         columnX.current = cx(t);
+        lastFocused.current = t;
+        lastRect.current = t.getBoundingClientRect();
       }
     }
 
