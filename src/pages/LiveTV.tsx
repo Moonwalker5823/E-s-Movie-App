@@ -18,6 +18,11 @@ const FAST_APPS: Tile[] = [
   { name: "Xumo Play", url: "https://play.xumo.com/", blurb: "Free live & on-demand", color: "#0a4d68" },
 ];
 
+// Paid sports streaming — the home of boxing/combat (a subscription, not free).
+const COMBAT_APPS: Tile[] = [
+  { name: "DAZN", url: "https://www.dazn.com/", blurb: "Boxing, MMA & PPV — paid", color: "#caa100" },
+];
+
 // Free with a library card / public domain — huge legit catalogs, zero cost.
 const LIBRARY_APPS: Tile[] = [
   { name: "Kanopy", url: "https://www.kanopy.com/", blurb: "Free w/ library card — top films", color: "#e64a19" },
@@ -93,6 +98,19 @@ export default function LiveTV() {
       </p>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {LIBRARY_APPS.map((a) => (
+          <LaunchTile key={a.name} t={a} />
+        ))}
+      </div>
+
+      <Heading emoji="🥊" className="mb-4 mt-10">
+        Boxing &amp; Combat Sports
+      </Heading>
+      <p className="mb-4 text-sm text-cream/60">
+        DAZN is the home of boxing (plus MMA &amp; some soccer) — a paid subscription, not free. Sign in on
+        DAZN&apos;s own site.
+      </p>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {COMBAT_APPS.map((a) => (
           <LaunchTile key={a.name} t={a} />
         ))}
       </div>
