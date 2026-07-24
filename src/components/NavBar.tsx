@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useSettings } from "../lib/settings";
 
 const BASE_LINKS = [
@@ -17,75 +17,23 @@ const BASE_LINKS = [
 
 export default function NavBar() {
   const [q, setQ] = useState("");
-  const [show, setShow] = useState(false);
   const nav = useNavigate();
   const { hideX } = useSettings();
-  const headerRef = useRef<HTMLElement>(null);
-  const hideTimer = useRef<number | undefined>(undefined);
 
   // The adult "X" tab is appended only when it isn't hidden in Settings.
   const links = hideX ? BASE_LINKS : [...BASE_LINKS, { to: "/x", label: "X" }];
-
-  // Auto-hiding top bar. It stays out of the way (so content — e.g. the Sports hub —
-  // sits centered on the TV) and only slides in when you reach for it: pointer at the
-  // very top edge, remote/keyboard focus landing on it (press Up from the top row),
-  // or a brief peek on first load. Then it tucks itself away again.
-  function clearHide() {
-    window.clearTimeout(hideTimer.current);
-  }
-  function hide() {
-    const h = headerRef.current;
-    // Never yank it away while it's in use (hovered or holding remote/keyboard focus).
-    if (h && (h.matches(":hover") || h.contains(document.activeElement))) {
-      clearHide();
-      hideTimer.current = window.setTimeout(hide, 1200);
-      return;
-    }
-    setShow(false);
-  }
-  function reveal(sticky = false) {
-    clearHide();
-    setShow(true);
-    if (!sticky) hideTimer.current = window.setTimeout(hide, 2600);
-  }
-
-  useEffect(() => {
-    reveal(); // peek on load so it's discoverable, then it slides away
-
-    // Mouse: reaching the very top edge brings the bar back. We deliberately do
-    // NOT reveal on scroll — D-pad focus navigation scrolls the page to center
-    // each row, so a scroll-up trigger made the bar pop in on every Up press. On
-    // the remote the bar appears only when focus lands on it (see onFocus below),
-    // i.e. when you press Up from the topmost row.
-    const onMove = (e: MouseEvent) => {
-      if (e.clientY <= 8) reveal();
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      clearHide();
-    };
-  }, []);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (q.trim()) nav(`/search?q=${encodeURIComponent(q.trim())}`);
   };
 
+  // A plain bar at the very top of the page, above the hero. It scrolls away with
+  // the page, so you only see it at the top — scroll up (or press Up from the top
+  // row on the remote) to bring it back. No fixed/auto-hiding overlay: that reveal
+  // logic read as glitchy on the TV, and D-pad scrolling kept popping it in.
   return (
-    <header
-      ref={headerRef}
-      onMouseEnter={() => reveal(true)}
-      onMouseLeave={() => reveal(false)}
-      onFocus={() => reveal(true)}
-      onBlur={() => {
-        clearHide();
-        hideTimer.current = window.setTimeout(hide, 500);
-      }}
-      className={`fixed inset-x-0 top-0 z-40 border-b border-line bg-ink/80 backdrop-blur-xl transition-transform duration-300 ${
-        show ? "translate-y-0" : "-translate-y-full"
-      }`}
-    >
+    <header className="relative z-40 border-b border-line bg-ink/70 backdrop-blur-xl">
       <div className="flex items-center gap-4 px-4 py-3 sm:px-8">
         <NavLink to="/" className="mr-1 flex shrink-0 items-center gap-2.5">
           <span className="grid h-9 w-9 -rotate-6 place-items-center rounded-lg border-2 border-cyan bg-gradient-to-br from-spraylo to-spray text-lg text-cream shadow-piece">

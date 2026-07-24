@@ -306,19 +306,19 @@ export default function VideoHub({
       {autoplay && (
         <div
           ref={heroWrapRef}
-          className={`mx-auto mb-5 w-full max-w-[min(64rem,150vh)] ${full ? "pointer-events-none" : ""}`}
+          className={`mx-auto mb-5 w-full max-w-[min(64rem,110vh)] ${full ? "pointer-events-none" : ""}`}
         >
           {items === null ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <Skeleton className="aspect-video rounded-2xl sm:col-span-2" />
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+            <div className="grid grid-cols-3 gap-3">
+              <Skeleton className="aspect-video rounded-2xl col-span-2" />
+              <div className="grid grid-cols-1 gap-3">
                 <Skeleton className="aspect-video rounded-xl" />
                 <Skeleton className="aspect-video rounded-xl" />
               </div>
             </div>
           ) : feat ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="sm:col-span-2">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2">
                 <div
                   ref={heroPlayerRef}
                   className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
@@ -355,7 +355,7 @@ export default function VideoHub({
                 <div className="text-xs text-cream/40">{feat.channel} · ⏮ ⏭ skip · 🔊 mute · ⛶ full screen</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+              <div className="grid grid-cols-1 gap-3">
                 {previews.map((v) => (
                   <button
                     key={v.videoId}
