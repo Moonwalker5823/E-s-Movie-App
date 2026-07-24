@@ -95,6 +95,8 @@ class MainActivity : AppCompatActivity() {
             h.contains("paramountplus.com") -> "com.cbs.ott"
             h.contains("tubitv.com") -> "com.tubitv"
             h.contains("pluto.tv") -> "tv.pluto.android"
+            h.contains("tidal.com") -> "com.aspiro.tidal"
+            h.contains("music.youtube.com") -> "com.google.android.apps.youtube.music"
             h.contains("youtube.com") -> "com.google.android.youtube.tv"
             else -> null
         }

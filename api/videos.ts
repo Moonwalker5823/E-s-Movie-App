@@ -24,6 +24,12 @@ const ESPN = { id: "UCiio0ydw439X13KyZgMIcHw", name: "ESPN" };
 const HOH = { id: "UC5qUhMoqke0mnJtgVoEn0aw", name: "House of Highlights" };
 const BR = { id: "UCO7BZhCe-EJxXIOU_O53n9g", name: "Bleacher Report" };
 
+// Music-video channels (verified active, July 2026).
+const NPR_MUSIC = { id: "UC4eYXhJI4-7wSWc8UNRwD4A", name: "NPR Music" }; // Tiny Desk — R&B/soul/hip-hop/rock live
+const WSHH = { id: "UC-yXuc1__OzjwpsJPlxYUCQ", name: "WorldStarHipHop" }; // hip-hop / rap videos
+const RNB_NATION = { id: "UCRrCiR_F-olJgMClfsl7YAg", name: "R&B Nation" }; // R&B / soul
+const LEGACY = { id: "UCf7g15p1fY26A0ZsGlX_6tA", name: "Legacy Recordings" }; // classic rock / catalog throwbacks
+
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
   // Sports "Highlights" tabs
@@ -77,6 +83,13 @@ const SETS: Record<string, Channel[]> = {
     { id: "UC1emV4A8liRs9p80CY8ElUQ", name: "freeCodeCamp" },
     { id: "UC2Xd-TjJByJyK2w1zNwY0zQ", name: "Fireship" },
   ],
+  // Music — music videos & live sessions across the user's tastes (R&B, soul,
+  // hip-hop, rock, classics). Tidal covers the personalized / era-specific library.
+  music: [NPR_MUSIC, RNB_NATION, WSHH, LEGACY],
+  rnb: [RNB_NATION, NPR_MUSIC],
+  hiphop: [WSHH],
+  rock: [LEGACY],
+  tinydesk: [NPR_MUSIC],
   // Games — gaming clips, trailers & shorts.
   gaming: [
     { id: "UCydtMNspoPAlqBjFSGnigSw", name: "Xbox" },

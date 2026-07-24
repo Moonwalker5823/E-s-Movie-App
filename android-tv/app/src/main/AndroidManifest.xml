@@ -20,6 +20,8 @@
         <package android:name="com.cbs.ott" />
         <package android:name="com.tubitv" />
         <package android:name="tv.pluto.android" />
+        <package android:name="com.aspiro.tidal" />
+        <package android:name="com.google.android.apps.youtube.music" />
         <package android:name="com.google.android.youtube.tv" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
