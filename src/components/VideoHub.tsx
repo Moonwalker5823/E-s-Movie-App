@@ -84,11 +84,13 @@ export default function VideoHub({
   defaultKey,
   autoplay = false,
   short = false,
+  rail,
 }: {
   tabs: HubTab[];
   defaultKey?: string;
   autoplay?: boolean;
   short?: boolean;
+  rail?: React.ReactNode; // optional side panel (e.g. live scores) shown beside the viewer
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
   const [items, setItems] = useState<Video[] | null>(null);
@@ -114,10 +116,27 @@ export default function VideoHub({
   const heroPlayerRef = useRef<HTMLDivElement>(null); // the player box, centered on select
   const fullHostRef = useRef<HTMLDivElement>(null); // fullscreen player mount
   const fullPlayerRef = useRef<any>(null);
+  const fsStartRef = useRef(0); // main viewer's time when fullscreen opened → fullscreen opens here
+  const fsSoughtRef = useRef(false); // have we applied fsStartRef to the fullscreen player yet?
+  const resumeRef = useRef<{ index: number; time: number } | null>(null); // where fullscreen left off
+  const mainSeekRef = useRef<number | null>(null); // pending main-player seek after a clip switch
 
   const len = order.length;
   const feat = autoplay && len ? order[current % len] : null;
   const previews = len ? [order[(current + 1) % len], order[(current + 2) % len]] : [];
+  // For the rail layout, the "up next" tiles move into a row BELOW the viewer — show a
+  // few unique upcoming clips (skip the one currently playing).
+  const belowPreviews: Video[] = [];
+  if (len) {
+    const seen = new Set<string | undefined>([feat?.videoId]);
+    for (let k = 1; k <= len && belowPreviews.length < 3; k++) {
+      const v = order[(current + k) % len];
+      if (v && !seen.has(v.videoId)) {
+        seen.add(v.videoId);
+        belowPreviews.push(v);
+      }
+    }
+  }
 
   // Build/tear down the API player whenever the feed (order) changes.
   useEffect(() => {
@@ -159,6 +178,17 @@ export default function VideoHub({
             if (e.data === 1) {
               setPlaying(true);
               playingRef.current = true;
+              // If we just switched clips to resume where fullscreen left off, seek once
+              // the new clip actually starts (a seek issued mid-load is dropped).
+              if (mainSeekRef.current != null) {
+                const target = mainSeekRef.current;
+                mainSeekRef.current = null;
+                try {
+                  e.target.seekTo(target, true);
+                } catch {
+                  /* ignore */
+                }
+              }
             } else if (e.data === 2) {
               setPlaying(false);
               playingRef.current = false;
@@ -184,13 +214,35 @@ export default function VideoHub({
     };
   }, [autoplay, order]);
 
-  // Pause the viewer while the fullscreen overlay is up (no double audio); resume after.
+  // Pause the viewer while the fullscreen overlay is up (no double audio). On CLOSE,
+  // resume it exactly where fullscreen left off — same clip + timestamp — instead of
+  // jumping back to where it was when fullscreen opened.
   useEffect(() => {
     const p = playerRef.current;
     if (!p) return;
     try {
-      if (full) p.pauseVideo();
-      else if (playingRef.current) p.playVideo(); // don't override a deliberate pause
+      if (full) {
+        p.pauseVideo();
+        return;
+      }
+      const r = resumeRef.current;
+      resumeRef.current = null;
+      if (r) {
+        let curIdx = -1;
+        try {
+          curIdx = p.getPlaylistIndex ? p.getPlaylistIndex() : -1;
+        } catch {
+          /* ignore */
+        }
+        if (r.index >= 0 && r.index !== curIdx) {
+          mainSeekRef.current = r.time > 1 ? r.time : null; // seek once the new clip plays
+          p.playVideoAt(r.index);
+          setCurrent(r.index);
+        } else if (r.time > 1) {
+          p.seekTo(r.time, true); // same clip already loaded — seek right away
+        }
+      }
+      if (playingRef.current) p.playVideo(); // don't override a deliberate pause
     } catch {
       /* ignore */
     }
@@ -203,6 +255,7 @@ export default function VideoHub({
     let killed = false;
     setFsPlaying(true);
     setFsMuted(false);
+    fsSoughtRef.current = false; // re-seek to the viewer's spot each time we open
     // Fullscreen CONTINUES the reel: load the same shuffled queue, starting on the
     // picked clip, so it auto-advances to the next video (and loops) instead of
     // stopping after one.
@@ -239,8 +292,22 @@ export default function VideoHub({
             } catch {
               /* ignore */
             }
-            if (e.data === 1) setFsPlaying(true);
-            else if (e.data === 2) setFsPlaying(false);
+            if (e.data === 1) {
+              setFsPlaying(true);
+              // Open at the SAME spot the main viewer was at (seek once, when playback
+              // actually begins — a seek issued during load is dropped by the API).
+              if (!fsSoughtRef.current) {
+                fsSoughtRef.current = true;
+                const t = fsStartRef.current || 0;
+                if (t > 1) {
+                  try {
+                    e.target.seekTo(t, true);
+                  } catch {
+                    /* ignore */
+                  }
+                }
+              }
+            } else if (e.data === 2) setFsPlaying(false);
             else if (e.data === 0) {
               try {
                 e.target.nextVideo(); // ended → advance to the next clip (reliable)
@@ -254,6 +321,22 @@ export default function VideoHub({
     });
     return () => {
       killed = true;
+      // Remember where fullscreen left off (clip + timestamp) BEFORE destroying the
+      // player, so the main viewer can resume there on close.
+      try {
+        const p = fullPlayerRef.current;
+        if (p && p.getCurrentTime) {
+          let idx = -1;
+          try {
+            idx = p.getPlaylistIndex ? p.getPlaylistIndex() : -1;
+          } catch {
+            /* ignore */
+          }
+          resumeRef.current = { index: idx, time: p.getCurrentTime() || 0 };
+        }
+      } catch {
+        /* ignore */
+      }
       try {
         fullPlayerRef.current && fullPlayerRef.current.destroy();
       } catch {
@@ -284,6 +367,25 @@ export default function VideoHub({
     try {
       const t = (p.getCurrentTime && p.getCurrentTime()) || 0;
       p.seekTo(Math.max(0, t + delta), true);
+    } catch {
+      /* ignore */
+    }
+  }
+  // Jump whole clips within fullscreen (the reel is a playlist), not just ±10s.
+  function fsPrevVideo() {
+    const p = fullPlayerRef.current;
+    if (!p) return;
+    try {
+      p.previousVideo();
+    } catch {
+      /* ignore */
+    }
+  }
+  function fsNextVideo() {
+    const p = fullPlayerRef.current;
+    if (!p) return;
+    try {
+      p.nextVideo();
     } catch {
       /* ignore */
     }
@@ -420,6 +522,13 @@ export default function VideoHub({
 
   function openFull(v: Video) {
     openerRef.current = document.activeElement as HTMLElement | null; // restore this on close
+    // Capture where the main viewer is so fullscreen opens at the SAME spot (not from 0).
+    try {
+      const p = playerRef.current;
+      fsStartRef.current = p && p.getCurrentTime ? p.getCurrentTime() || 0 : 0;
+    } catch {
+      fsStartRef.current = 0;
+    }
     setFullVid(v);
     setFull(true);
     try {
@@ -482,6 +591,55 @@ export default function VideoHub({
     "z-20 grid h-9 w-9 scroll-mt-24 place-items-center rounded-full bg-black/70 text-cream transition hover:bg-black/90";
   const fadeStyle: React.CSSProperties = { opacity: showControls ? 1 : 0, transition: "opacity 300ms ease" };
 
+  // The main viewer box (player + overlay controls) and its caption — built once here
+  // so whichever layout is active (rail vs. flanked-by-up-next) reuses the SAME player.
+  const viewer = feat ? (
+    <div
+      ref={heroPlayerRef}
+      className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
+    >
+      <div ref={hostRef} className="absolute inset-0 h-full w-full [&>iframe]:pointer-events-none" />
+      <div style={fadeStyle} className="absolute inset-0 z-20 pointer-events-none [&>*]:pointer-events-auto">
+        <button onClick={toggleMute} data-focusable aria-label={muted ? "Unmute" : "Mute"} className={`absolute left-2 top-2 text-base ${ctrlCls}`}>
+          {muted ? "🔇" : "🔊"}
+        </button>
+        <button
+          onClick={toggleCc}
+          data-focusable
+          aria-label={cc ? "Hide captions" : "Show captions"}
+          className={`absolute left-12 top-2 z-20 grid h-9 min-w-[2.5rem] scroll-mt-24 place-items-center rounded-full px-2 text-[11px] font-extrabold tracking-wide text-cream transition hover:brightness-110 ${cc ? "bg-spray" : "bg-black/70 opacity-70"}`}
+        >
+          CC
+        </button>
+        <button onClick={playPrev} data-focusable aria-label="Previous clip" className={`absolute bottom-2 left-2 text-sm ${ctrlCls}`}>
+          ⏮
+        </button>
+        <button onClick={togglePlay} data-focusable aria-label={playing ? "Pause" : "Play"} className={`absolute bottom-2 left-14 text-base ${ctrlCls}`}>
+          {playing ? "⏸" : "▶"}
+        </button>
+        <button onClick={playNext} data-focusable aria-label="Next clip" className={`absolute bottom-2 left-[6.5rem] text-sm ${ctrlCls}`}>
+          ⏭
+        </button>
+        <button
+          onClick={() => feat && openFull(feat)}
+          data-focusable
+          data-autofocus
+          aria-label={`Watch ${feat.title} full screen`}
+          className="absolute bottom-2 right-2 z-20 flex scroll-mt-24 items-center gap-1 rounded bg-spray px-2.5 py-1 text-[11px] font-bold text-cream shadow-piece transition hover:brightness-110"
+        >
+          ⛶ Fullscreen
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  const meta = feat ? (
+    <>
+      <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
+      <div className="text-xs text-cream/40">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
+    </>
+  ) : null;
+
   return (
     <div>
       {/* MAIN VIEWER — the API-driven player. Stays mounted (even under fullscreen) so
@@ -489,60 +647,51 @@ export default function VideoHub({
       {autoplay && (
         <div
           ref={heroWrapRef}
-          className={`mx-auto mb-5 w-full max-w-[min(64rem,150vh)] ${full ? "pointer-events-none" : ""}`}
+          className={`mx-auto mb-5 w-full ${rail ? "max-w-[min(78rem,165vh)]" : "max-w-[min(64rem,150vh)]"} ${full ? "pointer-events-none" : ""}`}
         >
           {items === null ? (
-            <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
-              <Skeleton className="aspect-video rounded-xl" />
-              <Skeleton className="aspect-video rounded-2xl" />
-              <Skeleton className="aspect-video rounded-xl" />
-            </div>
-          ) : feat ? (
-            <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
-              {previews[0] && <UpNextTile v={previews[0]} onPlay={playInHero} />}
-              <div>
-                <div
-                  ref={heroPlayerRef}
-                  className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
-                >
-                  <div ref={hostRef} className="absolute inset-0 h-full w-full [&>iframe]:pointer-events-none" />
-                  <div style={fadeStyle} className="absolute inset-0 z-20 pointer-events-none [&>*]:pointer-events-auto">
-                  <button onClick={toggleMute} data-focusable aria-label={muted ? "Unmute" : "Mute"} className={`absolute left-2 top-2 text-base ${ctrlCls}`}>
-                    {muted ? "🔇" : "🔊"}
-                  </button>
-                  <button
-                    onClick={toggleCc}
-                    data-focusable
-                    aria-label={cc ? "Hide captions" : "Show captions"}
-                    className={`absolute left-12 top-2 z-20 grid h-9 min-w-[2.5rem] scroll-mt-24 place-items-center rounded-full px-2 text-[11px] font-extrabold tracking-wide text-cream transition hover:brightness-110 ${cc ? "bg-spray" : "bg-black/70 opacity-70"}`}
-                  >
-                    CC
-                  </button>
-                  <button onClick={playPrev} data-focusable aria-label="Previous clip" className={`absolute bottom-2 left-2 text-sm ${ctrlCls}`}>
-                    ⏮
-                  </button>
-                  <button onClick={togglePlay} data-focusable aria-label={playing ? "Pause" : "Play"} className={`absolute bottom-2 left-14 text-base ${ctrlCls}`}>
-                    {playing ? "⏸" : "▶"}
-                  </button>
-                  <button onClick={playNext} data-focusable aria-label="Next clip" className={`absolute bottom-2 left-[6.5rem] text-sm ${ctrlCls}`}>
-                    ⏭
-                  </button>
-                  <button
-                    onClick={() => feat && openFull(feat)}
-                    data-focusable
-                    data-autofocus
-                    aria-label={`Watch ${feat.title} full screen`}
-                    className="absolute bottom-2 right-2 z-20 flex scroll-mt-24 items-center gap-1 rounded bg-spray px-2.5 py-1 text-[11px] font-bold text-cream shadow-piece transition hover:brightness-110"
-                  >
-                    ⛶ Fullscreen
-                  </button>
-                  </div>
-                </div>
-                <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
-                <div className="text-xs text-cream/40">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
+            rail ? (
+              <div className="grid grid-cols-[minmax(0,1fr)_15rem] items-start gap-4 sm:grid-cols-[minmax(0,1fr)_17rem]">
+                <Skeleton className="aspect-video rounded-2xl" />
+                <Skeleton className="min-h-[16rem] rounded-2xl" />
               </div>
-              {previews[1] && <UpNextTile v={previews[1]} onPlay={playInHero} />}
-            </div>
+            ) : (
+              <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
+                <Skeleton className="aspect-video rounded-xl" />
+                <Skeleton className="aspect-video rounded-2xl" />
+                <Skeleton className="aspect-video rounded-xl" />
+              </div>
+            )
+          ) : feat ? (
+            rail ? (
+              // Sports-style layout: an enlarged viewer with a live scores/stats rail
+              // beside it, and the "up next" clips in a row underneath.
+              <div className="grid grid-cols-[minmax(0,1fr)_15rem] items-start gap-4 sm:grid-cols-[minmax(0,1fr)_17rem]">
+                <div>
+                  {viewer}
+                  {meta}
+                  {belowPreviews.length > 0 && (
+                    <div className="mt-3 grid grid-cols-3 gap-3">
+                      {belowPreviews.map((v) => (
+                        <UpNextTile key={v.videoId} v={v} onPlay={playInHero} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <aside className="max-h-[min(82vh,42rem)] overflow-y-auto rounded-2xl border border-line bg-surface2/40 p-3">
+                  {rail}
+                </aside>
+              </div>
+            ) : (
+              <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
+                {previews[0] && <UpNextTile v={previews[0]} onPlay={playInHero} />}
+                <div>
+                  {viewer}
+                  {meta}
+                </div>
+                {previews[1] && <UpNextTile v={previews[1]} onPlay={playInHero} />}
+              </div>
+            )
           ) : null}
         </div>
       )}
@@ -573,8 +722,11 @@ export default function VideoHub({
             </button>
           </div>
 
-          {/* Bottom controls — remote-navigable */}
-          <div style={fadeStyle} className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-4">
+          {/* Bottom controls — remote-navigable. ⏮/⏭ jump whole clips; ⏪/⏩ nudge ±10s. */}
+          <div style={fadeStyle} className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-2.5 bg-gradient-to-t from-black/80 to-transparent px-4 py-5 sm:gap-3">
+            <button onClick={fsPrevVideo} data-focusable aria-label="Previous video" className="btn-ghost !px-4 !py-2">
+              ⏮ Prev
+            </button>
             <button onClick={() => fsSeek(-10)} data-focusable aria-label="Rewind 10 seconds" className="btn-ghost !px-4 !py-2">
               ⏪ 10s
             </button>
@@ -583,6 +735,9 @@ export default function VideoHub({
             </button>
             <button onClick={() => fsSeek(10)} data-focusable aria-label="Forward 10 seconds" className="btn-ghost !px-4 !py-2">
               10s ⏩
+            </button>
+            <button onClick={fsNextVideo} data-focusable aria-label="Next video" className="btn-ghost !px-4 !py-2">
+              Next ⏭
             </button>
             <button onClick={fsToggleMute} data-focusable aria-label={fsMuted ? "Unmute" : "Mute"} className="btn-ghost !px-4 !py-2">
               {fsMuted ? "🔇" : "🔊"}

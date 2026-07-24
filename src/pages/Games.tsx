@@ -10,7 +10,7 @@ const CLIP_TABS: HubTab[] = [
   { key: "cars", label: "🏎️ Cars & Top Gear" },
   { key: "racing", label: "🏁 Racing" },
   { key: "anime", label: "🥋 Anime" },
-  { key: "gamesports", label: "🏈 Sports" },
+  { key: "ridiculousness", label: "😂 Ridiculousness" },
 ];
 
 // Browser-based cloud gaming — play right on the TV, no console hookup needed.

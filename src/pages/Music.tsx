@@ -11,6 +11,7 @@ const MUSIC_TABS: HubTab[] = [
   { key: "lyricists", label: "🎤 Lyricists" },
   { key: "soul", label: "🎶 R&B / Soul" },
   { key: "classics", label: "👑 Legends" },
+  { key: "rock", label: "🎸 Rock" },
   { key: "tinydesk", label: "🎙️ Tiny Desk" },
 ];
 
@@ -40,8 +41,9 @@ export default function Music() {
           ))}
         </div>
         <p className="mt-4 text-sm text-cream/50">
-          Golden-era &amp; lyrical — Jay-Z, Nas, DMX, Big Daddy Kane, Kendrick, J. Cole, Lupe, Gambino, Tems, the King &amp;
-          more, no ratchet or drill. Your deep catalog and personalized mixes live in Tidal (you stay signed in on the TV).
+          Grown &amp; lyrical — MJ, Prince, Whitney, Kendrick, Jay-Z, Nas, Usher, Miguel, Chris Brown, plus rock (Linkin
+          Park, Metallica) — no ratchet or drill. Your deep catalog &amp; personalized playlists live in Tidal (you stay
+          signed in on the TV).
         </p>
       </section>
     </div>

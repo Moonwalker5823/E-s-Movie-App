@@ -40,6 +40,14 @@ const JCOLE = { id: "UCnc6db-y3IU7CkT_yeVXdVg", name: "J. Cole" };
 const LUPE = { id: "UC-zD8J0RLWy3mNB7EMmT7Rg", name: "Lupe Fiasco" };
 const GAMBINO = { id: "UCjYO25ZVJT523TD1iYHzcbw", name: "Childish Gambino" };
 const TEMS = { id: "UCWfi5ELXGAe-DCA6cOP3aNw", name: "Tems" };
+// More of Eric's artists — R&B/pop, legends & rock (official / VEVO), RSS-verified live.
+const PRINCE = { id: "UCv3mNSNjuWldihk1DUdnGtw", name: "Prince" };
+const WHITNEY = { id: "UCG5fkJ8-2b2ZjWpVNpr7Dqg", name: "Whitney Houston" };
+const MIGUEL = { id: "UCpOt14iqkbd6QjtBHicTXKQ", name: "Miguel" };
+const USHER = { id: "UCaNrhBiXsXIM2epDl_kEzgQ", name: "Usher" };
+const CHRIS_BROWN = { id: "UCm1dsgJNnhaLkY3uAdqN4mA", name: "Chris Brown" };
+const LINKIN_PARK = { id: "UCZU9T1ceaOgwfLRq7OKFU4Q", name: "Linkin Park" };
+const METALLICA = { id: "UCbulh9WdLtEXiooRcYK7SWw", name: "Metallica" };
 // Golden-era 80s/90s "Yo! MTV Raps" artists (official / VEVO), RSS-verified.
 const RUN_DMC = { id: "UCLPo8s1MY3FOzzSwWZP0ZvQ", name: "Run-DMC" };
 const LL_COOL_J = { id: "UCJk8BhnzYy-KkQ34Q7oZu1Q", name: "LL COOL J" };
@@ -77,6 +85,9 @@ const CRUNCHYROLL = { id: "UC6pGDc4bFGD1_36IKv3FnYg", name: "Crunchyroll" };
 const NETFLIX_ANIME = { id: "UCBSs9x2KzSLhyyA9IKyt4YA", name: "Netflix Anime" }; // Baki
 const MUSE_ASIA = { id: "UCGbshtvS9t-8CW11W7TooQg", name: "Muse Asia" };
 const ADULT_SWIM = { id: "UCgPClNr5VSYC3syrDUIlzLw", name: "Adult Swim" }; // Toonami
+
+// Comedy clip show — MTV's Ridiculousness. Mixed into the Games reel + its own tab.
+const RIDICULOUSNESS = { id: "UC5hk6O61heulo6Ld-ZNP6WA", name: "MTV's Ridiculousness" };
 
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
@@ -144,23 +155,25 @@ const SETS: Record<string, Channel[]> = {
   ],
   // Music — a grown, golden-era, lyrical/soul palette (curated + named artists, no
   // ratchet or drill). Tidal covers the personalized / deep-catalog library.
-  music: [MJ, KENDRICK, JAYZ, MASS_APPEAL, TEMS, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
+  music: [MJ, PRINCE, KENDRICK, JAYZ, USHER, MASS_APPEAL, TEMS, MIGUEL, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
   golden: [JAYZ, NAS, DMX, BIG_DADDY_KANE, MASS_APPEAL], // 90s/00s classic hip-hop
   lyricists: [KENDRICK, JCOLE, LUPE, GAMBINO, MASS_APPEAL], // conscious / lyrical
-  soul: [TEMS, RNB_NATION, COLORS, NPR_MUSIC], // R&B / neo-soul
-  classics: [MJ], // the King — his catalog
+  soul: [TEMS, MIGUEL, USHER, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC], // R&B / neo-soul
+  classics: [MJ, PRINCE, WHITNEY], // legends — the King first, then Prince & Whitney
+  rock: [LINKIN_PARK, METALLICA], // rock / metal — Linkin Park, Metallica
   tinydesk: [NPR_MUSIC],
   // 80s/90s "Yo! MTV Raps" golden era — classic videos + Mass Appeal freestyles/interviews.
   yomtvraps: [RUN_DMC, LL_COOL_J, TRIBE, WU_TANG, TUPAC, BIGGIE, PUBLIC_ENEMY, BIG_DADDY_KANE, EPMD, BEASTIE_BOYS, MASS_APPEAL],
   // Games — video-game + CAR heavy. "Mix" blends games with car content; then
   // Xbox, car shows (Top Gear feels), racing (motorsport + racing games), and
   // sports games.
-  gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, CARWOW, PLAYSTATION],
+  gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, RIDICULOUSNESS, CARWOW, PLAYSTATION],
   xbox: [XBOX],
   cars: [TOP_GEAR, GRAND_TOUR, CARWOW, DONUT], // car shows & reviews — Top Gear feels
   racing: [F1, NASCAR, FORZA, ROCKET_LEAGUE], // motorsport + racing games
   gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // sports games
   anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
+  ridiculousness: [RIDICULOUSNESS], // MTV clip-comedy — its own tab on Games
 };
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under

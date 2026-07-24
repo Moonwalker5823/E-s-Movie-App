@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LEAGUES, scoreboard, type Game } from "../api/espn";
 import GameCard from "../components/GameCard";
+import ScoreRail from "../components/ScoreRail";
 import Heading from "../components/ui/Heading";
 import Chip from "../components/ui/Chip";
 import Skeleton from "../components/ui/Skeleton";
@@ -42,8 +43,13 @@ export default function Sports() {
         Game Day
       </Heading>
 
-      {/* Featured highlights auto-play at the very top; clips only, no talk. */}
-      <VideoHub tabs={HIGHLIGHT_TABS} autoplay />
+      {/* Featured highlights auto-play at the very top; clips only, no talk. An
+          enlarged viewer with a live-scores rail beside it; "up next" sits below. */}
+      <VideoHub
+        tabs={HIGHLIGHT_TABS}
+        autoplay
+        rail={<ScoreRail league={league} onLeague={setLeague} games={games} error={error} />}
+      />
 
       {/* Scores & schedule */}
       <section className="mt-10">
