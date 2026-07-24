@@ -113,6 +113,7 @@ export default function VideoHub({
   const [full, setFull] = useState(false);
   const [muted, setMuted] = useState(false); // players default to SOUND ON
   const [cc, setCc] = useState(false); // captions OFF by default
+  const [playing, setPlaying] = useState(true); // autoplay starts playing
   const closeRef = useRef<HTMLButtonElement>(null);
   const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
   const playerRef = useRef<any>(null);
@@ -158,6 +159,10 @@ export default function VideoHub({
             } catch {
               /* ignore */
             }
+            // Keep the play/pause button in sync (1 = playing, 2 = paused; ignore
+            // buffering/cued so the icon doesn't flicker mid-load).
+            if (e.data === 1) setPlaying(true);
+            else if (e.data === 2) setPlaying(false);
           },
         },
       });
@@ -216,6 +221,22 @@ export default function VideoHub({
       } else {
         p.setOption("captions", "track", {});
         p.setOption("cc", "track", {});
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function togglePlay() {
+    const p = playerRef.current;
+    if (!p) return;
+    try {
+      if (playing) {
+        p.pauseVideo();
+        setPlaying(false);
+      } else {
+        p.playVideo();
+        setPlaying(true);
       }
     } catch {
       /* ignore */
@@ -356,7 +377,10 @@ export default function VideoHub({
                   <button onClick={playPrev} data-focusable aria-label="Previous clip" className={`absolute bottom-2 left-2 text-sm ${ctrlCls}`}>
                     ⏮
                   </button>
-                  <button onClick={playNext} data-focusable aria-label="Next clip" className={`absolute bottom-2 left-14 text-sm ${ctrlCls}`}>
+                  <button onClick={togglePlay} data-focusable aria-label={playing ? "Pause" : "Play"} className={`absolute bottom-2 left-14 text-base ${ctrlCls}`}>
+                    {playing ? "⏸" : "▶"}
+                  </button>
+                  <button onClick={playNext} data-focusable aria-label="Next clip" className={`absolute bottom-2 left-[6.5rem] text-sm ${ctrlCls}`}>
                     ⏭
                   </button>
                   <button
@@ -370,7 +394,7 @@ export default function VideoHub({
                   </button>
                 </div>
                 <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
-                <div className="text-xs text-cream/40">{feat.channel} · ⏮ ⏭ skip · 🔊 mute · ⛶ full screen</div>
+                <div className="text-xs text-cream/40">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
               </div>
               {previews[1] && <UpNextTile v={previews[1]} onPlay={playInHero} />}
             </div>
