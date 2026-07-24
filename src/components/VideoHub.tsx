@@ -102,6 +102,7 @@ export default function VideoHub({
   const [playing, setPlaying] = useState(true); // autoplay starts playing
   const [fsPlaying, setFsPlaying] = useState(true); // fullscreen player play state
   const [fsMuted, setFsMuted] = useState(false);
+  const [fsIndex, setFsIndex] = useState(0); // fullscreen playlist index (drives the title)
   const closeRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null); // refocus target when fullscreen closes
   const hostRef = useRef<HTMLDivElement>(null); // YT injects its iframe into a child of this
@@ -194,6 +195,12 @@ export default function VideoHub({
     let killed = false;
     setFsPlaying(true);
     setFsMuted(false);
+    // Fullscreen CONTINUES the reel: load the same shuffled queue, starting on the
+    // picked clip, so it auto-advances to the next video (and loops) instead of
+    // stopping after one.
+    const ids = order.length ? order.map((v) => v.videoId) : [fullVid.videoId];
+    const start = Math.max(0, ids.indexOf(fullVid.videoId));
+    setFsIndex(start);
     loadYouTubeApi().then((YT) => {
       if (killed || !fullHostRef.current) return;
       fullHostRef.current.innerHTML = "";
@@ -206,9 +213,26 @@ export default function VideoHub({
         videoId: fullVid.videoId,
         playerVars: { autoplay: 1, mute: 0, rel: 0, playsinline: 1, modestbranding: 1, controls: 0, cc_load_policy: 0 },
         events: {
+          onReady: (e: any) => {
+            if (killed) return;
+            try {
+              if (ids.length > 1) {
+                e.target.loadPlaylist(ids, start); // start here, then auto-advance
+                e.target.setLoop(true); // the reel never ends
+              }
+            } catch {
+              /* ignore */
+            }
+          },
           onStateChange: (e: any) => {
+            try {
+              const i = e.target.getPlaylistIndex();
+              if (typeof i === "number" && i >= 0) setFsIndex(i); // keep the title on the current clip
+            } catch {
+              /* ignore */
+            }
             if (e.data === 1) setFsPlaying(true);
-            else if (e.data === 2 || e.data === 0) setFsPlaying(false); // 0 = ended → show ▶ to replay
+            else if (e.data === 2) setFsPlaying(false); // playlist auto-advances, so no ENDED handling
           },
         },
       });
@@ -222,7 +246,7 @@ export default function VideoHub({
       }
       fullPlayerRef.current = null;
     };
-  }, [full, fullVid]);
+  }, [full, fullVid, order]);
 
   function fsTogglePlay() {
     const p = fullPlayerRef.current;
@@ -504,7 +528,7 @@ export default function VideoHub({
 
           {/* Top bar: title + close */}
           <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 py-3">
-            <div className="min-w-0 truncate font-semibold text-cream">{fullVid.title}</div>
+            <div className="min-w-0 truncate font-semibold text-cream">{(order[fsIndex] ?? fullVid).title}</div>
             <button ref={closeRef} onClick={closeFull} data-focusable className="btn-ghost shrink-0 !px-3 !py-1 text-sm">
               Close ✕
             </button>
