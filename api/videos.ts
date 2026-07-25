@@ -23,6 +23,10 @@ const EPL = { id: "UCpryVRk_VDudG8SHXgWcG0w", name: "Premier League" };
 const ESPN = { id: "UCiWLfSweyRNmLpgEHekhoAg", name: "ESPN" }; // main ESPN (daily recaps)
 const HOH = { id: "UCqQo7ewe87aYAe7ub5UqXMw", name: "House of Highlights" };
 const BR = { id: "UC9-OpMMVoNP5o10_Iyq7Ndw", name: "Bleacher Report" };
+// AND1 streetball — the mixtape era (Hot Sauce, Half Man Half Amazin') + The Professor.
+const AND1 = { id: "UCpj2jMqzhF4nn4-9PXRy2kA", name: "AND1 Basketball" };
+const PROFESSOR = { id: "UC5zJwsFtEs9WYe3A76p7xIA", name: "The Professor" };
+const BALLISLIFE = { id: "UC_zgOsTPdML6tol9hLYh4fQ", name: "Ballislife" };
 
 // Music-video channels (verified active, July 2026).
 const NPR_MUSIC = { id: "UC4eYXhJI4-7wSWc8UNRwD4A", name: "NPR Music" }; // Tiny Desk — lyrical/soul/R&B live
@@ -67,6 +71,9 @@ const YT_ALT = { id: "PLC44D9558DA3EFA53", name: "Alt" };
 const YT_REGGAE = { id: "PLE6B511E64F9A9D64", name: "Reggae" };
 const YT_YOUNGE = { id: "PL97F5B39065908605", name: "Young E" };
 const ERIC_PLAYLISTS = [YT_OL_SKOOL, YT_HIPHOP, YT_MAXWELL, YT_COMMON, YT_BIG, YT_RNB2, YT_RNB, YT_KING, YT_2PAC, YT_RAP, YT_ROCK, YT_ALT, YT_REGGAE, YT_YOUNGE];
+
+// Battle rap — SMACK/URL (Ultimate Rap League), the classic SMACK DVD lineage.
+const URL_BATTLE = { id: "UCflIAeM03JFL9ml03LwYF-g", name: "URL · Ultimate Rap League" };
 // Golden-era 80s/90s "Yo! MTV Raps" artists (official / VEVO), RSS-verified.
 const RUN_DMC = { id: "UCLPo8s1MY3FOzzSwWZP0ZvQ", name: "Run-DMC" };
 const LL_COOL_J = { id: "UCJk8BhnzYy-KkQ34Q7oZu1Q", name: "LL COOL J" };
@@ -112,6 +119,19 @@ const ROB_DYRDEK = { id: "UCEfHmEc1D2QYQOdpYlHNd0Q", name: "Rob Dyrdek" }; // Ri
 const AFV = { id: "UC_zEzzq54Rm0iy7lmmZbCIg", name: "America's Funniest Home Videos" };
 const DAILY_DOSE = { id: "UCdC0An4ZPNr_YiFiYoVbwaw", name: "Daily Dose Of Internet" };
 const PEOPLE_AWESOME = { id: "UCIJ0lLcABPdYGp7pRMGccAQ", name: "People Are Awesome" };
+
+// Comedy — sketches, stand-up & roasts. The legends Eric named (Bernie Mac, Martin,
+// Chappelle, Chris Rock, Eddie Murphy, Pryor) have no live channels of their own, so
+// their clips come through Comedy Central / Netflix Is A Joke / Wild 'N Out alongside
+// active comedians. Verified active (2026 uploads).
+const KEV_ON_STAGE = { id: "UC5Zc0EUB-km6in-55cK7k2g", name: "KevOnStage" };
+const TONY_BAKER = { id: "UC4BjMIJfYABWAwcBE9-hp9A", name: "Tony Baker" };
+const KARLOUS = { id: "UCijs2c5F9LYI0NHT1tN4TdA", name: "Karlous Miller" };
+const DC_YOUNG_FLY = { id: "UCCQ-qN-4JcmXe4GcktUsITg", name: "DC Young Fly" };
+const COMEDY_CENTRAL = { id: "UCUsN5ZwHx2kILm84-jPDeXw", name: "Comedy Central" };
+const NETFLIX_JOKE = { id: "UCObk_g1hQBy0RKKriVX_zOQ", name: "Netflix Is A Joke" };
+const WILD_N_OUT = { id: "UCrkzfc2yf-7q6pd7EtzgNaQ", name: "Wild 'N Out" };
+const DRY_BAR = { id: "UCvlVuntLjdURVD3b3Hx7kxw", name: "Dry Bar Comedy" };
 
 // Smokers Lounge — a full cannabis hub (culture, celebrity sessions, munchies/recipes,
 // grow tips), not just smoking vlogs. Verified active (2026 uploads) so the daily
@@ -170,6 +190,7 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCBNqqomXKPSWvcQDXOkRvRA", name: "Draymond Green Show" },
     { id: "UCKnodHJpZd8UbSvAufDd3_g", name: "Club Shay Shay" },
   ],
+  and1: [AND1, PROFESSOR, BALLISLIFE], // AND1 mixtape streetball + The Professor
   // Smokers Lounge — a full cannabis hub, not just Snoop + smoking vlogs. The daily
   // rotation keeps each tab fresh day to day.
   lounge: [GGN, BREAL, HIGH_TIMES, BERNER, EMILY_KYLE, COOKING_CANNABIS, MR_GROW_IT, MUNCH_MAKERS, DEBACCO], // 🔥 all smoker content
@@ -222,19 +243,24 @@ const SETS: Record<string, Channel[]> = {
   soul: [TEMS, MIGUEL, USHER, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC, YT_OL_SKOOL, YT_MAXWELL, YT_RNB, YT_RNB2, YT_YOUNGE], // R&B / neo-soul
   classics: [MJ, PRINCE, WHITNEY, YT_KING], // legends — the King first, then Prince & Whitney
   rock: [LINKIN_PARK, METALLICA, YT_ROCK, YT_ALT], // rock / metal — Linkin Park, Metallica
+  battlerap: [URL_BATTLE], // SMACK / URL — Ultimate Rap League battles
   tinydesk: [NPR_MUSIC],
   // 80s/90s "Yo! MTV Raps" golden era — classic videos + Mass Appeal freestyles/interviews.
   yomtvraps: [RUN_DMC, LL_COOL_J, TRIBE, WU_TANG, TUPAC, BIGGIE, PUBLIC_ENEMY, BIG_DADDY_KANE, EPMD, BEASTIE_BOYS, MASS_APPEAL],
   // Games — video-game + CAR heavy. "Mix" blends games with car content; then
   // Xbox, car shows (Top Gear feels), racing (motorsport + racing games), and
   // sports games.
-  gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, RIDICULOUSNESS, CARWOW, PLAYSTATION],
+  gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, CARWOW, PLAYSTATION],
   xbox: [XBOX],
   cars: [TOP_GEAR, GRAND_TOUR, CARWOW, DONUT], // car shows & reviews — Top Gear feels
   racing: [F1, NASCAR, FORZA, ROCKET_LEAGUE], // motorsport + racing games
   gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // sports games
   anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
-  ridiculousness: [RIDICULOUSNESS, ROB_DYRDEK, AFV, DAILY_DOSE, PEOPLE_AWESOME], // wind-down clip comedy
+  ridiculousness: [RIDICULOUSNESS, ROB_DYRDEK, AFV, DAILY_DOSE, PEOPLE_AWESOME], // wind-down clip comedy (Comedy page)
+  // Comedy page — sketches, stand-up & roasts. Legends' clips ride in via the platforms.
+  comedy: [KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR],
+  standup: [NETFLIX_JOKE, DRY_BAR, COMEDY_CENTRAL, KARLOUS], // stand-up specials & sets
+  skits: [KEV_ON_STAGE, TONY_BAKER, COMEDY_CENTRAL, WILD_N_OUT, DC_YOUNG_FLY], // sketches & roasts
 };
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under

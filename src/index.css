@@ -273,6 +273,14 @@ body {
     repeating-linear-gradient(90deg, rgba(43, 212, 255, 0.05) 0 1px, transparent 1px 42px);
 }
 
+/* Comedy — warm stage spotlight */
+.tab-bg[data-tab="comedy"] {
+  background:
+    radial-gradient(760px 620px at 50% -6%, rgba(255, 196, 0, 0.16), transparent 60%),
+    radial-gradient(680px 560px at 16% 92%, rgba(230, 57, 43, 0.12), transparent 62%),
+    radial-gradient(680px 560px at 84% 92%, rgba(139, 63, 251, 0.1), transparent 62%);
+}
+
 /* Lounge — green haze + drifting smoke + leaf motif */
 .tab-bg[data-tab="lounge"] {
   background:

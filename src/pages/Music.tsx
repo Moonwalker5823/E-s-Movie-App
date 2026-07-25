@@ -10,6 +10,7 @@ const MUSIC_TABS: HubTab[] = [
   { key: "golden", label: "🔥 Golden Era" },
   { key: "yomtvraps", label: "📼 Yo! MTV Raps" },
   { key: "lyricists", label: "🎤 Lyricists" },
+  { key: "battlerap", label: "🥊 Battle Rap" },
   { key: "soul", label: "🎶 R&B / Soul" },
   { key: "classics", label: "👑 Legends" },
   { key: "rock", label: "🎸 Rock" },

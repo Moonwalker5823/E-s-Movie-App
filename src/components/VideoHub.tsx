@@ -497,14 +497,14 @@ export default function VideoHub({
     setMuted(false);
     setCc(false);
     let alive = true;
-    // `daily` (date) or `freshHours` (N-hour bucket) both come pre-shuffled from the
-    // server — keep that order so the lineup is stable for the window; else randomize.
-    const rotate = daily || (typeof freshHours === "number" && freshHours > 0);
     videos(tab, { short, daily, hours: freshHours })
       .then((v) => {
         if (!alive) return;
         setItems(v);
-        setOrder(autoplay ? (rotate ? v : shuffle(v)) : []);
+        // ALWAYS shuffle the play order per visit so the same clip doesn't greet you
+        // every time. `daily`/`freshHours` keep the CONTENT pool fresh day to day (or
+        // every N hours); this just varies the ORDER each time you land on the page.
+        setOrder(autoplay ? shuffle(v) : []);
       })
       .catch(() => alive && setError(true));
     return () => {

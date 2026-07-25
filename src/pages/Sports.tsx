@@ -18,6 +18,7 @@ const HIGHLIGHT_TABS: HubTab[] = [
   { key: "soccer", label: "Soccer" },
   { key: "cfb", label: "CFB" },
   { key: "shows", label: "🎙️ Shows & Pods" },
+  { key: "and1", label: "🏀 AND1 Streetball" },
 ];
 
 export default function Sports() {

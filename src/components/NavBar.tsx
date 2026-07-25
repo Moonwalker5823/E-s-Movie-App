@@ -8,10 +8,11 @@ const BASE_LINKS = [
   { to: "/live", label: "Live TV" },
   { to: "/sports", label: "Sports" },
   { to: "/fantasy", label: "Fantasy" },
-  { to: "/games", label: "Games" },
+  { to: "/games", label: "Arcade" },
   { to: "/lounge", label: "Lounge" },
   { to: "/music", label: "Music" },
   { to: "/blerd", label: "Blerd" },
+  { to: "/comedy", label: "Comedy" },
   { to: "/favorites", label: "My List" },
 ];
 

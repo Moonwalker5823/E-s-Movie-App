@@ -10,7 +10,6 @@ const CLIP_TABS: HubTab[] = [
   { key: "cars", label: "🏎️ Cars & Top Gear" },
   { key: "racing", label: "🏁 Racing" },
   { key: "anime", label: "🥋 Anime" },
-  { key: "ridiculousness", label: "😂 Ridiculousness" },
 ];
 
 // Browser-based cloud gaming — play right on the TV, no console hookup needed.
@@ -31,8 +30,8 @@ const CLOUD: Tile[] = [
 export default function Games() {
   return (
     <div className="px-4 pb-8 pt-4 sm:px-10">
-      <Heading label="♛ Games" emoji="🎮" size="lg" className="mb-3">
-        Cloud Gaming
+      <Heading label="♛ Arcade" emoji="🎮" size="lg" className="mb-3">
+        Games, Anime &amp; Rides
       </Heading>
 
       {/* Featured games + cars at the very top. Full-length (not shorts-only) so

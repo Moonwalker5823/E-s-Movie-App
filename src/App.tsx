@@ -10,6 +10,7 @@ import Sports from "./pages/Sports";
 import Fantasy from "./pages/Fantasy";
 import DraftRoom from "./pages/DraftRoom";
 import Games from "./pages/Games";
+import Comedy from "./pages/Comedy";
 import Music from "./pages/Music";
 import XZone from "./pages/XZone";
 import SmokersLounge from "./pages/SmokersLounge";
@@ -81,6 +82,7 @@ export default function App() {
         <Route path="/lounge" element={<SmokersLounge />} />
         <Route path="/music" element={<Music />} />
         <Route path="/blerd" element={<Blerd />} />
+        <Route path="/comedy" element={<Comedy />} />
         <Route path="/x" element={<XZone />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/title/:media/:id" element={gated(<Title />)} />
