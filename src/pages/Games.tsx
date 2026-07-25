@@ -36,8 +36,9 @@ export default function Games() {
       </Heading>
 
       {/* Featured games + cars at the very top. Full-length (not shorts-only) so
-          car shows / Top Gear segments and anime episodes play in full. */}
-      <VideoHub tabs={CLIP_TABS} autoplay />
+          car shows / Top Gear segments and anime episodes play in full. `daily`
+          rotates a fresh lineup each day. */}
+      <VideoHub tabs={CLIP_TABS} autoplay daily />
 
       <Heading emoji="🟢" className="mb-2 mt-10">
         Xbox

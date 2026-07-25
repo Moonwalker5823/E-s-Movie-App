@@ -46,7 +46,7 @@ export default function Sports() {
       {/* Featured highlights auto-play at the very top; clips only, no talk. An
           enlarged viewer with a live-scores rail beside it; "up next" sits below.
           The rail auto-cycles every game across all sports on its own. */}
-      <VideoHub tabs={HIGHLIGHT_TABS} autoplay rail={<ScoreRail />} />
+      <VideoHub tabs={HIGHLIGHT_TABS} autoplay freshHours={3} rail={<ScoreRail />} />
 
       {/* Scores & schedule */}
       <section className="mt-10">

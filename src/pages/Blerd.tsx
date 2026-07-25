@@ -34,7 +34,7 @@ export default function Blerd() {
       </Heading>
 
       {/* Featured video at the very top */}
-      <VideoHub tabs={BLERD_TABS} autoplay short />
+      <VideoHub tabs={BLERD_TABS} autoplay short daily />
 
       {/* Fact of the Day — rotates daily */}
       <section className="mt-10">

@@ -85,6 +85,7 @@ export default function VideoHub({
   autoplay = false,
   short = false,
   daily = false,
+  freshHours,
   rail,
 }: {
   tabs: HubTab[];
@@ -92,6 +93,7 @@ export default function VideoHub({
   autoplay?: boolean;
   short?: boolean;
   daily?: boolean; // fresh daily rotation (server orders it by date; keep that order)
+  freshHours?: number; // rotate every N hours instead of daily (Sports = 3); server-ordered
   rail?: React.ReactNode; // optional side panel (e.g. live scores) shown beside the viewer
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
@@ -495,19 +497,20 @@ export default function VideoHub({
     setMuted(false);
     setCc(false);
     let alive = true;
-    videos(tab, { short, daily })
+    // `daily` (date) or `freshHours` (N-hour bucket) both come pre-shuffled from the
+    // server — keep that order so the lineup is stable for the window; else randomize.
+    const rotate = daily || (typeof freshHours === "number" && freshHours > 0);
+    videos(tab, { short, daily, hours: freshHours })
       .then((v) => {
         if (!alive) return;
         setItems(v);
-        // `daily` already comes date-shuffled from the server — keep that order so the
-        // lineup is stable for the day; otherwise randomize per visit.
-        setOrder(autoplay ? (daily ? v : shuffle(v)) : []);
+        setOrder(autoplay ? (rotate ? v : shuffle(v)) : []);
       })
       .catch(() => alive && setError(true));
     return () => {
       alive = false;
     };
-  }, [tab, short, autoplay, daily]);
+  }, [tab, short, autoplay, daily, freshHours]);
 
   // Load a picked clip into the MAIN VIEWER (not fullscreen) and center it on screen.
   function playInHero(v: Video) {

@@ -105,8 +105,13 @@ const NETFLIX_ANIME = { id: "UCBSs9x2KzSLhyyA9IKyt4YA", name: "Netflix Anime" };
 const MUSE_ASIA = { id: "UCGbshtvS9t-8CW11W7TooQg", name: "Muse Asia" };
 const ADULT_SWIM = { id: "UCgPClNr5VSYC3syrDUIlzLw", name: "Adult Swim" }; // Toonami
 
-// Comedy clip show — MTV's Ridiculousness. Mixed into the Games reel + its own tab.
+// Comedy clip show — MTV's Ridiculousness + the host + similar viral-clip channels, so
+// the wind-down tab always has plenty of new content. All verified active (2026).
 const RIDICULOUSNESS = { id: "UC5hk6O61heulo6Ld-ZNP6WA", name: "MTV's Ridiculousness" };
+const ROB_DYRDEK = { id: "UCEfHmEc1D2QYQOdpYlHNd0Q", name: "Rob Dyrdek" }; // Ridiculousness host
+const AFV = { id: "UC_zEzzq54Rm0iy7lmmZbCIg", name: "America's Funniest Home Videos" };
+const DAILY_DOSE = { id: "UCdC0An4ZPNr_YiFiYoVbwaw", name: "Daily Dose Of Internet" };
+const PEOPLE_AWESOME = { id: "UCIJ0lLcABPdYGp7pRMGccAQ", name: "People Are Awesome" };
 
 // Smokers Lounge — a full cannabis hub (culture, celebrity sessions, munchies/recipes,
 // grow tips), not just smoking vlogs. Verified active (2026 uploads) so the daily
@@ -229,7 +234,7 @@ const SETS: Record<string, Channel[]> = {
   racing: [F1, NASCAR, FORZA, ROCKET_LEAGUE], // motorsport + racing games
   gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // sports games
   anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
-  ridiculousness: [RIDICULOUSNESS], // MTV clip-comedy — its own tab on Games
+  ridiculousness: [RIDICULOUSNESS, ROB_DYRDEK, AFV, DAILY_DOSE, PEOPLE_AWESOME], // wind-down clip comedy
 };
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under
@@ -364,9 +369,12 @@ export default async function handler(req: any, res: any) {
   const set = (req.query?.set || "all").toString().toLowerCase();
   const short = String(req.query?.short || "") === "1";
   const daily = String(req.query?.daily || "") === "1"; // date-seeded fresh-daily rotation
+  const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3)
   const channels = SETS[set] || SETS.all;
-  const seed = dailySeed();
-  const cacheKey = `${set}${short ? ":short" : ""}${daily ? `:d${seed}` : ""}`;
+  const rotate = daily || hours > 0;
+  // Seed the rotation: an N-hour time bucket when `hours` is set, else today's date (ET).
+  const seed = hours > 0 ? Math.floor(Date.now() / (hours * 3600_000)) : dailySeed();
+  const cacheKey = `${set}${short ? ":short" : ""}${rotate ? `:r${seed}` : ""}`;
 
   const hit = cache[cacheKey];
   if (hit && Date.now() - hit.at < TTL) {
@@ -395,7 +403,7 @@ export default async function handler(req: any, res: any) {
     .sort((a, b) => (a.published < b.published ? 1 : -1));
   // Daily rotation: shuffle a larger recent pool with today's seed, then take 48 — so
   // the featured lineup changes day to day. Otherwise just take the newest.
-  let items = daily ? seededShuffle(fresh.slice(0, 90), mulberry32(seed)).slice(0, 48) : fresh.slice(0, 48);
+  let items = rotate ? seededShuffle(fresh.slice(0, 90), mulberry32(seed)).slice(0, 48) : fresh.slice(0, 48);
 
   // Shorts-only tabs (Lounge / Blerd / Games): prefer clips 5 min and under.
   // If duration lookup is unavailable (rate-limited) OR a feed has no short clips
