@@ -48,6 +48,25 @@ const USHER = { id: "UCaNrhBiXsXIM2epDl_kEzgQ", name: "Usher" };
 const CHRIS_BROWN = { id: "UCm1dsgJNnhaLkY3uAdqN4mA", name: "Chris Brown" };
 const LINKIN_PARK = { id: "UCZU9T1ceaOgwfLRq7OKFU4Q", name: "Linkin Park" };
 const METALLICA = { id: "UCbulh9WdLtEXiooRcYK7SWw", name: "Metallica" };
+
+// Eric's own PUBLIC YouTube playlists (pulled from his account via playlist_id RSS).
+// His actual curated taste — soul, golden-era hip-hop, MJ, rock. RSS exposes the ~15
+// most-recently-added tracks per list, so combined they make a rich, personal pool.
+const YT_OL_SKOOL = { id: "PL60C6CBECA6951C0B", name: "Ol' Skool" };
+const YT_HIPHOP = { id: "PLE510D41977035219", name: "Ol Skool Hip Hop" };
+const YT_MAXWELL = { id: "PL9246E25C52B342E6", name: "maxwell" };
+const YT_COMMON = { id: "PL361A266F4BAFFE1C", name: "common" };
+const YT_BIG = { id: "PL9E0C776FE6F03548", name: "B.I.G" };
+const YT_RNB2 = { id: "PL2A7A56447D01BD41", name: "r&b 2" };
+const YT_RNB = { id: "PL903D51D276837634", name: "R&B" };
+const YT_KING = { id: "PL3CACBC467D63FCC7", name: "The King" };
+const YT_2PAC = { id: "PL39927FF699A4674E", name: "2Pac" };
+const YT_RAP = { id: "PL3908266E9A9A8D7B", name: "Rap" };
+const YT_ROCK = { id: "PLFD9A5156594299A6", name: "Rock" };
+const YT_ALT = { id: "PLC44D9558DA3EFA53", name: "Alt" };
+const YT_REGGAE = { id: "PLE6B511E64F9A9D64", name: "Reggae" };
+const YT_YOUNGE = { id: "PL97F5B39065908605", name: "Young E" };
+const ERIC_PLAYLISTS = [YT_OL_SKOOL, YT_HIPHOP, YT_MAXWELL, YT_COMMON, YT_BIG, YT_RNB2, YT_RNB, YT_KING, YT_2PAC, YT_RAP, YT_ROCK, YT_ALT, YT_REGGAE, YT_YOUNGE];
 // Golden-era 80s/90s "Yo! MTV Raps" artists (official / VEVO), RSS-verified.
 const RUN_DMC = { id: "UCLPo8s1MY3FOzzSwWZP0ZvQ", name: "Run-DMC" };
 const LL_COOL_J = { id: "UCJk8BhnzYy-KkQ34Q7oZu1Q", name: "LL COOL J" };
@@ -190,12 +209,14 @@ const SETS: Record<string, Channel[]> = {
   explore: [WILL_SMITH, NAT_GEO, BBC_EARTH, YES_THEORY, GREAT_BIG_STORY],
   // Music — a grown, golden-era, lyrical/soul palette (curated + named artists, no
   // ratchet or drill). Tidal covers the personalized / deep-catalog library.
-  music: [MJ, PRINCE, KENDRICK, JAYZ, USHER, MASS_APPEAL, TEMS, MIGUEL, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
-  golden: [JAYZ, NAS, DMX, BIG_DADDY_KANE, MASS_APPEAL], // 90s/00s classic hip-hop
-  lyricists: [KENDRICK, JCOLE, LUPE, GAMBINO, MASS_APPEAL], // conscious / lyrical
-  soul: [TEMS, MIGUEL, USHER, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC], // R&B / neo-soul
-  classics: [MJ, PRINCE, WHITNEY], // legends — the King first, then Prince & Whitney
-  rock: [LINKIN_PARK, METALLICA], // rock / metal — Linkin Park, Metallica
+  // Eric's own YouTube playlists, combined — his personal music taste in the app.
+  myplaylists: ERIC_PLAYLISTS,
+  music: [MJ, PRINCE, YT_KING, KENDRICK, JAYZ, USHER, YT_OL_SKOOL, MASS_APPEAL, TEMS, MIGUEL, YT_RNB, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
+  golden: [JAYZ, NAS, DMX, BIG_DADDY_KANE, MASS_APPEAL, YT_2PAC, YT_BIG, YT_COMMON, YT_RAP, YT_HIPHOP], // 90s/00s classic hip-hop
+  lyricists: [KENDRICK, JCOLE, LUPE, GAMBINO, MASS_APPEAL, YT_COMMON], // conscious / lyrical
+  soul: [TEMS, MIGUEL, USHER, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC, YT_OL_SKOOL, YT_MAXWELL, YT_RNB, YT_RNB2, YT_YOUNGE], // R&B / neo-soul
+  classics: [MJ, PRINCE, WHITNEY, YT_KING], // legends — the King first, then Prince & Whitney
+  rock: [LINKIN_PARK, METALLICA, YT_ROCK, YT_ALT], // rock / metal — Linkin Park, Metallica
   tinydesk: [NPR_MUSIC],
   // 80s/90s "Yo! MTV Raps" golden era — classic videos + Mass Appeal freestyles/interviews.
   yomtvraps: [RUN_DMC, LL_COOL_J, TRIBE, WU_TANG, TUPAC, BIGGIE, PUBLIC_ENEMY, BIG_DADDY_KANE, EPMD, BEASTIE_BOYS, MASS_APPEAL],
@@ -356,7 +377,9 @@ export default async function handler(req: any, res: any) {
   const lists = await Promise.all(
     channels.map(async (c) => {
       try {
-        const r = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${c.id}`);
+        // A source is either a channel (UC…) or a playlist (PL…) — same RSS feed, different param.
+        const param = c.id.startsWith("PL") ? "playlist_id" : "channel_id";
+        const r = await fetch(`https://www.youtube.com/feeds/videos.xml?${param}=${c.id}`);
         if (!r.ok) return [] as Item[];
         return parseFeed(await r.text(), c.name);
       } catch {

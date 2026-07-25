@@ -5,7 +5,8 @@ import LaunchTile, { type Tile } from "../components/LaunchTile";
 // Music videos across your tastes — R&B, soul, hip-hop, rock & classics. The reel
 // stays fresh as these channels post; Tidal covers your personalized/era library.
 const MUSIC_TABS: HubTab[] = [
-  { key: "music", label: "🎧 Mix" },
+  { key: "myplaylists", label: "🎧 My Mix" }, // Eric's own YouTube playlists
+  { key: "music", label: "✨ Mix" },
   { key: "golden", label: "🔥 Golden Era" },
   { key: "yomtvraps", label: "📼 Yo! MTV Raps" },
   { key: "lyricists", label: "🎤 Lyricists" },
@@ -42,9 +43,10 @@ export default function Music() {
           ))}
         </div>
         <p className="mt-4 text-sm text-cream/50">
-          Grown &amp; lyrical — MJ, Prince, Whitney, Kendrick, Jay-Z, Nas, Usher, Miguel, Chris Brown, plus rock (Linkin
-          Park, Metallica) — no ratchet or drill. Your deep catalog &amp; personalized playlists live in Tidal (you stay
-          signed in on the TV).
+          <b className="text-cream/70">🎧 My Mix</b> plays straight from your own YouTube playlists — Ol&apos; Skool,
+          maxwell, R&amp;B, The King, 2Pac, B.I.G, Rock &amp; more — and they feed the genre tabs too, rotating fresh
+          each day. Grown &amp; lyrical, no ratchet or drill. Your deep catalog also lives in Tidal (you stay signed in
+          on the TV).
         </p>
       </section>
     </div>
