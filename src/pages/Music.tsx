@@ -29,8 +29,9 @@ export default function Music() {
         Music Videos
       </Heading>
 
-      {/* Featured music video streams at the top; picking a clip loads it in the viewer. */}
-      <VideoHub tabs={MUSIC_TABS} autoplay />
+      {/* Featured music video streams at the top; picking a clip loads it in the viewer.
+          `daily` rotates a fresh on-topic lineup each day. */}
+      <VideoHub tabs={MUSIC_TABS} autoplay daily />
 
       {/* Your streaming services */}
       <section className="mt-10">

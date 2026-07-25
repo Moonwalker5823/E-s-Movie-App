@@ -89,6 +89,36 @@ const ADULT_SWIM = { id: "UCgPClNr5VSYC3syrDUIlzLw", name: "Adult Swim" }; // To
 // Comedy clip show — MTV's Ridiculousness. Mixed into the Games reel + its own tab.
 const RIDICULOUSNESS = { id: "UC5hk6O61heulo6Ld-ZNP6WA", name: "MTV's Ridiculousness" };
 
+// Smokers Lounge — a full cannabis hub (culture, celebrity sessions, munchies/recipes,
+// grow tips), not just smoking vlogs. Verified active (2026 uploads) so the daily
+// rotation stays fresh.
+const GGN = { id: "UC-OO324clObi3H-U0bP77dw", name: "Snoop Dogg (GGN)" };
+const BREAL = { id: "UCSDxHir7pmMTmJ_-tlK7NHA", name: "BREAL.TV" };
+const HIGH_TIMES = { id: "UCFQ7vc-dWlSUZd6OqsAepMA", name: "High Times" };
+const BERNER = { id: "UC2rdCWnU8fmFxdgeYXkbbIw", name: "Berner" };
+const EMILY_KYLE = { id: "UCyEbRoIkzjcTdBFrYyxVa2Q", name: "Emily Kyle · Cannabis Kitchen" }; // recipes/edibles
+const COOKING_CANNABIS = { id: "UCyDFqSAhNnjmcZbSEOczZAQ", name: "Cooking With Cannabis" }; // recipes/edibles
+const MUNCH_MAKERS = { id: "UCs4U6ncms8pqtgp1vqGTFnA", name: "Munch Makers" }; // munchies gear
+const MR_GROW_IT = { id: "UCxRqSUclO2n5BHzV_Bc3GYQ", name: "Mr. Grow It" }; // grow tips
+const DEBACCO = { id: "UCfDn7HuC58X9BPWUtjpkqQg", name: "DeBacco University" }; // cultivation
+
+// Motivation — daily discipline / mindset speeches. Motiversity is Eric's pick; Tim
+// Grover has no channel of his own (podcast guest only), so top speech channels carry
+// that same relentless energy. Verified active (2026 uploads).
+const MOTIVERSITY = { id: "UCAPByrKU5-R1emswVlyH_-g", name: "Motiversity" };
+const BEN_LIONEL_SCOTT = { id: "UCgkKA7xEOoBQNpC5TJxPLiw", name: "Ben Lionel Scott" };
+const TEAM_FEARLESS = { id: "UCf9_s9ii6BZ-klpgmtIi3WQ", name: "Team Fearless" };
+
+// Explore — adventure & exploration in the Blerd spirit: Will Smith's channel (home
+// of his Nat Geo "Pole to Pole" / Welcome to Earth adventures), plus Nat Geo, BBC
+// Earth and similar. Verified active (2026 uploads).
+const WILL_SMITH = { id: "UCKuHFYu3smtrl2AwwMOXOlg", name: "Will Smith" };
+const NAT_GEO = { id: "UCpVm7bg6pXKo1Pr6k5kxG9A", name: "National Geographic" };
+const BBC_EARTH = { id: "UCwmZiChSryoWQCZMIQezgTg", name: "BBC Earth" };
+const VSAUCE = { id: "UC6nSFpj9HTCZ5t-N3Rm3-HA", name: "Vsauce" };
+const GREAT_BIG_STORY = { id: "UCajXeitgFL-rb5-gXI-aG8Q", name: "Great Big Story" };
+const YES_THEORY = { id: "UCvK4bOhULCpmLabd2pDMtnA", name: "Yes Theory" };
+
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
 const SETS: Record<string, Channel[]> = {
   // Sports "Highlights" tabs
@@ -116,18 +146,19 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCBNqqomXKPSWvcQDXOkRvRA", name: "Draymond Green Show" },
     { id: "UCKnodHJpZd8UbSvAufDd3_g", name: "Club Shay Shay" },
   ],
-  // Smokers Lounge "Bud TV" — Snoop's GGN, Smoke Box, weed vlogs.
-  weed: [
-    { id: "UC-OO324clObi3H-U0bP77dw", name: "Snoop Dogg (GGN)" },
-    { id: "UCSDxHir7pmMTmJ_-tlK7NHA", name: "BREAL.TV" },
-    { id: "UCxhC-uVCAqX-dSmYwj-U18Q", name: "Macdizzle420" },
-  ],
+  // Smokers Lounge — a full cannabis hub, not just Snoop + smoking vlogs. The daily
+  // rotation keeps each tab fresh day to day.
+  lounge: [GGN, BREAL, HIGH_TIMES, BERNER, EMILY_KYLE, COOKING_CANNABIS, MR_GROW_IT, MUNCH_MAKERS, DEBACCO], // 🔥 all smoker content
+  sessions: [GGN, BREAL, HIGH_TIMES, BERNER], // 🌿 celebrity sessions & culture
+  edibles: [EMILY_KYLE, COOKING_CANNABIS], // 🍽️ weed-inspired recipes
+  grow: [MR_GROW_IT, DEBACCO], // 🌱 growers tips & cultivation
   // Blerd — the black nerd in you: science, tech, TED, ancient aliens, code.
   blerd: [
     { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
     { id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" },
     { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
     { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" }, // was HISTORY (posts true-crime); keep the Mix pure nerd
+    VSAUCE, // big-ideas/science — keeps the Mix fresh
     { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
   ],
   science: [
@@ -153,6 +184,10 @@ const SETS: Record<string, Channel[]> = {
     { id: "UC1emV4A8liRs9p80CY8ElUQ", name: "freeCodeCamp" },
     { id: "UC2Xd-TjJByJyK2w1zNwY0zQ", name: "Fireship" },
   ],
+  // Blerd — motivation/mindset speeches (Motiversity + top speech channels).
+  motivation: [MOTIVERSITY, BEN_LIONEL_SCOTT, TEAM_FEARLESS],
+  // Blerd — adventure & exploration (Will Smith's Pole to Pole/Welcome to Earth, Nat Geo, …).
+  explore: [WILL_SMITH, NAT_GEO, BBC_EARTH, YES_THEORY, GREAT_BIG_STORY],
   // Music — a grown, golden-era, lyrical/soul palette (curated + named artists, no
   // ratchet or drill). Tidal covers the personalized / deep-catalog library.
   music: [MJ, PRINCE, KENDRICK, JAYZ, USHER, MASS_APPEAL, TEMS, MIGUEL, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
@@ -280,11 +315,37 @@ async function durationsFor(ids: string[]): Promise<Record<string, number>> {
   return out;
 }
 
+// A "fresh daily" rotation: a deterministic shuffle seeded by today's date, so the
+// reel presents a different on-topic lineup each day but stays consistent all day.
+function dailySeed(): number {
+  const s = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); // YYYY-MM-DD (ET)
+  return Number(s.slice(0, 10).replace(/-/g, "")) || 20260101;
+}
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seededShuffle<T>(arr: T[], rnd: () => number): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default async function handler(req: any, res: any) {
   const set = (req.query?.set || "all").toString().toLowerCase();
   const short = String(req.query?.short || "") === "1";
+  const daily = String(req.query?.daily || "") === "1"; // date-seeded fresh-daily rotation
   const channels = SETS[set] || SETS.all;
-  const cacheKey = short ? `${set}:short` : set;
+  const seed = dailySeed();
+  const cacheKey = `${set}${short ? ":short" : ""}${daily ? `:d${seed}` : ""}`;
 
   const hit = cache[cacheKey];
   if (hit && Date.now() - hit.at < TTL) {
@@ -305,11 +366,13 @@ export default async function handler(req: any, res: any) {
   );
 
   const seen = new Set<string>();
-  let items = lists
+  const fresh = lists
     .flat()
     .filter((it) => (seen.has(it.videoId) ? false : (seen.add(it.videoId), true)))
-    .sort((a, b) => (a.published < b.published ? 1 : -1))
-    .slice(0, 48);
+    .sort((a, b) => (a.published < b.published ? 1 : -1));
+  // Daily rotation: shuffle a larger recent pool with today's seed, then take 48 — so
+  // the featured lineup changes day to day. Otherwise just take the newest.
+  let items = daily ? seededShuffle(fresh.slice(0, 90), mulberry32(seed)).slice(0, 48) : fresh.slice(0, 48);
 
   // Shorts-only tabs (Lounge / Blerd / Games): prefer clips 5 min and under.
   // If duration lookup is unavailable (rate-limited) OR a feed has no short clips

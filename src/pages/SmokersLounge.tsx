@@ -4,7 +4,14 @@ import Row from "../components/Row";
 import { byKeyword } from "../api/tmdb";
 import { dedupe } from "../lib/interests";
 
-const BUD_TABS: HubTab[] = [{ key: "weed", label: "🌿 Bud TV" }];
+// A full cannabis hub — sessions & culture, weed-inspired recipes, and growers tips —
+// not just Snoop and smoking vlogs. `daily` keeps each tab fresh day to day.
+const BUD_TABS: HubTab[] = [
+  { key: "lounge", label: "🔥 Mix" },
+  { key: "sessions", label: "🌿 Sessions" },
+  { key: "edibles", label: "🍽️ Recipes" },
+  { key: "grow", label: "🌱 Growers" },
+];
 
 export default function SmokersLounge() {
   return (
@@ -13,8 +20,8 @@ export default function SmokersLounge() {
         Smoke Sessions
       </Heading>
 
-      {/* Featured bud clips at the top */}
-      <VideoHub tabs={BUD_TABS} autoplay short />
+      {/* Featured lounge content at the top — full-length sessions, recipes & grow tips. */}
+      <VideoHub tabs={BUD_TABS} autoplay daily />
 
       {/* Stoner movies from TMDB (hidden automatically if no TMDB key is set) */}
       <section className="mt-10 space-y-8">

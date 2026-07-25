@@ -8,10 +8,12 @@ export interface Video {
   durationSec?: number;
 }
 
-/** `short: true` asks the engine for clips 5 min and under (shorts-only tabs). */
-export async function videos(set: string, opts: { short?: boolean } = {}): Promise<Video[]> {
+/** `short`: clips ≤5 min (shorts-only tabs). `daily`: a fresh date-seeded rotation
+ *  that changes the lineup day to day (Music / Smokers Lounge). */
+export async function videos(set: string, opts: { short?: boolean; daily?: boolean } = {}): Promise<Video[]> {
   const q = new URLSearchParams({ set });
   if (opts.short) q.set("short", "1");
+  if (opts.daily) q.set("daily", "1");
   const r = await fetch(`/api/videos?${q.toString()}`);
   if (!r.ok) throw new Error(`videos ${r.status}`);
   const data = await r.json();
