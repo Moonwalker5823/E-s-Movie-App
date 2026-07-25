@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSettings } from "../lib/settings";
 
 const BASE_LINKS = [
@@ -17,15 +17,25 @@ const BASE_LINKS = [
 
 export default function NavBar() {
   const [q, setQ] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const nav = useNavigate();
   const { hideX } = useSettings();
 
   // The adult "X" tab is appended only when it isn't hidden in Settings.
   const links = hideX ? BASE_LINKS : [...BASE_LINKS, { to: "/x", label: "X" }];
 
+  // Opening the search reveals the input; move the caret (and remote focus) into it.
+  useEffect(() => {
+    if (searchOpen) inputRef.current?.focus();
+  }, [searchOpen]);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (q.trim()) nav(`/search?q=${encodeURIComponent(q.trim())}`);
+    if (q.trim()) {
+      nav(`/search?q=${encodeURIComponent(q.trim())}`);
+      setSearchOpen(false);
+    }
   };
 
   // A plain bar at the very top of the page, above the hero. It scrolls away with
@@ -62,14 +72,29 @@ export default function NavBar() {
           ))}
         </nav>
 
+        {/* Search stays a compact icon until pressed, then expands to an input. */}
         <form onSubmit={submit} className="ml-auto flex shrink-0 items-center">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            data-focusable
-            placeholder="Search movies, TV…"
-            className="w-28 rounded-full border border-line bg-white/5 px-4 py-2 text-sm outline-none transition placeholder:text-cream/30 focus:w-48 focus:border-spray/40 focus:bg-white/10 sm:w-44 sm:focus:w-72"
-          />
+          {searchOpen ? (
+            <input
+              ref={inputRef}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onBlur={() => !q.trim() && setSearchOpen(false)}
+              data-focusable
+              placeholder="Search movies, TV…"
+              className="w-44 rounded-full border border-line bg-white/10 px-4 py-2 text-sm outline-none transition placeholder:text-cream/30 focus:border-spray/40 sm:w-72"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              data-focusable
+              aria-label="Search"
+              className="grid h-9 w-9 place-items-center rounded-full text-lg text-cream/60 transition hover:bg-white/10 hover:text-cream"
+            >
+              🔍
+            </button>
+          )}
         </form>
 
         <NavLink

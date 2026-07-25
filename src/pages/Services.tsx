@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PosterCard from "../components/PosterCard";
 import Heading from "../components/ui/Heading";
 import Chip from "../components/ui/Chip";
@@ -35,6 +35,8 @@ export default function Services() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const focusFromRef = useRef<number | null>(null); // index of the first newly-loaded title
 
   // Reset when the service or media type changes.
   useEffect(() => {
@@ -57,13 +59,29 @@ export default function Services() {
     if (loadingMore) return; // ignore a second OK-press while a page is in flight
     setLoadingMore(true);
     const next = page + 1;
+    const firstNew = items?.length ?? 0; // remember where the new batch starts
     const r = await byProvider(media, svc.id, next).catch(() => null);
     if (r) {
       setItems((prev) => [...(prev || []), ...r.items]);
       setPage(next);
+      focusFromRef.current = firstNew; // ...so we can land focus on it, not the button
     }
     setLoadingMore(false);
   };
+
+  // After "Load more" appends a page, move focus to the FIRST new title so the remote
+  // continues from there — instead of the layout shoving the focused button (and the
+  // whole view) down to the very bottom.
+  useEffect(() => {
+    if (focusFromRef.current === null || !gridRef.current) return;
+    const cards = gridRef.current.querySelectorAll<HTMLElement>("a[data-focusable]");
+    const target = cards[focusFromRef.current];
+    focusFromRef.current = null;
+    if (target) {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [items]);
 
   return (
     <div className="px-4 py-6 sm:px-8">
@@ -104,7 +122,7 @@ export default function Services() {
         <p className="mt-6 text-cream/60">Nothing listed for {svc.name} right now.</p>
       ) : (
         <>
-          <div className="mt-6 flex flex-wrap gap-4">
+          <div ref={gridRef} className="mt-6 flex flex-wrap gap-4">
             {items.map((i) => (
               <PosterCard key={`${i.media_type}-${i.id}`} item={i} />
             ))}

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigationType } from "react-router-dom";
 
 // TV-style D-pad navigation, modeled on Prime Video / Netflix:
 //   • Left/Right move WITHIN the current row (elements that vertically overlap).
@@ -36,9 +36,20 @@ const cx = (el: Element) => {
 
 export function useSpatialNav() {
   const location = useLocation();
+  const navType = useNavigationType(); // PUSH / REPLACE (forward) vs POP (back/forward)
   const columnX = useRef<number | null>(null); // remembered column for up/down
   const lastFocused = useRef<HTMLElement | null>(null); // last focused element (resume after unmount)
   const lastRect = useRef<DOMRect | null>(null); // where focus last was (position resume)
+  const scrollMem = useRef<Map<string, number>>(new Map()); // scrollY per history entry
+  const currentKey = useRef(location.key); // the entry we're currently on (for the scroll saver)
+
+  // Continuously remember how far we've scrolled on THIS history entry, so pressing
+  // Back later can drop us right where we were (not up at the hero).
+  useEffect(() => {
+    const onScroll = () => scrollMem.current.set(currentKey.current, window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   function goTo(el: HTMLElement, isHorizontal: boolean, gentle = false) {
     markFocused(el);
@@ -55,30 +66,61 @@ export function useSpatialNav() {
   // loads; until then keep something focused. Never steal focus once the user has
   // moved into page content (a focusable that isn't in the sticky <header> nav).
   useEffect(() => {
-    // Start every page at the very top so the nav + heading are in view (not scrolled
-    // past). The gentle focus below won't pull it back down.
-    window.scrollTo(0, 0);
+    currentKey.current = location.key;
+    const saved = scrollMem.current.get(location.key);
+    // On Back/Forward (POP) return to where we were; on a fresh navigation open at the
+    // top so the nav + heading are visible.
+    const restoring = navType === "POP" && typeof saved === "number" && saved > 0;
+    window.scrollTo(0, restoring ? saved! : 0);
+
     let tries = 0;
     let timer: number;
     const tick = () => {
+      // While restoring, the page keeps growing as async content loads — re-pin to the
+      // saved spot until it sticks (or the page can't get that tall), and hold off on
+      // grabbing focus so we don't land on a pre-content element.
+      if (restoring) {
+        const maxY = document.documentElement.scrollHeight - window.innerHeight;
+        if (Math.abs(window.scrollY - saved!) > 4 && maxY >= saved! - 4) window.scrollTo(0, saved!);
+        const settled = Math.abs(window.scrollY - saved!) <= 4 || maxY < saved! - 4;
+        if (!settled && tries++ < 16) {
+          timer = window.setTimeout(tick, 120);
+          return;
+        }
+      }
+
       const active = document.activeElement as HTMLElement | null;
       const inContent = active && active.matches?.(FOCUSABLE) && !active.closest?.("header");
       if (inContent) return;
+
       const auto = scopeRoot().querySelector<HTMLElement>("[data-autofocus]");
-      if (auto && auto.offsetParent !== null) {
+      if (auto && auto.offsetParent !== null && !restoring) {
         goTo(auto, true, true);
         return;
       }
-      // Prefer landing on page content, not the top nav. Focus gently so the page
-      // stays at the top instead of scrolling down to center the first control.
-      const list = focusables();
-      const first = list.find((el) => !el.closest("header")) ?? list[0];
+
+      const list = focusables().filter((el) => !el.closest("header"));
+      let first: HTMLElement | undefined = list[0];
+      if (restoring && list.length) {
+        // Land the ring on the on-screen item nearest the viewport middle, so the
+        // D-pad resumes right where the user was — not up at the first title.
+        const mid = window.innerHeight / 2;
+        const dist = (el: HTMLElement) => {
+          const b = el.getBoundingClientRect();
+          return Math.abs(b.top + b.height / 2 - mid);
+        };
+        const onScreen = list.filter((el) => {
+          const b = el.getBoundingClientRect();
+          return b.bottom > 0 && b.top < window.innerHeight;
+        });
+        if (onScreen.length) first = onScreen.reduce((a, el) => (dist(el) < dist(a) ? el : a));
+      }
       if ((!active || !active.matches?.(FOCUSABLE)) && first) goTo(first, true, true);
-      if (tries++ < 7) timer = window.setTimeout(tick, 180); // poll ~1.4s for the video
+      if (tries++ < 7) timer = window.setTimeout(tick, 180); // poll ~1.4s for late content
     };
     timer = window.setTimeout(tick, 120);
     return () => clearTimeout(timer);
-  }, [location.pathname]);
+  }, [location.key, navType]);
 
   useEffect(() => {
     function step(key: string): boolean {

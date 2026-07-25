@@ -23,7 +23,6 @@ export default function Title() {
     setData(null);
     setWp(null);
     setDeepLinks({});
-    window.scrollTo(0, 0);
     let alive = true;
     details(media, numId)
       .then((d) => {
