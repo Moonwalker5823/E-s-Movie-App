@@ -7,6 +7,8 @@ import { factOfTheDay } from "../lib/facts";
 const BLERD_TABS: HubTab[] = [
   { key: "blerd", label: "🧠 Mix" },
   { key: "science", label: "🔬 Science" },
+  { key: "explore", label: "🌍 Explore" },
+  { key: "motivation", label: "💪 Motivation" },
   { key: "tech", label: "📱 Tech & Gear" },
   { key: "ted", label: "🎤 TED" },
   { key: "aliens", label: "👽 Aliens & UFOs" },
