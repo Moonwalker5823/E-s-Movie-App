@@ -86,6 +86,7 @@ export default function VideoHub({
   short = false,
   daily = false,
   freshHours,
+  cinema = false,
   rail,
 }: {
   tabs: HubTab[];
@@ -94,6 +95,7 @@ export default function VideoHub({
   short?: boolean;
   daily?: boolean; // fresh daily rotation (server orders it by date; keep that order)
   freshHours?: number; // rotate every N hours instead of daily (Sports = 3); server-ordered
+  cinema?: boolean; // The Mix: one big compilation player — no up-next tiles or browse grid
   rail?: React.ReactNode; // optional side panel (e.g. live scores) shown beside the viewer
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
@@ -654,10 +656,12 @@ export default function VideoHub({
       {autoplay && (
         <div
           ref={heroWrapRef}
-          className={`mx-auto mb-5 w-full ${rail ? "max-w-[min(78rem,165vh)]" : "max-w-[min(64rem,150vh)]"} ${full ? "pointer-events-none" : ""}`}
+          className={`mx-auto mb-5 w-full ${cinema ? "max-w-[min(96rem,168vh)]" : rail ? "max-w-[min(78rem,165vh)]" : "max-w-[min(64rem,150vh)]"} ${full ? "pointer-events-none" : ""}`}
         >
           {items === null ? (
-            rail ? (
+            cinema ? (
+              <Skeleton className="aspect-video rounded-2xl" />
+            ) : rail ? (
               <div className="grid grid-cols-[minmax(0,1fr)_15rem] items-start gap-4 sm:grid-cols-[minmax(0,1fr)_17rem]">
                 <Skeleton className="aspect-video rounded-2xl" />
                 <Skeleton className="min-h-[16rem] rounded-2xl" />
@@ -670,7 +674,13 @@ export default function VideoHub({
               </div>
             )
           ) : feat ? (
-            rail ? (
+            cinema ? (
+              // The Mix: one big compilation player — just the reel + controls, no clutter.
+              <div>
+                {viewer}
+                {meta}
+              </div>
+            ) : rail ? (
               // Sports-style layout: an enlarged viewer with a live scores/stats rail
               // beside it, and the "up next" clips in a row underneath.
               <div className="grid grid-cols-[minmax(0,1fr)_15rem] items-start gap-4 sm:grid-cols-[minmax(0,1fr)_17rem]">
@@ -759,14 +769,16 @@ export default function VideoHub({
           or run <code className="font-mono">vercel dev</code> locally — to see them here.
         </p>
       ) : items === null ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-video rounded-xl" />
-          ))}
-        </div>
+        cinema ? null : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-video rounded-xl" />
+            ))}
+          </div>
+        )
       ) : items.length === 0 ? (
         <p className="text-cream/60">No clips right now — check back tonight.</p>
-      ) : (
+      ) : cinema ? null : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((v) => (
             <button

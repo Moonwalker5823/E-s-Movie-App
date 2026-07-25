@@ -4,6 +4,7 @@ import { useSettings } from "../lib/settings";
 
 const BASE_LINKS = [
   { to: "/", label: "Home", end: true },
+  { to: "/mix", label: "The Mix" },
   { to: "/services", label: "Browse" },
   { to: "/live", label: "Live TV" },
   { to: "/sports", label: "Sports" },

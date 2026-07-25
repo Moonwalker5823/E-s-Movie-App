@@ -281,6 +281,15 @@ body {
     radial-gradient(680px 560px at 84% 92%, rgba(139, 63, 251, 0.1), transparent 62%);
 }
 
+/* The Mix — a blend of every section's color */
+.tab-bg[data-tab="mix"] {
+  background:
+    radial-gradient(660px 560px at 12% 10%, rgba(53, 208, 127, 0.14), transparent 60%),
+    radial-gradient(660px 560px at 88% 12%, rgba(43, 212, 255, 0.13), transparent 60%),
+    radial-gradient(700px 600px at 18% 92%, rgba(139, 63, 251, 0.13), transparent 62%),
+    radial-gradient(700px 600px at 86% 90%, rgba(255, 196, 0, 0.1), transparent 62%);
+}
+
 /* Lounge — green haze + drifting smoke + leaf motif */
 .tab-bg[data-tab="lounge"] {
   background:

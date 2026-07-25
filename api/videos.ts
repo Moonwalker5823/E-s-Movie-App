@@ -133,6 +133,11 @@ const NETFLIX_JOKE = { id: "UCObk_g1hQBy0RKKriVX_zOQ", name: "Netflix Is A Joke"
 const WILD_N_OUT = { id: "UCrkzfc2yf-7q6pd7EtzgNaQ", name: "Wild 'N Out" };
 const DRY_BAR = { id: "UCvlVuntLjdURVD3b3Hx7kxw", name: "Dry Bar Comedy" };
 
+// News — top US broadcast news, for the "News" set + The Mix feed. Verified active.
+const ABC_NEWS = { id: "UCBi2mrWuNuyYy4gbM6fU18Q", name: "ABC News" };
+const NBC_NEWS = { id: "UCeY0bbntWzzVIaj2z3QigXg", name: "NBC News" };
+const CBS_NEWS = { id: "UC8p1vwvWtl6T73JiExfWs1g", name: "CBS News" };
+
 // Smokers Lounge — a full cannabis hub (culture, celebrity sessions, munchies/recipes,
 // grow tips), not just smoking vlogs. Verified active (2026 uploads) so the daily
 // rotation stays fresh.
@@ -261,7 +266,26 @@ const SETS: Record<string, Channel[]> = {
   comedy: [KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR],
   standup: [NETFLIX_JOKE, DRY_BAR, COMEDY_CENTRAL, KARLOUS], // stand-up specials & sets
   skits: [KEV_ON_STAGE, TONY_BAKER, COMEDY_CENTRAL, WILD_N_OUT, DC_YOUNG_FLY], // sketches & roasts
+  news: [ABC_NEWS, NBC_NEWS, CBS_NEWS], // top US news — feeds The Mix
 };
+
+// "The Mix" — a personalized everything-feed: the freshest across the top pages, a few
+// channels from each so no single topic drowns the rest. Built from the sets above so
+// it stays in sync as they grow.
+function mixChannels(): Channel[] {
+  const parts = ["all", "news", "comedy", "ridiculousness", "blerd", "gaming", "music"];
+  const seen = new Set<string>();
+  const out: Channel[] = [];
+  for (const key of parts) {
+    for (const c of (SETS[key] || []).slice(0, 3)) {
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        out.push(c);
+      }
+    }
+  }
+  return out;
+}
 
 const MAX_SHORT_SEC = 300; // "shorts" = 5 minutes or under
 
@@ -396,7 +420,7 @@ export default async function handler(req: any, res: any) {
   const short = String(req.query?.short || "") === "1";
   const daily = String(req.query?.daily || "") === "1"; // date-seeded fresh-daily rotation
   const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3)
-  const channels = SETS[set] || SETS.all;
+  const channels = set === "mix" ? mixChannels() : SETS[set] || SETS.all;
   const rotate = daily || hours > 0;
   // Seed the rotation: an N-hour time bucket when `hours` is set, else today's date (ET).
   const seed = hours > 0 ? Math.floor(Date.now() / (hours * 3600_000)) : dailySeed();
