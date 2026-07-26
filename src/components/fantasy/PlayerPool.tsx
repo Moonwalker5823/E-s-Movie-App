@@ -1,7 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { available, draftPlayer, addCustomPlayer, useDraft } from "../../lib/fantasy/draft";
+import { useBoard, boardMeta, refreshBoard, isBoardStale } from "../../lib/fantasy/board";
 import ScoutCard from "./ScoutCard";
 import type { Player, Pos } from "../../lib/fantasy/types";
+
+function ago(ms: number): string {
+  if (!ms) return "";
+  const h = Math.floor((Date.now() - ms) / 3_600_000);
+  if (h < 1) return "just now";
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 const POSITIONS: (Pos | "ALL")[] = ["ALL", "QB", "RB", "WR", "TE", "K", "DST"];
 const posColor: Record<string, string> = {
@@ -10,15 +19,24 @@ const posColor: Record<string, string> = {
 
 export default function PlayerPool() {
   const draft = useDraft(); // re-render on picks
+  const boardVersion = useBoard(); // re-render when the live board loads/refreshes
+  const meta = boardMeta();
   const [pos, setPos] = useState<Pos | "ALL">("ALL");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+
+  // Pull a fresh Sleeper board on first entry (free, global). Best-effort: the seed
+  // board stays in place if it fails, and it's cached 24h so this won't refetch often.
+  useEffect(() => {
+    if (isBoardStale()) refreshBoard();
+  }, []);
 
   const list = useMemo(() => {
     return available().filter(
       (p) => (pos === "ALL" || p.pos === pos) && p.name.toLowerCase().includes(q.toLowerCase())
     );
-  }, [pos, q, draft.order.length, draft.custom.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos, q, draft.order.length, draft.custom.length, boardVersion]);
 
   const addAndDraft = (by: "me" | "other") => {
     const name = q.trim();
@@ -30,6 +48,25 @@ export default function PlayerPool() {
 
   return (
     <div className="card flex h-full flex-col p-4">
+      {/* Board status + refresh (pulls a fresh Sleeper board — free, no login). */}
+      <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+        <span className="text-cream/50">
+          {meta.refreshing
+            ? "↻ Refreshing board…"
+            : meta.live
+              ? `● Live board · ${meta.count} players${meta.fetchedAt ? ` · ${ago(meta.fetchedAt)}` : ""}`
+              : `Seed rankings · ${meta.count} players`}
+        </span>
+        <button
+          onClick={() => refreshBoard()}
+          data-focusable
+          disabled={meta.refreshing}
+          className="btn-ghost !px-2.5 !py-1 text-[11px] disabled:opacity-40"
+        >
+          ↻ Refresh
+        </button>
+      </div>
+
       <div className="mb-3 flex flex-wrap gap-2">
         {POSITIONS.map((p) => (
           <button

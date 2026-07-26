@@ -1,15 +1,13 @@
 import { useSyncExternalStore } from "react";
-import { PLAYERS } from "../../data/players";
-import type { AssistantPick, DraftedBy, Player, Pos, RosterSettings } from "./types";
+import { getBoard } from "./board";
+import { getLeague } from "./league";
+import type { AssistantPick, DraftedBy, Player, Pos } from "./types";
 
 const KEY = "ema.draft.v1";
 
-export const DEFAULT_SETTINGS: RosterSettings = {
-  QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, K: 1, DST: 1, BENCH: 6,
-};
-
+// Roster rules now live in the league store (src/lib/fantasy/league.ts) so they're
+// editable and shared with the weekly lineup tools; the draft only tracks picks.
 interface DraftState {
-  settings: RosterSettings;
   picks: Record<string, DraftedBy>; // playerId -> who drafted
   order: string[]; // playerIds in pick order
   custom: Player[]; // players added on the fly
@@ -17,10 +15,10 @@ interface DraftState {
 
 function read(): DraftState {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "");
-    return { settings: DEFAULT_SETTINGS, picks: {}, order: [], custom: [], ...raw };
+    const raw = JSON.parse(localStorage.getItem(KEY) || "{}") || {};
+    return { picks: raw.picks || {}, order: raw.order || [], custom: raw.custom || [] };
   } catch {
-    return { settings: DEFAULT_SETTINGS, picks: {}, order: [], custom: [] };
+    return { picks: {}, order: [], custom: [] };
   }
 }
 
@@ -40,7 +38,7 @@ export function useDraft() {
   );
 }
 
-export const allPlayers = (): Player[] => [...PLAYERS, ...state.custom];
+export const allPlayers = (): Player[] => [...getBoard(), ...state.custom];
 const byId = (id: string) => allPlayers().find((p) => p.id === id);
 
 export function available(): Player[] {
@@ -68,7 +66,7 @@ export function undoLast() {
 }
 
 export function resetDraft() {
-  commit({ settings: state.settings, picks: {}, order: [], custom: [] });
+  commit({ picks: {}, order: [], custom: [] });
 }
 
 export function addCustomPlayer(p: Omit<Player, "id">): Player {
@@ -79,11 +77,12 @@ export function addCustomPlayer(p: Omit<Player, "id">): Player {
 
 // ---- Positional needs ----
 const FLEX: Pos[] = ["RB", "WR", "TE"];
+const SUPERFLEX: Pos[] = ["QB", "RB", "WR", "TE"];
 
 export function needs() {
   const roster = myRoster();
   const count = (pos: Pos) => roster.filter((p) => p.pos === pos).length;
-  const s = state.settings;
+  const s = getLeague().roster; // roster rules live in the league store now
   const starterNeed: Record<string, number> = {
     QB: Math.max(0, s.QB - count("QB")),
     RB: Math.max(0, s.RB - count("RB")),
@@ -95,7 +94,11 @@ export function needs() {
   const flexSurplus =
     Math.max(0, count("RB") - s.RB) + Math.max(0, count("WR") - s.WR) + Math.max(0, count("TE") - s.TE);
   const flexNeed = Math.max(0, s.FLEX - flexSurplus);
-  return { starterNeed, flexNeed, count };
+  // Superflex is fed by leftover QB/flex-eligible surplus (a backup QB is the value play).
+  const qbSurplus = Math.max(0, count("QB") - s.QB);
+  const leftoverFlex = Math.max(0, flexSurplus - s.FLEX);
+  const superflexNeed = Math.max(0, s.SUPERFLEX - qbSurplus - leftoverFlex);
+  return { starterNeed, flexNeed, superflexNeed, count };
 }
 
 // ---- Offline draft brain: best available by value + need ----
@@ -104,12 +107,13 @@ export function bestAvailable(): AssistantPick {
   if (pool.length === 0) {
     return { recommendation: "—", reason: "Board is empty.", alternates: [], source: "offline" };
   }
-  const { starterNeed, flexNeed } = needs();
+  const { starterNeed, flexNeed, superflexNeed } = needs();
 
   const score = (p: Player) => {
     let s = 1000 - p.adp; // value: earlier ADP = higher
     if ((starterNeed[p.pos] || 0) > 0) s += 180; // fills a starting slot
     else if (FLEX.includes(p.pos) && flexNeed > 0) s += 80; // fills FLEX
+    else if (SUPERFLEX.includes(p.pos) && superflexNeed > 0) s += 120; // fills SUPERFLEX
     if (p.tier === 1) s += 25; // elite tier nudge
     return s;
   };
@@ -118,11 +122,14 @@ export function bestAvailable(): AssistantPick {
   const top = ranked[0];
   const fillsStarter = (starterNeed[top.pos] || 0) > 0;
   const fillsFlex = FLEX.includes(top.pos) && flexNeed > 0;
+  const fillsSuperflex = !fillsFlex && SUPERFLEX.includes(top.pos) && superflexNeed > 0;
   const reason = fillsStarter
     ? `Best value that also fills your ${top.pos} need (ADP ${top.adp}, tier ${top.tier}).`
     : fillsFlex
       ? `Strong value that fills your FLEX (ADP ${top.adp}, tier ${top.tier}).`
-      : `Best player available by value (ADP ${top.adp}, tier ${top.tier}).`;
+      : fillsSuperflex
+        ? `Strong value that fills your SUPERFLEX (ADP ${top.adp}, tier ${top.tier}).`
+        : `Best player available by value (ADP ${top.adp}, tier ${top.tier}).`;
 
   return {
     recommendation: top.name,

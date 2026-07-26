@@ -1,60 +1,54 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import MyTeams from "../components/fantasy/MyTeams";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Heading from "../components/ui/Heading";
-import LaunchTile, { type Tile } from "../components/LaunchTile";
-import { FANTASY_SITES } from "../lib/services";
+import Chip from "../components/ui/Chip";
+import { isBoardStale, refreshBoard } from "../lib/fantasy/board";
+import HubTab from "../components/fantasy/HubTab";
+import DraftTab from "../components/fantasy/DraftTab";
+import MyTeamTab from "../components/fantasy/MyTeamTab";
+import ThisWeekTab from "../components/fantasy/week/ThisWeekTab";
+import AnalyticsTab from "../components/fantasy/analytics/AnalyticsTab";
 
-// Leagues come from the single source of truth (FANTASY_SITES); add one there
-// and it shows up here and in Settings automatically.
-const LEAGUES: Tile[] = FANTASY_SITES.map((f) => ({
-  name: f.name,
-  url: f.loginUrl,
-  blurb: "Open your league",
-  color: f.color,
-}));
+const TABS = [
+  { key: "hub", label: "🏠 Hub" },
+  { key: "draft", label: "📋 Draft" },
+  { key: "team", label: "🧢 My Team" },
+  { key: "week", label: "📅 This Week" },
+  { key: "analytics", label: "📊 Analytics" },
+];
 
 export default function Fantasy() {
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") || "hub";
+
+  // Load the live Sleeper board once for the whole section (cached 24h) so roster
+  // resolution, waivers, and analytics work on any tab — not only after the Draft Room.
+  useEffect(() => {
+    if (isBoardStale()) refreshBoard();
+  }, []);
+  // `replace` so pressing Back leaves Fantasy rather than cycling through tabs;
+  // the ?tab= param still makes each tab deep-linkable.
+  const setTab = (key: string) => setParams(key === "hub" ? {} : { tab: key }, { replace: true });
+
   return (
-    <div className="px-4 py-6 sm:px-8">
-      <Heading label="♛ Fantasy Football" emoji="🏈" size="xl">
-        The League
+    <div className="px-4 pb-8 pt-4 sm:px-10">
+      <Heading label="♛ Fantasy Football" emoji="🏈" size="lg" className="mb-3">
+        Championship HQ
       </Heading>
-      <p className="mt-2 text-cream/60">Draft help, scouting, and your teams — built to run on the TV.</p>
 
-      {/* Draft Room CTA */}
-      <Link to="/fantasy/draft" data-focusable className="mt-6 block">
-        <motion.div
-          whileHover={{ y: -4 }}
-          className="frame overflow-hidden bg-gradient-to-r from-spraylo via-spray to-purple p-6"
-        >
-          <div className="u-label !rotate-0 text-ink">Live · AI Powered</div>
-          <div className="u-display text-4xl text-cream sm:text-5xl">Enter the Draft Room →</div>
-          <p className="mt-1 max-w-xl text-sm text-cream/90">
-            Big-screen draft board with an AI assistant that recommends your pick, answers questions,
-            and scouts players live. Mark picks as they happen and it tracks your roster & needs.
-          </p>
-        </motion.div>
-      </Link>
-
-      {/* League launchers */}
-      <div className="mt-8">
-        <Heading emoji="🔗" className="mb-3">Open Your League</Heading>
-        <p className="mb-3 text-sm text-cream/50">
-          Yahoo &amp; ESPN need a login to sync, so the draft room runs alongside your league site
-          (mark picks as they go). Tap to open your league:
-        </p>
-        <div className="grid grid-cols-2 gap-4 sm:max-w-2xl sm:grid-cols-3">
-          {LEAGUES.map((l) => (
-            <LaunchTile key={l.name} t={l} />
-          ))}
-        </div>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <Chip key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+            {t.label}
+          </Chip>
+        ))}
       </div>
 
-      {/* My teams */}
-      <div className="mt-10">
-        <MyTeams />
-      </div>
+      {tab === "hub" && <HubTab />}
+      {tab === "draft" && <DraftTab />}
+      {tab === "team" && <MyTeamTab />}
+      {tab === "week" && <ThisWeekTab />}
+      {tab === "analytics" && <AnalyticsTab />}
     </div>
   );
 }

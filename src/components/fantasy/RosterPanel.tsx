@@ -1,4 +1,5 @@
-import { myRoster, needs, undoLast, resetDraft, useDraft, DEFAULT_SETTINGS } from "../../lib/fantasy/draft";
+import { myRoster, needs, undoLast, resetDraft, useDraft } from "../../lib/fantasy/draft";
+import { useLeague } from "../../lib/fantasy/league";
 import type { Pos } from "../../lib/fantasy/types";
 
 const ORDER: Pos[] = ["QB", "RB", "WR", "TE", "K", "DST"];
@@ -6,8 +7,9 @@ const ORDER: Pos[] = ["QB", "RB", "WR", "TE", "K", "DST"];
 /** Your drafted roster + live positional needs. */
 export default function RosterPanel() {
   useDraft();
+  const { roster: slots } = useLeague(); // roster settings (re-render when edited)
   const roster = myRoster();
-  const { starterNeed, flexNeed, count } = needs();
+  const { starterNeed, flexNeed, superflexNeed, count } = needs();
 
   return (
     <div className="card flex h-full flex-col p-4">
@@ -34,13 +36,18 @@ export default function RosterPanel() {
               key={pos}
               className={`sticker ${need > 0 ? "bg-spray text-cream" : "bg-white/10 text-cream/60"}`}
             >
-              {pos} {count(pos)}/{DEFAULT_SETTINGS[pos]}
+              {pos} {count(pos)}/{slots[pos]}
             </span>
           );
         })}
         <span className={`sticker ${flexNeed > 0 ? "bg-cyan text-ink" : "bg-white/10 text-cream/60"}`}>
           FLEX {flexNeed > 0 ? "need" : "ok"}
         </span>
+        {slots.SUPERFLEX > 0 && (
+          <span className={`sticker ${superflexNeed > 0 ? "bg-yellow text-ink" : "bg-white/10 text-cream/60"}`}>
+            SFLX {superflexNeed > 0 ? "need" : "ok"}
+          </span>
+        )}
       </div>
 
       <div className="no-scrollbar flex-1 space-y-1.5 overflow-y-auto pr-1">

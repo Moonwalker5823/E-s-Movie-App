@@ -3,7 +3,6 @@ import PlayerPool from "../components/fantasy/PlayerPool";
 import RosterPanel from "../components/fantasy/RosterPanel";
 import AssistantPanel from "../components/fantasy/AssistantPanel";
 import Heading from "../components/ui/Heading";
-import { SEED_NOTE } from "../data/players";
 
 /** The live draft room — TV-friendly. Board + AI assistant + your roster. */
 export default function DraftRoom() {
@@ -17,7 +16,11 @@ export default function DraftRoom() {
           ← Back to Fantasy
         </Link>
       </div>
-      <p className="mb-5 text-sm text-cream/50">{SEED_NOTE}</p>
+      <p className="mb-5 text-sm text-cream/50">
+        Live player board from Sleeper (free — tap ↻ Refresh anytime). Mark picks as they happen and
+        it tracks your roster &amp; needs; the assistant recommends your pick (AI when unlocked, else the
+        offline brain).
+      </p>
 
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
         <PlayerPool />
