@@ -32,6 +32,20 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// This app runs primarily on a big-screen TV, so always request the best available
+// resolution. YouTube ultimately auto-selects by player size + bandwidth (a full-screen
+// TV player already favors HD), but "highres" asks for the max and gracefully falls back
+// to the highest level a given clip actually has. Re-applied as each clip starts, since
+// the player can reset to "auto" when a playlist advances.
+const HD_QUALITY = "highres";
+function forceHd(target: any) {
+  try {
+    target?.setPlaybackQuality?.(HD_QUALITY);
+  } catch {
+    /* deprecated / no-op on newer players — harmless */
+  }
+}
+
 // Load the YouTube IFrame Player API once (module singleton). We drive the main
 // viewer through this real API — NOT the embed `playlist=` URL param, which plays
 // the wrong clip (it ignores the path video). `playVideoAt(i)` plays the EXACT clip.
@@ -165,8 +179,9 @@ export default function VideoHub({
           onReady: (e: any) => {
             if (killed) return;
             try {
-              e.target.loadPlaylist(ids, 0); // the whole shuffled queue, start at 0
+              e.target.loadPlaylist(ids, 0, 0, HD_QUALITY); // whole shuffled queue from 0, best quality
               e.target.setLoop(true); // channel never ends
+              forceHd(e.target);
             } catch {
               /* ignore */
             }
@@ -185,6 +200,7 @@ export default function VideoHub({
             if (e.data === 1) {
               setPlaying(true);
               playingRef.current = true;
+              forceHd(e.target); // re-request max quality as each clip in the reel starts
               // If we just switched clips to resume where fullscreen left off, seek once
               // the new clip actually starts (a seek issued mid-load is dropped).
               if (mainSeekRef.current != null) {
@@ -285,9 +301,10 @@ export default function VideoHub({
             if (killed) return;
             try {
               if (ids.length > 1) {
-                e.target.loadPlaylist(ids, start); // start here, then auto-advance
+                e.target.loadPlaylist(ids, start, 0, HD_QUALITY); // start here at best quality, then auto-advance
                 e.target.setLoop(true); // the reel never ends
               }
+              forceHd(e.target);
             } catch {
               /* ignore */
             }
@@ -301,6 +318,7 @@ export default function VideoHub({
             }
             if (e.data === 1) {
               setFsPlaying(true);
+              forceHd(e.target); // re-request max quality as each clip in the reel starts
               // Open at the SAME spot the main viewer was at (seek once, when playback
               // actually begins — a seek issued during load is dropped by the API).
               if (!fsSoughtRef.current) {
