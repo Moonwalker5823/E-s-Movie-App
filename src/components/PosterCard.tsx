@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { TmdbItem } from "../lib/types";
 import { IMG, titleOf, yearOf } from "../api/tmdb";
+import ServiceBadges from "./ServiceBadges";
 
 /** Poster tile used across every rail and grid. */
 export default function PosterCard({ item }: { item: TmdbItem }) {
@@ -40,6 +41,8 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
       <div className="mt-2 px-0.5">
         <div className="truncate text-sm font-semibold">{titleOf(item)}</div>
         <div className="text-xs text-cream/40">{yearOf(item)}</div>
+        {/* Brand badges for the services YOU have that carry this — tap to play it there. */}
+        <ServiceBadges media={media} id={item.id} title={titleOf(item)} lazy className="mt-1" />
       </div>
     </motion.div>
   );

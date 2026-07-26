@@ -70,15 +70,18 @@ export async function availabilityFor(media: MediaType, id: number): Promise<str
   return p;
 }
 
-/** React hook: service keys a title is on, or null while loading. */
-export function useAvailability(media: MediaType, id: number): string[] | null {
+/** React hook: service keys a title is on, or null while loading. Pass `enabled=false`
+ *  to hold off the network fetch (e.g. until a poster scrolls near the viewport) — it
+ *  still returns any already-cached value immediately. */
+export function useAvailability(media: MediaType, id: number, enabled = true): string[] | null {
   const [keys, setKeys] = useState<string[] | null>(() => cached(`${media}:${id}`));
   useEffect(() => {
+    if (!enabled) return;
     let alive = true;
     availabilityFor(media, id).then((k) => alive && setKeys(k));
     return () => {
       alive = false;
     };
-  }, [media, id]);
+  }, [media, id, enabled]);
   return keys;
 }

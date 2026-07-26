@@ -98,8 +98,8 @@ export default function Title() {
               </Button>
             </div>
 
-            {/* The same brand badges as My List — which of YOUR services carry this. */}
-            {data && <ServiceBadges media={media} id={numId} className="mt-3" />}
+            {/* The same brand badges as My List — which of YOUR services carry this; tap to play. */}
+            {data && <ServiceBadges media={media} id={numId} title={name} className="mt-3" />}
           </div>
         </div>
 
