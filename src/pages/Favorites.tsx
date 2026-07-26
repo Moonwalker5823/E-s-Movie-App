@@ -46,7 +46,7 @@ function Grid({ items, list }: { items: FavoriteItem[]; list: "favorites" | "wat
               ✕
             </button>
           </div>
-          <ServiceBadges media={f.media_type} id={f.id} title={f.title} className="mt-1" />
+          <ServiceBadges media={f.media_type} id={f.id} className="mt-1" />
         </motion.div>
       ))}
     </div>

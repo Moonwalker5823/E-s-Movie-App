@@ -8,9 +8,12 @@ import type { MediaType } from "../lib/types";
 interface Props {
   media: MediaType;
   id: number;
-  /** When provided, each badge becomes a clickable link that opens the title on that
-   *  service (its own search / deep link, which hands off to the app on the TV). */
+  /** Title used to build the launch link. Only used when `clickable` is set. */
   title?: string;
+  /** Make the badges tappable to open the title on that service. Reserved for the
+   *  detail page — in grids/rails the badges are display-only (you select the movie
+   *  first, then launch from its detail page). */
+  clickable?: boolean;
   /** Defer the provider lookup until the badges scroll near the viewport — used on the
    *  poster grids so a screen full of posters doesn't fire dozens of lookups at once. */
   lazy?: boolean;
@@ -18,9 +21,9 @@ interface Props {
 }
 
 // Small "on Hulu / Prime / Tubi" brand badges — shows which of YOUR services carry
-// this title (from TMDB watch-provider data). Shared by My List, the title page, and
-// every poster card. With a `title`, tapping a badge plays it on that service.
-export default function ServiceBadges({ media, id, title, lazy = false, className = "" }: Props) {
+// this title (from TMDB watch-provider data). Shown on every poster card + My List as
+// plain labels; only the detail page passes `clickable` so tapping one plays it there.
+export default function ServiceBadges({ media, id, title, clickable = false, lazy = false, className = "" }: Props) {
   const { myServices } = useSettings();
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(!lazy);
@@ -55,7 +58,7 @@ export default function ServiceBadges({ media, id, title, lazy = false, classNam
       {mine.map((k) => {
         const svc = serviceByKey(k);
         if (!svc) return null;
-        return title ? (
+        return clickable && title ? (
           <a
             key={k}
             href={launchUrlFor(svc.name, title)}

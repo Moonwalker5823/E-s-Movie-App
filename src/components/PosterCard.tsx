@@ -41,8 +41,9 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
       <div className="mt-2 px-0.5">
         <div className="truncate text-sm font-semibold">{titleOf(item)}</div>
         <div className="text-xs text-cream/40">{yearOf(item)}</div>
-        {/* Brand badges for the services YOU have that carry this — tap to play it there. */}
-        <ServiceBadges media={media} id={item.id} title={titleOf(item)} lazy className="mt-1" />
+        {/* Brand badges for the services YOU have that carry this — display-only here;
+            select the title to launch it from its detail page. */}
+        <ServiceBadges media={media} id={item.id} lazy className="mt-1" />
       </div>
     </motion.div>
   );
