@@ -56,7 +56,12 @@ function ProviderGroup({
               }`}
               style={mine ? undefined : { boxShadow: `inset 0 0 0 1px ${colorFor(p.provider_name)}55` }}
             >
-              <img src={IMG.logo(p.logo_path)} alt={p.provider_name} className="h-9 w-9 rounded-lg" />
+              <img
+                src={IMG.logo(p.logo_path)}
+                alt={p.provider_name}
+                className="h-9 w-9 rounded-lg"
+                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+              />
               <span className="text-sm font-semibold">{p.provider_name}</span>
               {mine ? (
                 <span className="rounded bg-live px-1.5 py-0.5 text-[10px] font-bold text-ink">✓ YOU HAVE IT</span>

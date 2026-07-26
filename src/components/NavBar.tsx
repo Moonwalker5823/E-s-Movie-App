@@ -37,6 +37,7 @@ export default function NavBar() {
     if (q.trim()) {
       nav(`/search?q=${encodeURIComponent(q.trim())}`);
       setSearchOpen(false);
+      setQ(""); // don't leave the last query pre-filled next time the box opens
     }
   };
 

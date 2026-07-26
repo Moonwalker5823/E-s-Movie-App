@@ -15,6 +15,7 @@ export interface Game {
   away: Team;
   broadcasts: string[];
   venue?: string;
+  league?: string; // set on the "Live" tab, which mixes games across leagues
 }
 
 export interface League {
@@ -269,6 +270,20 @@ export async function railScores(): Promise<ScoreCard[]> {
       return !Number.isNaN(t) && t >= startMs && t < endMs;
     })
     .sort((a, b) => rank(a.state) - rank(b.state));
+}
+
+/** Every game currently IN PROGRESS across all the main leagues, so the Sports
+ *  "🔴 Live" tab shows whatever's on right now. Each game is tagged with its league
+ *  label. Leagues that error or have nothing live simply contribute nothing. */
+export async function liveGames(): Promise<Game[]> {
+  const lists = await Promise.all(
+    LEAGUES.map((l) =>
+      scoreboard(l.path)
+        .then((gs) => gs.map((g) => ({ ...g, league: l.label })))
+        .catch(() => [] as Game[])
+    )
+  );
+  return lists.flat().filter((g) => g.state === "in");
 }
 
 export async function scoreboard(path: string): Promise<Game[]> {

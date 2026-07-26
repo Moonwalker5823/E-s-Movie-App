@@ -21,7 +21,12 @@ export function hasTmdbKey() {
   return Boolean(TOKEN || KEY);
 }
 
-async function tmdb<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
+// Coalesce concurrent identical GETs (same URL) into one request; the entry is
+// dropped as soon as it settles, so this dedupes in-flight only and never serves
+// stale data — fresh calls (e.g. Browse's random page, Search) still hit the network.
+const tmdbInflight = new Map<string, Promise<unknown>>();
+
+function tmdb<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
   const url = new URL(BASE + path);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
 
@@ -31,14 +36,21 @@ async function tmdb<T>(path: string, params: Record<string, string | number> = {
   } else if (KEY) {
     url.searchParams.set("api_key", KEY);
   } else {
-    throw new Error("NO_TMDB_KEY");
+    return Promise.reject(new Error("NO_TMDB_KEY"));
   }
 
-  const res = await fetch(url.toString(), { headers });
-  if (!res.ok) {
-    throw new Error(`TMDB ${res.status}: ${await res.text().catch(() => "")}`);
-  }
-  return res.json() as Promise<T>;
+  const key = url.toString();
+  const existing = tmdbInflight.get(key) as Promise<T> | undefined;
+  if (existing) return existing;
+
+  const p = fetch(key, { headers })
+    .then(async (res) => {
+      if (!res.ok) throw new Error(`TMDB ${res.status}: ${await res.text().catch(() => "")}`);
+      return res.json() as Promise<T>;
+    })
+    .finally(() => tmdbInflight.delete(key)) as Promise<T>;
+  tmdbInflight.set(key, p);
+  return p;
 }
 
 interface Paged<T> {
@@ -112,11 +124,33 @@ export async function recommendations(media: MediaType, id: number) {
   return data.results.map((r) => ({ ...r, media_type: media }));
 }
 
+// Watch-provider results are hit by BOTH the title page's "Where to Watch" panel and
+// the <ServiceBadges> availability lookup, often for the same title at once. Cache by
+// media:id:region + dedupe in-flight requests so we make a single network call, not
+// one per consumer. (Availability data changes slowly; a per-session cache is plenty.)
+const wpCache = new Map<string, WatchProviders>();
+const wpInflight = new Map<string, Promise<WatchProviders>>();
+
 export async function watchProviders(media: MediaType, id: number, region = "US"): Promise<WatchProviders> {
-  const data = await tmdb<{ results: Record<string, WatchProviders> }>(
-    `/${media}/${id}/watch/providers`
-  );
-  return data.results?.[region] || {};
+  const key = `${media}:${id}:${region}`;
+  const hit = wpCache.get(key);
+  if (hit) return hit;
+  const pending = wpInflight.get(key);
+  if (pending) return pending;
+
+  const p = tmdb<{ results: Record<string, WatchProviders> }>(`/${media}/${id}/watch/providers`)
+    .then((data) => {
+      const result = data.results?.[region] || {};
+      wpCache.set(key, result);
+      wpInflight.delete(key);
+      return result;
+    })
+    .catch((err) => {
+      wpInflight.delete(key);
+      throw err;
+    });
+  wpInflight.set(key, p);
+  return p;
 }
 
 const keywordCache = new Map<string, number | null>();

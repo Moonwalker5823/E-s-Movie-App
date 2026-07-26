@@ -103,6 +103,7 @@ export default function VideoHub({
   const [order, setOrder] = useState<Video[]>([]); // shuffled play order (the viewer's playlist)
   const [current, setCurrent] = useState(0); // index in `order` currently playing
   const [error, setError] = useState(false);
+  const [errMissing, setErrMissing] = useState(false); // 404 = no /api (local dev) vs a transient error
   const [fullVid, setFullVid] = useState<Video | null>(null);
   const [full, setFull] = useState(false);
   const [muted, setMuted] = useState(false); // players default to SOUND ON
@@ -432,6 +433,7 @@ export default function VideoHub({
   // clips, which no API can remove; default is off).
   function toggleCc() {
     const p = playerRef.current;
+    if (!p) return; // don't light the CC pill if the player isn't built yet
     const next = !cc;
     setCc(next);
     try {
@@ -494,6 +496,7 @@ export default function VideoHub({
     setOrder([]);
     setCurrent(0);
     setError(false);
+    setErrMissing(false);
     setFull(false);
     setFullVid(null);
     setMuted(false);
@@ -508,7 +511,14 @@ export default function VideoHub({
         // every N hours); this just varies the ORDER each time you land on the page.
         setOrder(autoplay ? shuffle(v) : []);
       })
-      .catch(() => alive && setError(true));
+      .catch((e) => {
+        if (!alive) return;
+        setError(true);
+        // No /api/videos runtime (plain `vite dev` → 404 or HTML instead of JSON) shows
+        // the "runs on the live site" hint; anything else (e.g. a transient 5xx on the
+        // live site) is just a temporary hiccup.
+        setErrMissing(/\b404\b|non-json/.test(String((e as Error)?.message || "")));
+      });
     return () => {
       alive = false;
     };
@@ -764,10 +774,14 @@ export default function VideoHub({
       )}
 
       {error ? (
-        <p className="text-cream/60">
-          Videos load on the deployed site (they use the built-in video service). Redeploy to Vercel —
-          or run <code className="font-mono">vercel dev</code> locally — to see them here.
-        </p>
+        errMissing ? (
+          <p className="text-cream/60">
+            Videos load on the deployed site (they use the built-in video service). Redeploy to Vercel —
+            or run <code className="font-mono">vercel dev</code> locally — to see them here.
+          </p>
+        ) : (
+          <p className="text-cream/60">Couldn&apos;t load clips right now — give it a moment and try again.</p>
+        )
       ) : items === null ? (
         cinema ? null : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

@@ -8,11 +8,13 @@ import type { TmdbItem } from "../lib/types";
 export default function Hero() {
   const [items, setItems] = useState<TmdbItem[]>([]);
   const [idx, setIdx] = useState(0);
+  const [settled, setSettled] = useState(false); // did the fetch finish (ok or failed)?
 
   useEffect(() => {
     trending("day")
       .then((r) => setItems(r.filter((i) => i.backdrop_path).slice(0, 6)))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setSettled(true));
   }, []);
 
   useEffect(() => {
@@ -21,7 +23,9 @@ export default function Hero() {
     return () => clearInterval(t);
   }, [items.length]);
 
-  if (items.length === 0) return <div className="shimmer h-[56vh] min-h-[380px] w-full" />;
+  // While loading, show the shimmer; if the fetch settled with nothing usable (e.g. a
+  // transient network failure), step aside so the Home rails below still render.
+  if (items.length === 0) return settled ? null : <div className="shimmer h-[56vh] min-h-[380px] w-full" />;
 
   const item = items[idx];
   const media = item.media_type || "movie";

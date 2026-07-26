@@ -18,16 +18,21 @@ const G = {
   crime: 80,
 };
 
-// Curated, tasteful list of prominent Latina & Afro-Latina actresses.
-const LEADING_LADIES = [
-  "Zoe Saldana",
-  "Tessa Thompson",
-  "Amara La Negra",
-  "Dascha Polanco",
-  "Zoe Kravitz",
-  "Gina Torres",
-  "Melissa De Sousa",
-  "Judy Reyes",
+// Icons & classics of Black cinema — actors and directors whose "known for" titles
+// build a rich culture rail on the Home page.
+const BLACK_CINEMA_STARS = [
+  "Denzel Washington",
+  "Will Smith",
+  "Michael B. Jordan",
+  "Viola Davis",
+  "Samuel L. Jackson",
+  "Spike Lee",
+  "Angela Bassett",
+  "Wesley Snipes",
+  "Regina King",
+  "Idris Elba",
+  "Taraji P. Henson",
+  "Chadwick Boseman",
 ];
 
 export const HOME_RAILS: Rail[] = [
@@ -68,16 +73,21 @@ export const HOME_RAILS: Rail[] = [
     },
   },
   {
-    key: "ladies",
-    title: "Leading Ladies — Latina & Afro-Latina Stars",
-    emoji: "💃",
-    load: () => peopleKnownFor(LEADING_LADIES),
+    key: "blackcinema",
+    title: "Black Cinema — Icons & Classics",
+    emoji: "🎭",
+    load: () => peopleKnownFor(BLACK_CINEMA_STARS),
   },
   {
-    key: "espanol",
-    title: "En Español — Latino Cinema",
-    emoji: "🌎",
-    load: () => discover("movie", { with_original_language: "es", "vote_count.gte": 50 }),
+    key: "throwbacks",
+    title: "90s & 2000s Throwbacks",
+    emoji: "📼",
+    load: () =>
+      discover("movie", {
+        "primary_release_date.gte": "1990-01-01",
+        "primary_release_date.lte": "2009-12-31",
+        "vote_count.gte": 500,
+      }),
   },
   {
     key: "docs",

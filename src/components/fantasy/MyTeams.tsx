@@ -21,7 +21,11 @@ function TeamCard({ label, info }: { label: string; info: TeamInfo | null }) {
   return (
     <motion.div whileHover={{ y: -4 }} className="card p-4" style={{ boxShadow: info?.color ? `inset 4px 0 0 ${info.color}` : undefined }}>
       <div className="flex items-center gap-3">
-        {info?.logo ? <img src={info.logo} alt="" className="h-10 w-10" /> : <div className="h-10 w-10 rounded bg-white/10" />}
+        {info?.logo ? (
+          <img src={info.logo} alt="" className="h-10 w-10" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+        ) : (
+          <div className="h-10 w-10 rounded bg-white/10" />
+        )}
         <div>
           <div className="u-label !rotate-0 text-cyan text-[10px]">{label}</div>
           <div className="font-display text-xl text-cream">{info?.record ?? "…"}</div>
@@ -47,7 +51,9 @@ export default function MyTeams() {
     MY_TEAMS.forEach((t) => {
       teamInfo(t.path, t.id)
         .then((info) => setData((d) => ({ ...d, [t.label]: info })))
-        .catch(() => setData((d) => ({ ...d, [t.label]: null })));
+        // On error store a settled sentinel (record "—") so the card shows a dash
+        // instead of the loading "…" forever.
+        .catch(() => setData((d) => ({ ...d, [t.label]: { name: t.label, record: "—" } })));
     });
   }, []);
 

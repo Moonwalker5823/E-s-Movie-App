@@ -9,7 +9,11 @@ function watchLink(networks: string[], home: string, away: string) {
 function TeamRow({ t, showScore }: { t: Team; showScore: boolean }) {
   return (
     <div className="flex items-center gap-3 py-1">
-      {t.logo ? <img src={t.logo} alt="" className="h-7 w-7" /> : <span className="h-7 w-7" />}
+      {t.logo ? (
+        <img src={t.logo} alt="" className="h-7 w-7" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+      ) : (
+        <span className="h-7 w-7" />
+      )}
       <span className={`flex-1 font-semibold ${t.winner ? "text-cream" : "text-cream/70"}`}>{t.displayName}</span>
       {showScore && <span className="u-display text-xl text-cream">{t.score ?? "-"}</span>}
     </div>
@@ -28,13 +32,20 @@ export default function GameCard({ g }: { g: Game }) {
       className="card p-4"
       style={{ boxShadow: live ? "inset 0 0 0 1px rgba(53,208,127,.5)" : undefined }}
     >
-      <div className="mb-3 flex items-center justify-between text-xs">
-        <span className={live ? "font-bold text-live" : "text-cream/50"}>
-          {live && "● "}
-          {g.statusDetail}
+      <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+        <span className={`flex items-center gap-2 ${live ? "font-bold text-live" : "text-cream/50"}`}>
+          {g.league && (
+            <span className="rounded bg-white/10 px-1.5 py-0.5 font-bold uppercase tracking-wide text-cream/70">
+              {g.league}
+            </span>
+          )}
+          <span>
+            {live && "● "}
+            {g.statusDetail}
+          </span>
         </span>
         {g.broadcasts.length > 0 && (
-          <span className="rounded bg-white/10 px-2 py-0.5 font-semibold text-cream/80">
+          <span className="shrink-0 rounded bg-white/10 px-2 py-0.5 font-semibold text-cream/80">
             {g.broadcasts.join(", ")}
           </span>
         )}

@@ -49,7 +49,7 @@ function Spotlight({ card }: { card: ScoreCard }) {
               <div key={idx} className="flex items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-1.5">
                   {s.logo ? (
-                    <img src={s.logo} alt="" className="h-4 w-4 shrink-0" />
+                    <img src={s.logo} alt="" className="h-4 w-4 shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
                   ) : (
                     <span className="grid h-4 w-4 shrink-0 place-items-center text-[10px]">{card.kind === "combat" ? "🥊" : ""}</span>
                   )}

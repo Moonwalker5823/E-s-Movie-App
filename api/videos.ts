@@ -301,6 +301,11 @@ const CRIME_SETS = new Set(["aliens"]);
 const CRIME_RE =
   /\b(murder\w*|homicides?|killers?|serial killers?|true crime|crime scene|cold cases?|manhunt|death row|kidnapp?\w*|assassin\w*|investigat\w*|detectives?|forensics?|stalkers?|killing spree|psychopath|who killed)\b/i;
 
+// The Mix pulls a few national-news channels for freshness, but Eric doesn't want
+// Trump / MAGA politics in that feed. Drop those items by title, scoped to the Mix.
+const POLITICS_SETS = new Set(["mix"]);
+const POLITICS_RE = /\b(trump|maga|mar-a-lago|melania|ivanka)\b/i;
+
 interface Item {
   videoId: string;
   title: string;
@@ -471,6 +476,9 @@ export default async function handler(req: any, res: any) {
 
   // Keep true-crime / murder content off the Blerd nerd tabs.
   if (CRIME_SETS.has(set)) items = items.filter((i) => !CRIME_RE.test(i.title));
+
+  // Keep Trump / MAGA politics out of The Mix.
+  if (POLITICS_SETS.has(set)) items = items.filter((i) => !POLITICS_RE.test(i.title));
 
   cache[cacheKey] = { at: Date.now(), items };
   res.status(200).json({ items });

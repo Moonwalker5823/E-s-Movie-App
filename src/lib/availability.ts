@@ -14,17 +14,20 @@ const TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 type Persisted = Record<string, { at: number; keys: string[] }>;
 
-function loadDisk(): Persisted {
+// Hydrate the persisted cache ONCE at module load, then mutate it in memory and
+// write through. Previously every cache-miss and every save re-parsed the whole
+// (growing) blob — up to ~2N parses when the My List grid resolves N cold titles.
+const disk: Persisted = (() => {
   try {
-    return JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+    return JSON.parse(localStorage.getItem(LS_KEY) || "{}") as Persisted;
   } catch {
     return {};
   }
-}
+})();
+
 function saveDisk(k: string, keys: string[]) {
+  disk[k] = { at: Date.now(), keys };
   try {
-    const disk = loadDisk();
-    disk[k] = { at: Date.now(), keys };
     localStorage.setItem(LS_KEY, JSON.stringify(disk));
   } catch {
     /* storage full / disabled — cache stays in-memory only */
@@ -33,7 +36,7 @@ function saveDisk(k: string, keys: string[]) {
 
 function cached(k: string): string[] | null {
   if (MEM.has(k)) return MEM.get(k)!;
-  const hit = loadDisk()[k];
+  const hit = disk[k];
   if (hit && Date.now() - hit.at < TTL) {
     MEM.set(k, hit.keys);
     return hit.keys;

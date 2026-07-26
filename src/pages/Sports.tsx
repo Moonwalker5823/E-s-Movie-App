@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LEAGUES, scoreboard, type Game } from "../api/espn";
+import { LEAGUES, liveGames, scoreboard, type Game, type League } from "../api/espn";
 import GameCard from "../components/GameCard";
 import ScoreRail from "../components/ScoreRail";
 import Heading from "../components/ui/Heading";
@@ -21,20 +21,39 @@ const HIGHLIGHT_TABS: HubTab[] = [
   { key: "and1", label: "🏀 AND1 Streetball" },
 ];
 
+// A synthetic "league" that mixes every sport's in-progress games into one tab.
+const LIVE: League = { key: "live", label: "🔴 Live", path: "__live__" };
+const PICKERS: League[] = [LIVE, ...LEAGUES];
+
 export default function Sports() {
-  const [league, setLeague] = useState(LEAGUES[0]);
+  // Land on the Live tab first so "what's on right now" is front and center.
+  const [league, setLeague] = useState<League>(LIVE);
   const [games, setGames] = useState<Game[] | null>(null);
   const [error, setError] = useState(false);
+  const isLive = league.key === LIVE.key;
 
   useEffect(() => {
     setGames(null);
     setError(false);
     let alive = true;
-    scoreboard(league.path)
+    const live = league.key === LIVE.key;
+    const fetchGames = () => (live ? liveGames() : scoreboard(league.path));
+    fetchGames()
       .then((g) => alive && setGames(g))
       .catch(() => alive && setError(true));
+    // The Live tab keeps itself current: re-pull in place every 45s (no skeleton
+    // flash) so finished games drop off and scores stay live without leaving the page.
+    let timer: number | undefined;
+    if (live) {
+      timer = window.setInterval(() => {
+        liveGames()
+          .then((g) => alive && setGames(g))
+          .catch(() => {});
+      }, 45_000);
+    }
     return () => {
       alive = false;
+      if (timer) window.clearInterval(timer);
     };
   }, [league]);
 
@@ -54,7 +73,7 @@ export default function Sports() {
         <Heading emoji="📊" className="mb-3">Scores & Schedule</Heading>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          {LEAGUES.map((l) => (
+          {PICKERS.map((l) => (
             <Chip key={l.key} active={league.key === l.key} onClick={() => setLeague(l)}>
               {l.label}
             </Chip>
@@ -70,11 +89,13 @@ export default function Sports() {
           ))}
         </div>
       ) : games.length === 0 ? (
-        <p className="mt-8 text-cream/60">No {league.label} games scheduled today.</p>
+        <p className="mt-8 text-cream/60">
+          {isLive ? "Nothing live right now. Check the leagues for today's slate." : `No ${league.label} games scheduled today.`}
+        </p>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((g) => (
-            <GameCard key={g.id} g={g} />
+            <GameCard key={`${g.league ?? ""}-${g.id}`} g={g} />
           ))}
         </div>
         )}

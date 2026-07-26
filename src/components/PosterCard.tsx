@@ -6,7 +6,6 @@ import { IMG, titleOf, yearOf } from "../api/tmdb";
 /** Poster tile used across every rail and grid. */
 export default function PosterCard({ item }: { item: TmdbItem }) {
   const media = item.media_type || (item.title ? "movie" : "tv");
-  const img = IMG.poster(item.poster_path);
   const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
 
   return (
@@ -21,7 +20,7 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
         className="block overflow-hidden rounded-xl border border-line bg-surface2 shadow-card"
       >
         <div className="relative aspect-[2/3]">
-          {img ? (
+          {item.poster_path ? (
             <img src={IMG.poster(item.poster_path, "w500")} alt={titleOf(item)} loading="lazy" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center px-2 text-center text-xs text-cream/40">

@@ -7,6 +7,7 @@ import { isSaved, toggleSave, useFavorites } from "../lib/favorites";
 import type { MediaType, TitleDetails, WatchProviders } from "../lib/types";
 import Row from "../components/Row";
 import WhereToWatch from "../components/WhereToWatch";
+import ServiceBadges from "../components/ServiceBadges";
 import Button, { AnchorButton } from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
 
@@ -96,6 +97,9 @@ export default function Title() {
                 {savedWatch ? "✓ On Watchlist" : "+ Watchlist"}
               </Button>
             </div>
+
+            {/* The same brand badges as My List — which of YOUR services carry this. */}
+            {data && <ServiceBadges media={media} id={numId} className="mt-3" />}
           </div>
         </div>
 

@@ -20,6 +20,14 @@ export async function videos(
   if (opts.hours && opts.hours > 0) q.set("hours", String(opts.hours));
   const r = await fetch(`/api/videos?${q.toString()}`);
   if (!r.ok) throw new Error(`videos ${r.status}`);
-  const data = await r.json();
+  // Under plain `vite dev` there's no serverless runtime, so this route falls through
+  // to the SPA's index.html (200, but HTML). Surface that as a distinct error so the
+  // hub can show the "runs on the live site" hint instead of a generic retry.
+  let data: { items?: Video[] };
+  try {
+    data = await r.json();
+  } catch {
+    throw new Error("videos non-json");
+  }
   return (data.items || []) as Video[];
 }
