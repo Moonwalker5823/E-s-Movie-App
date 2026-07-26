@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
 
 // TV-style D-pad navigation, modeled on Prime Video / Netflix:
@@ -42,14 +42,35 @@ export function useSpatialNav() {
   const lastRect = useRef<DOMRect | null>(null); // where focus last was (position resume)
   const scrollMem = useRef<Map<string, number>>(new Map()); // scrollY per history entry
   const currentKey = useRef(location.key); // the entry we're currently on (for the scroll saver)
+  const guardUntil = useRef(0); // ignore scroll saves briefly after a nav (the transition clamp)
+  const restoreActive = useRef(false); // true while re-pinning a Back position (don't overwrite it)
 
   // Continuously remember how far we've scrolled on THIS history entry, so pressing
-  // Back later can drop us right where we were (not up at the hero).
+  // Back later can drop us right where we were (not up at the hero). We skip saves during
+  // the post-navigation window: a shorter incoming page can clamp scrollY and would
+  // otherwise clobber the entry we're about to leave (or the one we're restoring).
   useEffect(() => {
-    const onScroll = () => scrollMem.current.set(currentKey.current, window.scrollY);
+    const onScroll = () => {
+      if (restoreActive.current || Date.now() < guardUntil.current) return;
+      scrollMem.current.set(currentKey.current, window.scrollY);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // BEFORE paint on every navigation: claim the new history entry (so the async clamp
+  // scroll event can't be attributed to the page we just left), guard transient saves,
+  // and do an immediate best-effort restore. The passive effect below then re-pins to the
+  // saved spot as async content grows the page.
+  useLayoutEffect(() => {
+    currentKey.current = location.key;
+    guardUntil.current = Date.now() + 600;
+    const saved = scrollMem.current.get(location.key);
+    const restoring = navType === "POP" && typeof saved === "number" && saved > 0;
+    restoreActive.current = restoring;
+    const maxY = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo(0, restoring ? Math.min(saved!, Math.max(0, maxY)) : 0);
+  }, [location.key, navType]);
 
   function goTo(el: HTMLElement, isHorizontal: boolean, gentle = false) {
     markFocused(el);
@@ -66,44 +87,37 @@ export function useSpatialNav() {
   // loads; until then keep something focused. Never steal focus once the user has
   // moved into page content (a focusable that isn't in the sticky <header> nav).
   useEffect(() => {
-    currentKey.current = location.key;
     const saved = scrollMem.current.get(location.key);
     // On Back/Forward (POP) return to where we were; on a fresh navigation open at the
     // top so the nav + heading are visible.
     const restoring = navType === "POP" && typeof saved === "number" && saved > 0;
-    window.scrollTo(0, restoring ? saved! : 0);
 
     let tries = 0;
     let timer: number;
-    const tick = () => {
-      // While restoring, the page keeps growing as async content loads — re-pin to the
-      // saved spot until it sticks (or the page can't get that tall), and hold off on
-      // grabbing focus so we don't land on a pre-content element.
-      if (restoring) {
-        const maxY = document.documentElement.scrollHeight - window.innerHeight;
-        if (Math.abs(window.scrollY - saved!) > 4 && maxY >= saved! - 4) window.scrollTo(0, saved!);
-        const settled = Math.abs(window.scrollY - saved!) <= 4 || maxY < saved! - 4;
-        if (!settled && tries++ < 16) {
-          timer = window.setTimeout(tick, 120);
-          return;
-        }
-      }
+    let userMoved = false;
+    // If the user starts driving the remote mid-restore, stop re-pinning so we never
+    // fight them for the scroll position.
+    const onUserKey = (e: KeyboardEvent) => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) userMoved = true;
+    };
+    window.addEventListener("keydown", onUserKey);
 
+    // Land the ring: the featured video on a fresh page, else — when restoring — the
+    // on-screen item nearest the viewport middle, so the D-pad resumes right where the
+    // user was instead of up at the first title. Never steals focus once the user has
+    // moved into page content.
+    const placeFocus = () => {
       const active = document.activeElement as HTMLElement | null;
       const inContent = active && active.matches?.(FOCUSABLE) && !active.closest?.("header");
       if (inContent) return;
-
       const auto = scopeRoot().querySelector<HTMLElement>("[data-autofocus]");
       if (auto && auto.offsetParent !== null && !restoring) {
         goTo(auto, true, true);
         return;
       }
-
       const list = focusables().filter((el) => !el.closest("header"));
-      let first: HTMLElement | undefined = list[0];
+      let target: HTMLElement | undefined = list[0];
       if (restoring && list.length) {
-        // Land the ring on the on-screen item nearest the viewport middle, so the
-        // D-pad resumes right where the user was — not up at the first title.
         const mid = window.innerHeight / 2;
         const dist = (el: HTMLElement) => {
           const b = el.getBoundingClientRect();
@@ -113,13 +127,39 @@ export function useSpatialNav() {
           const b = el.getBoundingClientRect();
           return b.bottom > 0 && b.top < window.innerHeight;
         });
-        if (onScreen.length) first = onScreen.reduce((a, el) => (dist(el) < dist(a) ? el : a));
+        if (onScreen.length) target = onScreen.reduce((a, el) => (dist(el) < dist(a) ? el : a));
       }
-      if ((!active || !active.matches?.(FOCUSABLE)) && first) goTo(first, true, true);
-      if (tries++ < 7) timer = window.setTimeout(tick, 180); // poll ~1.4s for late content
+      if ((!active || !active.matches?.(FOCUSABLE)) && target) goTo(target, true, true);
     };
-    timer = window.setTimeout(tick, 120);
-    return () => clearTimeout(timer);
+
+    const tick = () => {
+      if (restoring && !userMoved) {
+        // Keep re-pinning to the saved spot as async content grows the page, until we
+        // reach it or time out (~2.6s). The old code gave up as soon as an item got
+        // focus or the page was briefly too short — which left slow lists stuck at top.
+        const maxY = document.documentElement.scrollHeight - window.innerHeight;
+        const target = Math.min(saved!, Math.max(0, maxY));
+        if (Math.abs(window.scrollY - target) > 4) window.scrollTo(0, target);
+        const reached = Math.abs(window.scrollY - saved!) <= 4;
+        if (!reached && tries++ < 26) {
+          timer = window.setTimeout(tick, 100);
+          return;
+        }
+        restoreActive.current = false; // settled — resume saving the user's own scrolls
+        placeFocus();
+        return;
+      }
+
+      restoreActive.current = false; // fresh nav, or the user took over the restore
+      placeFocus();
+      if (!restoring && tries++ < 7) timer = window.setTimeout(tick, 180); // poll ~1.4s for late content
+    };
+    timer = window.setTimeout(tick, 80);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("keydown", onUserKey);
+      restoreActive.current = false;
+    };
   }, [location.key, navType]);
 
   useEffect(() => {
