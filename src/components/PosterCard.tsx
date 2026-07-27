@@ -33,7 +33,11 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
               ★ {rating}
             </span>
           )}
-          <span className="absolute right-2 top-2 rounded bg-spray/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink">
+          <span
+            className={`absolute right-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink ${
+              media === "tv" ? "bg-cyan/90" : "bg-spray/90"
+            }`}
+          >
             {media}
           </span>
         </div>

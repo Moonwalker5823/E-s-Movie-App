@@ -1,5 +1,30 @@
 import { motion } from "framer-motion";
 import type { Game, Team } from "../api/espn";
+import { useSettings } from "../lib/settings";
+import { liveServices, type Service } from "../lib/services";
+
+// Which of the user's streaming services carry a given broadcast network's LIVE feed.
+// Hulu + Live TV carries the major linear sports channels; the others cover their own
+// games. This keeps us from suggesting a service that doesn't actually have the game.
+const NETWORK_SERVICES: { match: RegExp; services: string[] }[] = [
+  { match: /espn|abc|sec network|acc network/i, services: ["hulu"] },
+  { match: /\bfox\b|fs1|fs2|btn|big ten/i, services: ["hulu"] },
+  { match: /\bnbc\b|usa network|cnbc|golf channel/i, services: ["hulu", "peacock"] },
+  { match: /peacock/i, services: ["peacock"] },
+  { match: /\bcbs\b/i, services: ["hulu", "paramount"] },
+  { match: /paramount/i, services: ["paramount"] },
+  { match: /tnt|tbs|trutv/i, services: ["hulu", "max"] },
+  { match: /\bmax\b|bleacher|b\/r/i, services: ["max"] },
+  { match: /prime video|amazon/i, services: ["prime"] },
+  { match: /tubi/i, services: ["tubi"] },
+];
+
+// The user's own services (that carry live sports) which broadcast THIS game's networks.
+function servicesForGame(networks: string[], myServices: string[]): Service[] {
+  const keys = new Set<string>();
+  for (const n of networks) for (const m of NETWORK_SERVICES) if (m.match.test(n)) m.services.forEach((k) => keys.add(k));
+  return liveServices(myServices).filter((s) => keys.has(s.key));
+}
 
 // Map a broadcast network to where you can watch it LIVE — the broadcaster's own
 // live page/app, which hands off to your signed-in app on the TV. Order matters
@@ -51,8 +76,11 @@ function TeamRow({ t, showScore }: { t: Team; showScore: boolean }) {
 
 /** One game: teams, score/status, broadcast network, where-to-watch. */
 export default function GameCard({ g }: { g: Game }) {
+  const { myServices } = useSettings();
   const live = g.state === "in";
   const showScore = live || g.state === "post";
+  // Your services that carry this live game (by its broadcast network).
+  const myLive = live ? servicesForGame(g.broadcasts, myServices) : [];
 
   return (
     <motion.div
@@ -83,20 +111,45 @@ export default function GameCard({ g }: { g: Game }) {
       <TeamRow t={g.away} showScore={showScore} />
       <TeamRow t={g.home} showScore={showScore} />
 
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <span className="truncate text-xs text-cream/40">{g.venue || ""}</span>
-        {live ? (
-          // In-progress: send them straight to the broadcaster to watch it now.
-          <a
-            href={liveWatchUrl(g.broadcasts, g.home.displayName, g.away.displayName)}
-            target="_blank"
-            rel="noreferrer"
-            data-focusable
-            className="shrink-0 rounded-full bg-live px-3 py-1 text-xs font-bold text-ink shadow-piece"
-          >
-            ▶ Watch Live ↗
-          </a>
-        ) : (
+      {live ? (
+        <div className="mt-3">
+          <div className="mb-1.5 truncate text-xs text-cream/40">{g.venue || ""}</div>
+          {myLive.length > 0 ? (
+            // Open the game on YOUR services that carry this network. There's no public
+            // per-game deep link, so this lands on the service's live area (where the
+            // in-progress game is featured) — one tap from kickoff.
+            <div className="flex flex-wrap items-center gap-1.5">
+              {myLive.map((s) => (
+                <a
+                  key={s.key}
+                  href={s.liveUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-focusable
+                  title={`Watch live on ${s.name}`}
+                  className="rounded-full px-2.5 py-1 text-xs font-bold text-ink shadow-piece transition hover:brightness-110"
+                  style={{ background: s.color }}
+                >
+                  ▶ {s.name}
+                </a>
+              ))}
+            </div>
+          ) : (
+            // None of your services carry it (or the network is unknown) — go to the broadcaster.
+            <a
+              href={liveWatchUrl(g.broadcasts, g.home.displayName, g.away.displayName)}
+              target="_blank"
+              rel="noreferrer"
+              data-focusable
+              className="inline-block rounded-full bg-live px-3 py-1 text-xs font-bold text-ink shadow-piece"
+            >
+              ▶ Watch Live ↗
+            </a>
+          )}
+        </div>
+      ) : (
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span className="truncate text-xs text-cream/40">{g.venue || ""}</span>
           <a
             href={watchLink(g.broadcasts, g.home.displayName, g.away.displayName)}
             target="_blank"
@@ -106,8 +159,8 @@ export default function GameCard({ g }: { g: Game }) {
           >
             {g.state === "pre" ? "Where to watch ↗" : "Watch / recap ↗"}
           </a>
-        )}
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
