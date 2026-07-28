@@ -101,6 +101,7 @@ export default function VideoHub({
   daily = false,
   freshHours,
   cinema = false,
+  query,
   rail,
 }: {
   tabs: HubTab[];
@@ -110,6 +111,7 @@ export default function VideoHub({
   daily?: boolean; // fresh daily rotation (server orders it by date; keep that order)
   freshHours?: number; // rotate every N hours instead of daily (Sports = 3); server-ordered
   cinema?: boolean; // The Mix: one big compilation player — no up-next tiles or browse grid
+  query?: string; // music search — when set, load search results instead of the tab's set
   rail?: React.ReactNode; // optional side panel (e.g. live scores) shown beside the viewer
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
@@ -520,14 +522,15 @@ export default function VideoHub({
     setMuted(false);
     setCc(false);
     let alive = true;
-    videos(tab, { short, daily, hours: freshHours })
+    const isSearch = !!query;
+    videos(isSearch ? "search" : tab, isSearch ? { q: query } : { short, daily, hours: freshHours })
       .then((v) => {
         if (!alive) return;
         setItems(v);
-        // ALWAYS shuffle the play order per visit so the same clip doesn't greet you
-        // every time. `daily`/`freshHours` keep the CONTENT pool fresh day to day (or
-        // every N hours); this just varies the ORDER each time you land on the page.
-        setOrder(autoplay ? shuffle(v) : []);
+        // Shuffle the play order per visit so the same clip doesn't greet you every time
+        // — EXCEPT search, which keeps YouTube's relevance order (best match first).
+        // `daily`/`freshHours` keep the CONTENT pool fresh; this just varies the ORDER.
+        setOrder(autoplay ? (isSearch ? v : shuffle(v)) : []);
       })
       .catch((e) => {
         if (!alive) return;
@@ -540,7 +543,7 @@ export default function VideoHub({
     return () => {
       alive = false;
     };
-  }, [tab, short, autoplay, daily, freshHours]);
+  }, [tab, short, autoplay, daily, freshHours, query]);
 
   // Load a picked clip into the MAIN VIEWER (not fullscreen) and center it on screen.
   function playInHero(v: Video) {

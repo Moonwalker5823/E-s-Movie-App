@@ -12,13 +12,14 @@ export interface Video {
  *  day to day). `hours`: rotate every N hours instead of daily (Sports: 3). */
 export async function videos(
   set: string,
-  opts: { short?: boolean; daily?: boolean; hours?: number } = {}
+  opts: { short?: boolean; daily?: boolean; hours?: number; q?: string } = {}
 ): Promise<Video[]> {
-  const q = new URLSearchParams({ set });
-  if (opts.short) q.set("short", "1");
-  if (opts.daily) q.set("daily", "1");
-  if (opts.hours && opts.hours > 0) q.set("hours", String(opts.hours));
-  const r = await fetch(`/api/videos?${q.toString()}`);
+  const params = new URLSearchParams({ set });
+  if (opts.q) params.set("q", opts.q); // music search — overrides the channel set
+  if (opts.short) params.set("short", "1");
+  if (opts.daily) params.set("daily", "1");
+  if (opts.hours && opts.hours > 0) params.set("hours", String(opts.hours));
+  const r = await fetch(`/api/videos?${params.toString()}`);
   if (!r.ok) throw new Error(`videos ${r.status}`);
   // Under plain `vite dev` there's no serverless runtime, so this route falls through
   // to the SPA's index.html (200, but HTML). Surface that as a distinct error so the

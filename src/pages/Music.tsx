@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Heading from "../components/ui/Heading";
 import VideoHub, { type HubTab } from "../components/VideoHub";
 import LaunchTile, { type Tile } from "../components/LaunchTile";
@@ -25,15 +26,50 @@ const SERVICES: Tile[] = [
 ];
 
 export default function Music() {
+  const [q, setQ] = useState("");
+  const [search, setSearch] = useState(""); // the submitted music search
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearch(q.trim());
+  };
+  const clearSearch = () => {
+    setSearch("");
+    setQ("");
+  };
+
   return (
     <div className="px-4 pb-8 pt-4 sm:px-10">
       <Heading label="♛ Music" emoji="🎵" size="lg" className="mb-3">
         Music Videos
       </Heading>
 
-      {/* Featured music video streams at the top; picking a clip loads it in the viewer.
-          `daily` rotates a fresh on-topic lineup each day. */}
-      <VideoHub tabs={MUSIC_TABS} autoplay daily />
+      {/* Music-only search — any artist or song, results play in the viewer below. */}
+      <form onSubmit={submit} className="mb-4 flex flex-wrap items-center gap-2">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          data-focusable
+          placeholder="Search any artist or song…"
+          className="min-w-[12rem] flex-1 rounded-full border border-line bg-white/5 px-4 py-2 text-sm outline-none transition placeholder:text-cream/30 focus:border-spray/50 focus:bg-white/10 sm:max-w-md"
+        />
+        <button type="submit" data-focusable className="btn-spray shrink-0 !px-4 !py-2 text-sm">
+          🔎 Search
+        </button>
+        {search && (
+          <button type="button" onClick={clearSearch} data-focusable className="btn-ghost shrink-0 !px-3 !py-2 text-sm">
+            Clear ✕
+          </button>
+        )}
+      </form>
+
+      {/* Search results play in the viewer (relevance order); otherwise the tabbed reel
+          (`daily` rotates a fresh on-topic lineup each day, shuffled per visit). */}
+      {search ? (
+        <VideoHub key={`search-${search}`} tabs={[{ key: "search", label: `🔎 ${search}` }]} autoplay query={search} />
+      ) : (
+        <VideoHub tabs={MUSIC_TABS} autoplay daily />
+      )}
 
       {/* Your streaming services */}
       <section className="mt-10">

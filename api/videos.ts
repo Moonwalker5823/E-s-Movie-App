@@ -420,11 +420,64 @@ function seededShuffle<T>(arr: T[], rnd: () => number): T[] {
   return a;
 }
 
+// Keyless YouTube music search — scrapes the results page (query biased toward music)
+// for video items. Best-effort: any failure returns an empty list.
+async function searchMusic(query: string): Promise<Item[]> {
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} music`)}&sp=EgIQAQ%253D%253D`;
+  try {
+    const html = await (
+      await fetch(url, { headers: { "user-agent": "Mozilla/5.0", "accept-language": "en-US,en", cookie: "SOCS=CAI;" } })
+    ).text();
+    const out: Item[] = [];
+    const seen = new Set<string>();
+    const re =
+      /"videoRenderer":\{"videoId":"([\w-]{11})"[\s\S]*?"title":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"[\s\S]*?"ownerText":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html)) && out.length < 40) {
+      const id = m[1];
+      if (seen.has(id)) continue;
+      seen.add(id);
+      let title = m[2];
+      let channel = m[3];
+      try {
+        title = JSON.parse(`"${title}"`);
+      } catch {
+        /* keep raw */
+      }
+      try {
+        channel = JSON.parse(`"${channel}"`);
+      } catch {
+        /* keep raw */
+      }
+      out.push({ videoId: id, title: decode(title), published: "", channel: decode(channel), thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg` });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 export default async function handler(req: any, res: any) {
   const set = (req.query?.set || "all").toString().toLowerCase();
   const short = String(req.query?.short || "") === "1";
   const daily = String(req.query?.daily || "") === "1"; // date-seeded fresh-daily rotation
   const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3)
+  const query = (req.query?.q || "").toString().trim();
+
+  // Music search mode — scrape YouTube for the query, bypassing the channel sets.
+  if (query) {
+    const key = `q:${query.toLowerCase()}`;
+    const cached = cache[key];
+    if (cached && Date.now() - cached.at < TTL) {
+      res.status(200).json({ items: cached.items, cached: true });
+      return;
+    }
+    const items = await searchMusic(query);
+    cache[key] = { at: Date.now(), items };
+    res.status(200).json({ items });
+    return;
+  }
+
   const channels = set === "mix" ? mixChannels() : SETS[set] || SETS.all;
   const rotate = daily || hours > 0;
   // Seed the rotation: an N-hour time bucket when `hours` is set, else today's date (ET).
