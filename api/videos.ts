@@ -28,6 +28,18 @@ const AND1 = { id: "UCpj2jMqzhF4nn4-9PXRy2kA", name: "AND1 Basketball" };
 const PROFESSOR = { id: "UC5zJwsFtEs9WYe3A76p7xIA", name: "The Professor" };
 const BALLISLIFE = { id: "UC_zgOsTPdML6tol9hLYh4fQ", name: "Ballislife" };
 
+// Barbershop-style sports podcasts — the sit-down talk shows. NOTE: the channel that was
+// labeled "Club Shay Shay" (UCKnodHJ…) is ACTUALLY Nightcap (Shannon Sharpe & Ochocinco);
+// the real Club Shay Shay is UCQoxJOk…. Both fixed here. RSS-verified live (2026 uploads).
+const CLUB_SHAY_SHAY = { id: "UCQoxJOkwaCgyzQtiuAIDcuw", name: "Club Shay Shay" };
+const NIGHTCAP = { id: "UCKnodHJpZd8UbSvAufDd3_g", name: "Nightcap · Sharpe & Ochocinco" };
+const THE_PIVOT = { id: "UCUnxiP7q4RDDyeioZFZLnXA", name: "The Pivot" };
+const ALL_THE_SMOKE = { id: "UCMJAKnrVv1sRzlq_vqige3Q", name: "All The Smoke" };
+const NEW_HEIGHTS = { id: "UCVRm2Ho8cL3lvWDyp2ayuFw", name: "New Heights" };
+const KG_CERTIFIED = { id: "UC2ozVs4pg2K3uFLw6-0ayCQ", name: "KG Certified" };
+const GILS_ARENA = { id: "UCnKhvsJ8d1zEFWH7axtc7ew", name: "Gil's Arena" };
+const DRAYMOND = { id: "UCBNqqomXKPSWvcQDXOkRvRA", name: "Draymond Green Show" };
+
 // Music-video channels (verified active, July 2026).
 const NPR_MUSIC = { id: "UC4eYXhJI4-7wSWc8UNRwD4A", name: "NPR Music" }; // Tiny Desk — lyrical/soul/R&B live
 const COLORS = { id: "UC2Qw1dzXDBAZPwS7zm37g8g", name: "COLORS" }; // curated lyrical / neo-soul / global
@@ -44,6 +56,12 @@ const JCOLE = { id: "UCnc6db-y3IU7CkT_yeVXdVg", name: "J. Cole" };
 const LUPE = { id: "UC-zD8J0RLWy3mNB7EMmT7Rg", name: "Lupe Fiasco" };
 const GAMBINO = { id: "UCjYO25ZVJT523TD1iYHzcbw", name: "Childish Gambino" };
 const TEMS = { id: "UCWfi5ELXGAe-DCA6cOP3aNw", name: "Tems" };
+// Eric's added artists — punchline / golden-era rap + melodic R&B. VEVOs for these were
+// dead, so these are the freshest official / "- Topic" feeds (RSS-verified, 2026 uploads).
+const FABOLOUS = { id: "UCws01WszuWPmI8Xs-gIFHOg", name: "Fabolous" };
+const BENNY = { id: "UCzdpwFZKrV6qII4UKZQG9ZA", name: "Benny the Butcher" };
+const TPAIN = { id: "UCLSSupJwk82DYt6OI-iSh_Q", name: "T-Pain" };
+const RKELLY = { id: "UCNRcoQxfabvUAULNbIy7qPg", name: "R. Kelly" };
 // More of Eric's artists — R&B/pop, legends & rock (official / VEVO), RSS-verified live.
 const PRINCE = { id: "UCv3mNSNjuWldihk1DUdnGtw", name: "Prince" };
 const WHITNEY = { id: "UCG5fkJ8-2b2ZjWpVNpr7Dqg", name: "Whitney Houston" };
@@ -132,6 +150,13 @@ const COMEDY_CENTRAL = { id: "UCUsN5ZwHx2kILm84-jPDeXw", name: "Comedy Central" 
 const NETFLIX_JOKE = { id: "UCObk_g1hQBy0RKKriVX_zOQ", name: "Netflix Is A Joke" };
 const WILD_N_OUT = { id: "UCrkzfc2yf-7q6pd7EtzgNaQ", name: "Wild 'N Out" };
 const DRY_BAR = { id: "UCvlVuntLjdURVD3b3Hx7kxw", name: "Dry Bar Comedy" };
+// Kevin Hart & Katt Williams — the two Eric named. Hart has his official company channel
+// (Hartbeat) plus an active stand-up clip channel; Katt has no official channel of his own,
+// so his stand-up rides in via active clip channels. RSS-verified fresh (2026 uploads).
+const HARTBEAT = { id: "UCp_jO_W5c51EidQzvk0mSEA", name: "Hartbeat · Kevin Hart" };
+const KEVIN_HART_STANDUP = { id: "UCk--v_ne2Q7lVvyK9jwiWsQ", name: "Kevin Hart Stand-Up" };
+const KATT_LAUGHS = { id: "UCBPxEaX4HD3rkB30U4MVVZw", name: "Katt Williams" };
+const KATT_UNTOLD = { id: "UCvsS9EiyGpZf-clfoNt88KA", name: "Katt Williams · Untold" };
 
 // News — top US broadcast news, for the "News" set + The Mix feed. Verified active.
 const ABC_NEWS = { id: "UCBi2mrWuNuyYy4gbM6fU18Q", name: "ABC News" };
@@ -187,14 +212,11 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCxcTeAKWJca6XyJ37_ZoKIQ", name: "The Pat McAfee Show" },
     { id: "UC3X-L84yCBq0XUd1Whe5u7A", name: "Up & Adams" },
     { id: "UCDRmGMSgrtZkOsh_NQl4_xw", name: "Secret Base" },
-    { id: "UCUnxiP7q4RDDyeioZFZLnXA", name: "The Pivot" },
-    { id: "UC2ozVs4pg2K3uFLw6-0ayCQ", name: "KG Certified" },
-    { id: "UCMJAKnrVv1sRzlq_vqige3Q", name: "All The Smoke" },
-    { id: "UCVRm2Ho8cL3lvWDyp2ayuFw", name: "New Heights" },
-    { id: "UCnKhvsJ8d1zEFWH7axtc7ew", name: "Gil's Arena" },
-    { id: "UCBNqqomXKPSWvcQDXOkRvRA", name: "Draymond Green Show" },
-    { id: "UCKnodHJpZd8UbSvAufDd3_g", name: "Club Shay Shay" },
+    THE_PIVOT, KG_CERTIFIED, ALL_THE_SMOKE, NEW_HEIGHTS, GILS_ARENA, DRAYMOND, CLUB_SHAY_SHAY, NIGHTCAP,
   ],
+  // 🎙️ Podcasts — the barbershop sit-down shows Eric watches, in one place: Club Shay Shay,
+  // Nightcap (Sharpe & Ochocinco), The Pivot, All The Smoke, New Heights, KG Certified, …
+  podcasts: [CLUB_SHAY_SHAY, NIGHTCAP, THE_PIVOT, ALL_THE_SMOKE, NEW_HEIGHTS, KG_CERTIFIED, GILS_ARENA, DRAYMOND],
   and1: [AND1, PROFESSOR, BALLISLIFE], // AND1 mixtape streetball + The Professor
   // Smokers Lounge — a full cannabis hub, not just Snoop + smoking vlogs. The daily
   // rotation keeps each tab fresh day to day.
@@ -242,10 +264,10 @@ const SETS: Record<string, Channel[]> = {
   // ratchet or drill). Tidal covers the personalized / deep-catalog library.
   // Eric's own YouTube playlists, combined — his personal music taste in the app.
   myplaylists: ERIC_PLAYLISTS,
-  music: [MJ, PRINCE, YT_KING, KENDRICK, JAYZ, USHER, YT_OL_SKOOL, MASS_APPEAL, TEMS, MIGUEL, YT_RNB, NAS, COLORS, JCOLE, RNB_NATION, LUPE, NPR_MUSIC],
-  golden: [JAYZ, NAS, DMX, BIG_DADDY_KANE, MASS_APPEAL, YT_2PAC, YT_BIG, YT_COMMON, YT_RAP, YT_HIPHOP], // 90s/00s classic hip-hop
-  lyricists: [KENDRICK, JCOLE, LUPE, GAMBINO, MASS_APPEAL, YT_COMMON], // conscious / lyrical
-  soul: [TEMS, MIGUEL, USHER, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC, YT_OL_SKOOL, YT_MAXWELL, YT_RNB, YT_RNB2, YT_YOUNGE], // R&B / neo-soul
+  music: [MJ, KENDRICK, TPAIN, JAYZ, BENNY, USHER, PRINCE, FABOLOUS, YT_KING, MIGUEL, NAS, RKELLY, GAMBINO, MASS_APPEAL, YT_OL_SKOOL, TEMS, JCOLE, COLORS, YT_RNB, RNB_NATION, LUPE, NPR_MUSIC],
+  golden: [JAYZ, NAS, BENNY, DMX, FABOLOUS, BIG_DADDY_KANE, MASS_APPEAL, YT_2PAC, YT_BIG, YT_COMMON, YT_RAP, YT_HIPHOP], // 90s/00s + modern golden-era hip-hop
+  lyricists: [KENDRICK, JCOLE, BENNY, LUPE, GAMBINO, FABOLOUS, MASS_APPEAL, YT_COMMON], // conscious / lyrical / punchlines
+  soul: [TPAIN, MIGUEL, USHER, RKELLY, TEMS, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC, YT_OL_SKOOL, YT_MAXWELL, YT_RNB, YT_RNB2, YT_YOUNGE], // R&B / neo-soul
   classics: [MJ, PRINCE, WHITNEY, YT_KING], // legends — the King first, then Prince & Whitney
   rock: [LINKIN_PARK, METALLICA, YT_ROCK, YT_ALT], // rock / metal — Linkin Park, Metallica
   battlerap: [URL_BATTLE], // SMACK / URL — Ultimate Rap League battles
@@ -263,9 +285,11 @@ const SETS: Record<string, Channel[]> = {
   anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
   ridiculousness: [RIDICULOUSNESS, ROB_DYRDEK, AFV, DAILY_DOSE, PEOPLE_AWESOME], // wind-down clip comedy (Comedy page)
   // Comedy page — sketches, stand-up & roasts. Legends' clips ride in via the platforms.
-  comedy: [KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR],
-  standup: [NETFLIX_JOKE, DRY_BAR, COMEDY_CENTRAL, KARLOUS], // stand-up specials & sets
+  comedy: [KEVIN_HART_STANDUP, KATT_LAUGHS, KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR],
+  standup: [KEVIN_HART_STANDUP, KATT_LAUGHS, NETFLIX_JOKE, DRY_BAR, COMEDY_CENTRAL, KARLOUS], // stand-up specials & sets
   skits: [KEV_ON_STAGE, TONY_BAKER, COMEDY_CENTRAL, WILD_N_OUT, DC_YOUNG_FLY], // sketches & roasts
+  kevinhart: [KEVIN_HART_STANDUP, HARTBEAT], // 🎤 Kevin Hart — stand-up clips + his official channel
+  kattwilliams: [KATT_LAUGHS, KATT_UNTOLD], // 👑 Katt Williams — active stand-up clip channels
   news: [ABC_NEWS, NBC_NEWS, CBS_NEWS], // top US news — feeds The Mix
 };
 
@@ -420,10 +444,13 @@ function seededShuffle<T>(arr: T[], rnd: () => number): T[] {
   return a;
 }
 
-// Keyless YouTube music search — scrapes the results page (query biased toward music)
-// for video items. Best-effort: any failure returns an empty list.
-async function searchMusic(query: string): Promise<Item[]> {
-  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} music`)}&sp=EgIQAQ%253D%253D`;
+// Keyless YouTube search — scrapes the results page (Type: Video filter) for video items.
+// `music` biases the query toward songs (Music page); otherwise the raw query is used, so
+// the same engine powers topic searches like PTI episodes or "BMW 640i stage 2 tune".
+// Best-effort: any failure returns an empty list.
+async function searchVideos(query: string, music = false): Promise<Item[]> {
+  const term = music ? `${query} music` : query;
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}&sp=EgIQAQ%253D%253D`;
   try {
     const html = await (
       await fetch(url, { headers: { "user-agent": "Mozilla/5.0", "accept-language": "en-US,en", cookie: "SOCS=CAI;" } })
@@ -464,15 +491,17 @@ export default async function handler(req: any, res: any) {
   const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3)
   const query = (req.query?.q || "").toString().trim();
 
-  // Music search mode — scrape YouTube for the query, bypassing the channel sets.
+  // Search mode — scrape YouTube for the query, bypassing the channel sets. `music=1`
+  // biases toward songs (Music page); otherwise it's a raw topic search (PTI, cars, …).
   if (query) {
-    const key = `q:${query.toLowerCase()}`;
+    const music = String(req.query?.music || "") === "1";
+    const key = `q:${music ? "m:" : ""}${query.toLowerCase()}`;
     const cached = cache[key];
     if (cached && Date.now() - cached.at < TTL) {
       res.status(200).json({ items: cached.items, cached: true });
       return;
     }
-    const items = await searchMusic(query);
+    const items = await searchVideos(query, music);
     cache[key] = { at: Date.now(), items };
     res.status(200).json({ items });
     return;

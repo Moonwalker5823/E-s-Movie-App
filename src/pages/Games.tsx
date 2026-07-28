@@ -6,6 +6,8 @@ import VideoHub, { type HubTab } from "../components/VideoHub";
 // shows (Top Gear feels) and racing alongside the gaming tabs.
 const CLIP_TABS: HubTab[] = [
   { key: "gaming", label: "🎮 Games" },
+  { key: "mybmw", label: "🚗 My BMW 640i", q: "BMW 640i" }, // Eric's ride
+  { key: "stage2", label: "⚙️ Stage 2 Tune", q: "BMW 640i stage 2 tune" }, // the build he's planning
   { key: "xbox", label: "🟢 Xbox" },
   { key: "cars", label: "🏎️ Cars & Top Gear" },
   { key: "racing", label: "🏁 Racing" },

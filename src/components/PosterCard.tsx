@@ -3,11 +3,14 @@ import { motion } from "framer-motion";
 import type { TmdbItem } from "../lib/types";
 import { IMG, titleOf, yearOf } from "../api/tmdb";
 import ServiceBadges from "./ServiceBadges";
+import { useSaved } from "../lib/favorites";
 
 /** Poster tile used across every rail and grid. */
 export default function PosterCard({ item }: { item: TmdbItem }) {
   const media = item.media_type || (item.title ? "movie" : "tv");
   const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
+  // Show at a glance what's already on your lists: ♥ favorited, ✓ watchlisted.
+  const { favorite, watchlist } = useSaved(item.id);
 
   return (
     <motion.div
@@ -40,6 +43,15 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
           >
             {media}
           </span>
+          {(favorite || watchlist) && (
+            <span
+              className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/75 px-1.5 py-0.5 text-[12px] font-bold leading-none shadow-card"
+              aria-label={favorite && watchlist ? "On your Favorites and Watchlist" : favorite ? "In your Favorites" : "On your Watchlist"}
+            >
+              {favorite && <span className="text-spray">♥</span>}
+              {watchlist && <span className="text-cyan">✓</span>}
+            </span>
+          )}
         </div>
       </Link>
       <div className="mt-2 px-0.5">

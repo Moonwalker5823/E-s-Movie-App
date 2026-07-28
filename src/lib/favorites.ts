@@ -64,6 +64,15 @@ export function useFavorites(): FavoriteItem[] {
   return useSyncExternalStore(subscribe, () => cache);
 }
 
+/** Live save-state for one title — drives the ♥ / ✓ badges on poster cards. */
+export function useSaved(id: number): { favorite: boolean; watchlist: boolean } {
+  const all = useFavorites();
+  return {
+    favorite: all.some((f) => f.id === id && f.list === "favorites"),
+    watchlist: all.some((f) => f.id === id && f.list === "watchlist"),
+  };
+}
+
 export function seedIds(): { id: number; media_type: MediaType }[] {
   // recent favorites first, used to build recommendation rows
   return cache

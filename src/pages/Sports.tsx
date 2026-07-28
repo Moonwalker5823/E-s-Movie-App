@@ -17,6 +17,8 @@ const HIGHLIGHT_TABS: HubTab[] = [
   { key: "nhl", label: "NHL" },
   { key: "soccer", label: "Soccer" },
   { key: "cfb", label: "CFB" },
+  { key: "pti", label: "🏓 PTI", q: "Pardon the Interruption" }, // full PTI episodes, freshest first
+  { key: "podcasts", label: "🎙️ Podcasts" }, // Club Shay Shay, Nightcap (Sharpe & Ocho), The Pivot…
   { key: "shows", label: "🎙️ Shows & Pods" },
   { key: "and1", label: "🏀 AND1 Streetball" },
 ];

@@ -6,6 +6,7 @@ import { videos, type Video } from "../api/videos";
 export interface HubTab {
   key: string;
   label: string;
+  q?: string; // when set, this tab runs a YouTube search for `q` instead of loading a channel set
 }
 
 function timeAgo(iso: string): string {
@@ -102,6 +103,7 @@ export default function VideoHub({
   freshHours,
   cinema = false,
   query,
+  musicSearch = false,
   rail,
 }: {
   tabs: HubTab[];
@@ -111,7 +113,8 @@ export default function VideoHub({
   daily?: boolean; // fresh daily rotation (server orders it by date; keep that order)
   freshHours?: number; // rotate every N hours instead of daily (Sports = 3); server-ordered
   cinema?: boolean; // The Mix: one big compilation player — no up-next tiles or browse grid
-  query?: string; // music search — when set, load search results instead of the tab's set
+  query?: string; // search — when set, load search results instead of the tab's set (whole hub)
+  musicSearch?: boolean; // bias searches (the `query` prop or a tab's `q`) toward songs
   rail?: React.ReactNode; // optional side panel (e.g. live scores) shown beside the viewer
 }) {
   const [tab, setTab] = useState(defaultKey || tabs[0].key);
@@ -511,6 +514,11 @@ export default function VideoHub({
     setCurrent((c) => (c + 1) % len);
   }
 
+  // A search runs when the whole hub is in search mode (`query` prop, e.g. the Music
+  // search box) OR when the ACTIVE tab carries its own `q` (e.g. Sports "PTI", Arcade
+  // "My BMW"). Otherwise the tab loads its curated channel set.
+  const effQuery = query ?? tabs.find((t) => t.key === tab)?.q;
+
   useEffect(() => {
     setItems(null);
     setOrder([]);
@@ -522,8 +530,8 @@ export default function VideoHub({
     setMuted(false);
     setCc(false);
     let alive = true;
-    const isSearch = !!query;
-    videos(isSearch ? "search" : tab, isSearch ? { q: query } : { short, daily, hours: freshHours })
+    const isSearch = !!effQuery;
+    videos(isSearch ? "search" : tab, isSearch ? { q: effQuery, music: musicSearch } : { short, daily, hours: freshHours })
       .then((v) => {
         if (!alive) return;
         setItems(v);
@@ -543,7 +551,7 @@ export default function VideoHub({
     return () => {
       alive = false;
     };
-  }, [tab, short, autoplay, daily, freshHours, query]);
+  }, [tab, short, autoplay, daily, freshHours, effQuery, musicSearch]);
 
   // Load a picked clip into the MAIN VIEWER (not fullscreen) and center it on screen.
   function playInHero(v: Video) {

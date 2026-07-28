@@ -7,7 +7,9 @@ import VideoHub, { type HubTab } from "../components/VideoHub";
 // Is A Joke / Wild 'N Out. Fresh daily, shuffled each visit.
 const COMEDY_TABS: HubTab[] = [
   { key: "comedy", label: "🔥 Mix" },
-  { key: "standup", label: "🎤 Stand-Up" },
+  { key: "kevinhart", label: "🎤 Kevin Hart" },
+  { key: "kattwilliams", label: "👑 Katt Williams" },
+  { key: "standup", label: "🎙️ Stand-Up" },
   { key: "skits", label: "🎭 Skits & Roasts" },
   { key: "ridiculousness", label: "😂 Ridiculousness" },
 ];

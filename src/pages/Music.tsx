@@ -66,7 +66,7 @@ export default function Music() {
       {/* Search results play in the viewer (relevance order); otherwise the tabbed reel
           (`daily` rotates a fresh on-topic lineup each day, shuffled per visit). */}
       {search ? (
-        <VideoHub key={`search-${search}`} tabs={[{ key: "search", label: `🔎 ${search}` }]} autoplay query={search} />
+        <VideoHub key={`search-${search}`} tabs={[{ key: "search", label: `🔎 ${search}` }]} autoplay query={search} musicSearch />
       ) : (
         <VideoHub tabs={MUSIC_TABS} autoplay daily />
       )}
