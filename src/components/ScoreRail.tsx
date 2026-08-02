@@ -71,7 +71,7 @@ function Spotlight({ card }: { card: ScoreCard }) {
         <div className="mt-2 space-y-0.5 border-t border-line pt-2">
           {card.stats.map((st, idx) => (
             <div key={idx} className="flex items-center justify-between gap-2 text-[10px]">
-              <span className="shrink-0 text-cream/40">{st.label}</span>
+              <span className="shrink-0 text-cream/60">{st.label}</span>
               <span className="truncate text-cream/70">{st.value}</span>
             </div>
           ))}
@@ -141,7 +141,7 @@ export default function ScoreRail() {
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="u-display text-sm text-cream">📊 Live Scores</h3>
-        {n > 0 && <span className="text-[10px] text-cream/40">{idx + 1}/{n}</span>}
+        {n > 0 && <span className="text-[10px] text-cream/60">{idx + 1}/{n}</span>}
       </div>
 
       {n > 1 && (
@@ -156,7 +156,7 @@ export default function ScoreRail() {
             {paused ? "▶" : "⏸"}
           </button>
           <button onClick={() => step(1)} data-focusable aria-label="Next game" className={ctrl}>⏭</button>
-          <span className="ml-1 truncate text-[10px] text-cream/40">{paused ? "paused" : "auto"} · all sports</span>
+          <span className="ml-1 truncate text-[10px] text-cream/60">{paused ? "paused" : "auto"} · all sports</span>
         </div>
       )}
 

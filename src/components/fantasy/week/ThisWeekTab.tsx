@@ -83,7 +83,7 @@ export default function ThisWeekTab() {
             )}
           </div>
           {syncMsg && <p className="mt-2 text-xs text-cream/60">{syncMsg}</p>}
-          <p className="mt-3 text-xs text-cream/40">
+          <p className="mt-3 text-xs text-cream/60">
             No draft yet? Draft your team in the Draft Room, or connect Sleeper in My Team → League Settings.
           </p>
         </div>

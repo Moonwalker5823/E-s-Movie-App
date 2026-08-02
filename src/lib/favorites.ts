@@ -16,7 +16,11 @@ let cache: FavoriteItem[] = read();
 const listeners = new Set<() => void>();
 
 function emit() {
-  localStorage.setItem(KEY, JSON.stringify(cache));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(cache));
+  } catch {
+    /* quota exceeded / private mode — keep the in-memory cache so the ♥/✓ still work this session */
+  }
   listeners.forEach((l) => l());
 }
 

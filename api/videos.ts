@@ -386,7 +386,8 @@ async function durationsFor(ids: string[]): Promise<Record<string, number>> {
       const batch = ids.slice(i, i + 50);
       try {
         const r = await fetch(
-          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(",")}&key=${key}`
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(",")}&key=${key}`,
+          { signal: AbortSignal.timeout(7000) }
         );
         const data = await r.json();
         for (const it of data.items || []) {
@@ -405,6 +406,7 @@ async function durationsFor(ids: string[]): Promise<Record<string, number>> {
       try {
         const r = await fetch(`https://www.youtube.com/watch?v=${id}`, {
           headers: { "user-agent": "Mozilla/5.0", "accept-language": "en-US,en", cookie: "SOCS=CAI;" },
+          signal: AbortSignal.timeout(7000),
         });
         const m = (await r.text()).match(/"lengthSeconds":"(\d+)"/);
         if (m) out[id] = Number(m[1]);
@@ -453,7 +455,10 @@ async function searchVideos(query: string, music = false): Promise<Item[]> {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}&sp=EgIQAQ%253D%253D`;
   try {
     const html = await (
-      await fetch(url, { headers: { "user-agent": "Mozilla/5.0", "accept-language": "en-US,en", cookie: "SOCS=CAI;" } })
+      await fetch(url, {
+        headers: { "user-agent": "Mozilla/5.0", "accept-language": "en-US,en", cookie: "SOCS=CAI;" },
+        signal: AbortSignal.timeout(7000),
+      })
     ).text();
     const out: Item[] = [];
     const seen = new Set<string>();
@@ -501,7 +506,7 @@ export default async function handler(req: any, res: any) {
       return;
     }
     const items = await searchVideos(query, music);
-    cache[key] = { at: Date.now(), items };
+    if (items.length) cache[key] = { at: Date.now(), items }; // don't cache a failed/empty scrape for 15m
     res.status(200).json({ items });
     return;
   }
@@ -524,7 +529,10 @@ export default async function handler(req: any, res: any) {
       try {
         // A source is either a channel (UC…) or a playlist (PL…) — same RSS feed, different param.
         const param = c.id.startsWith("PL") ? "playlist_id" : "channel_id";
-        const r = await fetch(`https://www.youtube.com/feeds/videos.xml?${param}=${c.id}`);
+        // Time out a slow feed so one hung channel can't stall the whole Promise.all.
+        const r = await fetch(`https://www.youtube.com/feeds/videos.xml?${param}=${c.id}`, {
+          signal: AbortSignal.timeout(6000),
+        });
         if (!r.ok) return [] as Item[];
         return parseFeed(await r.text(), c.name);
       } catch {
@@ -579,6 +587,6 @@ export default async function handler(req: any, res: any) {
   // Keep Trump / MAGA politics out of The Mix.
   if (POLITICS_SETS.has(set)) items = items.filter((i) => !POLITICS_RE.test(i.title));
 
-  cache[cacheKey] = { at: Date.now(), items };
+  if (items.length) cache[cacheKey] = { at: Date.now(), items }; // don't cache an all-feeds-failed empty for 15m
   res.status(200).json({ items });
 }

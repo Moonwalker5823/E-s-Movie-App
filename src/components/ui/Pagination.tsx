@@ -54,7 +54,7 @@ export default function Pagination({ page, totalPages, onChange, className }: Pr
 
       {pages.map((p, i) =>
         p === "gap" ? (
-          <span key={`gap-${i}`} aria-hidden className="px-1 text-cream/40">
+          <span key={`gap-${i}`} aria-hidden className="px-1 text-cream/60">
             …
           </span>
         ) : (

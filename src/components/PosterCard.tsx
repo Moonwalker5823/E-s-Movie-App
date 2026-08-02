@@ -27,7 +27,7 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
           {item.poster_path ? (
             <img src={IMG.poster(item.poster_path, "w500")} alt={titleOf(item)} loading="lazy" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center px-2 text-center text-xs text-cream/40">
+            <div className="flex h-full items-center justify-center px-2 text-center text-xs text-cream/60">
               {titleOf(item)}
             </div>
           )}
@@ -56,7 +56,7 @@ export default function PosterCard({ item }: { item: TmdbItem }) {
       </Link>
       <div className="mt-2 px-0.5">
         <div className="truncate text-sm font-semibold">{titleOf(item)}</div>
-        <div className="text-xs text-cream/40">{yearOf(item)}</div>
+        <div className="text-xs text-cream/60">{yearOf(item)}</div>
         {/* Brand badges for the services YOU have that carry this — display-only here;
             select the title to launch it from its detail page. */}
         <ServiceBadges media={media} id={item.id} lazy className="mt-1" />

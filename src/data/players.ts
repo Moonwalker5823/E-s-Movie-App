@@ -35,7 +35,7 @@ export const PLAYERS: Player[] = [
   { id: "dhop", name: "DeVonta Smith", pos: "WR", team: "PHI", bye: 5, adp: 24, tier: 3 },
   { id: "mixon", name: "Joe Mixon", pos: "RB", team: "HOU", bye: 14, adp: 25, tier: 3 },
   { id: "kwalker", name: "Kenneth Walker III", pos: "RB", team: "SEA", bye: 10, adp: 26, tier: 3 },
-  { id: "lajames", name: "LaPorta", pos: "TE", team: "DET", bye: 5, adp: 27, tier: 1 },
+  { id: "lajames", name: "Sam LaPorta", pos: "TE", team: "DET", bye: 5, adp: 27, tier: 1 },
   { id: "jchase2", name: "Marvin Harrison Jr.", pos: "WR", team: "ARI", bye: 11, adp: 28, tier: 2 },
   { id: "cook2", name: "James Cook", pos: "RB", team: "BUF", bye: 12, adp: 29, tier: 3 },
   { id: "jefferson2", name: "Rachaad White", pos: "RB", team: "TB", bye: 11, adp: 30, tier: 3 },

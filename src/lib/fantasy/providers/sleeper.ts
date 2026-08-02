@@ -1,5 +1,6 @@
 import type { Player, Pos } from "../types";
 import { byeFor } from "../byeWeeks";
+import { fetchWithTimeout } from "../../fetchTimeout";
 import type { LeagueProvider, LeagueMeta, ProviderRoster, Matchup, TrendingPlayer } from "./types";
 
 // Sleeper's public read API — free, no auth, CORS-open (same direct-fetch approach as
@@ -41,7 +42,7 @@ function toPlayer(raw: any): Player | null {
 }
 
 async function getJson(url: string): Promise<any> {
-  const r = await fetch(url);
+  const r = await fetchWithTimeout(url);
   if (!r.ok) throw new Error(`sleeper ${r.status}`);
   return r.json();
 }

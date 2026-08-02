@@ -50,7 +50,11 @@ const listeners = new Set<() => void>();
 
 function commit(next: Settings) {
   state = next;
-  localStorage.setItem(KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+  } catch {
+    /* storage full / disabled — settings apply in-memory for this session */
+  }
   listeners.forEach((l) => l());
 }
 

@@ -51,7 +51,7 @@ export default function Music() {
           onChange={(e) => setQ(e.target.value)}
           data-focusable
           placeholder="Search any artist or song…"
-          className="min-w-[12rem] flex-1 rounded-full border border-line bg-white/5 px-4 py-2 text-sm outline-none transition placeholder:text-cream/30 focus:border-spray/50 focus:bg-white/10 sm:max-w-md"
+          className="min-w-[12rem] flex-1 rounded-full border border-line bg-white/5 px-4 py-2 text-sm outline-none transition placeholder:text-cream/55 focus:border-spray/50 focus:bg-white/10 sm:max-w-md"
         />
         <button type="submit" data-focusable className="btn-spray shrink-0 !px-4 !py-2 text-sm">
           🔎 Search

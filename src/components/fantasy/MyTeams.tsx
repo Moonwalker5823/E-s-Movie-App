@@ -34,7 +34,7 @@ function TeamCard({ label, info }: { label: string; info: TeamInfo | null }) {
       {info?.standing && <div className="mt-2 text-xs text-cream/50">{info.standing}</div>}
       {info?.nextName && (
         <div className="mt-2 border-t border-line pt-2 text-xs text-cream/70">
-          <span className="text-cream/40">Next: </span>
+          <span className="text-cream/60">Next: </span>
           {info.nextName} · {fmtDate(info.nextDate)}
           {info.nextBroadcast ? ` · ${info.nextBroadcast}` : ""}
         </div>

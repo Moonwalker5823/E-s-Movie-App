@@ -13,7 +13,9 @@ export default function ScoutCard({ player }: { player: Player }) {
   const getReport = async () => {
     setLoading(true);
     const r = await askAssistant(
-      `Give a 2-3 sentence fantasy scouting report and current outlook for ${player.name} (${player.pos}, ${player.team}).`
+      `Give a 2-3 sentence fantasy scouting report and current outlook for ${player.name} (${player.pos}, ${player.team}).`,
+      // Honest offline stub about THIS player — never a generic "best available" pick.
+      `🔒 Live AI scouting needs your access code (Settings → AI Access Code). Offline snapshot — ${player.name}, ${player.pos} · ${player.team}, ADP ${player.adp}, bye week ${player.bye}. Tap Film & News above for the latest.`
     );
     setReport(r.reason || "No report available.");
     setLoading(false);
@@ -50,7 +52,7 @@ export default function ScoutCard({ player }: { player: Player }) {
       {report && (
         <p className="mt-3 rounded-lg border border-spray/30 bg-spray/5 p-3 text-sm text-cream/90">{report}</p>
       )}
-      <p className="mt-2 text-[11px] text-cream/40">
+      <p className="mt-2 text-[11px] text-cream/60">
         Stats are seed values — the AI report uses live knowledge.
       </p>
     </div>

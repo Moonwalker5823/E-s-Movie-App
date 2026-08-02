@@ -2,6 +2,24 @@ import Heading from "./ui/Heading";
 
 /** Shown on TMDB-powered pages until the user adds a free API key. */
 export default function SetupNotice() {
+  // On the deployed TV/WebView build a couch user can't edit `.env`; if the prod key
+  // is missing/invalid, show a friendly outage message instead of dev setup steps.
+  if (import.meta.env.PROD) {
+    return (
+      <div className="mx-auto max-w-2xl p-6 sm:p-10">
+        <div className="card p-6 sm:p-8">
+          <Heading emoji="🎬" label="♛ Hang tight">
+            Movies are taking a break
+          </Heading>
+          <p className="mt-3 text-cream/80">
+            The movie &amp; TV catalog is temporarily unavailable. Everything else in the app still works —
+            try again in a little while.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-2xl p-6 sm:p-10">
       <div className="card p-6 sm:p-8">

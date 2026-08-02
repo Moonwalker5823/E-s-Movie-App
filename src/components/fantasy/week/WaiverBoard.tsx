@@ -50,7 +50,7 @@ export default function WaiverBoard() {
                 <span className={`sticker ${prioClass[a.priority] || prioClass.low}`}>{a.priority}</span>
                 <span className="flex-1">
                   <span className="font-semibold text-cream">{a.name}</span>
-                  {a.pos && <span className="ml-1 text-xs text-cream/40">{a.pos}</span>}
+                  {a.pos && <span className="ml-1 text-xs text-cream/60">{a.pos}</span>}
                   <span className="block text-xs text-cream/50">{a.reason}</span>
                 </span>
                 {already ? (
@@ -63,8 +63,8 @@ export default function WaiverBoard() {
               </div>
             );
           })}
-          {res.drops.length > 0 && <p className="text-xs text-cream/40">Droppable: {res.drops.join(", ")}</p>}
-          <span className="text-[10px] uppercase tracking-wide text-cream/40">{res.source === "claude" ? "AI" : "offline"}</span>
+          {res.drops.length > 0 && <p className="text-xs text-cream/60">Droppable: {res.drops.join(", ")}</p>}
+          <span className="text-[10px] uppercase tracking-wide text-cream/60">{res.source === "claude" ? "AI" : "offline"}</span>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import type {
   TmdbItem,
   WatchProviders,
 } from "../lib/types";
+import { fetchWithTimeout } from "../lib/fetchTimeout";
 
 const BASE = "https://api.themoviedb.org/3";
 const TOKEN = import.meta.env.VITE_TMDB_TOKEN as string | undefined;
@@ -43,7 +44,7 @@ function tmdb<T>(path: string, params: Record<string, string | number> = {}): Pr
   const existing = tmdbInflight.get(key) as Promise<T> | undefined;
   if (existing) return existing;
 
-  const p = fetch(key, { headers })
+  const p = fetchWithTimeout(key, { headers })
     .then(async (res) => {
       if (!res.ok) throw new Error(`TMDB ${res.status}: ${await res.text().catch(() => "")}`);
       return res.json() as Promise<T>;

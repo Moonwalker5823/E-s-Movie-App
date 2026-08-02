@@ -113,7 +113,7 @@ function PlayerRow({ p, open, onToggle }: { p: Player; open: boolean; onToggle: 
         <span className={`font-display text-lg ${posColor[p.pos] || "text-cream"}`}>{p.pos}</span>
         <button onClick={onToggle} data-focusable className="flex-1 text-left">
           <div className="font-semibold text-cream">{p.name}</div>
-          <div className="text-xs text-cream/40">{p.team} · Bye {p.bye} · ADP {p.adp}</div>
+          <div className="text-xs text-cream/60">{p.team} · Bye {p.bye} · ADP {p.adp}</div>
         </button>
         <button onClick={() => draftPlayer(p.id, "me")} data-focusable className="btn-spray !px-3 !py-1 text-xs">
           Draft

@@ -171,9 +171,11 @@ body {
     @apply border-spray bg-spray text-cream shadow-piece;
   }
 
-  /* Horizontal rail */
+  /* Horizontal rail. Generous vertical padding so a focused poster's lift/scale +
+     glow (see the focus ring below) isn't clipped by overflow-x-auto — that ring is
+     the primary "what's selected?" cue on a 10-foot D-pad screen. */
   .rail {
-    @apply flex gap-4 overflow-x-auto scroll-smooth px-4 pb-2 sm:px-8;
+    @apply flex gap-4 overflow-x-auto scroll-smooth px-4 py-6 sm:px-8;
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -181,6 +183,30 @@ body {
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Edge-fade hint that a horizontal strip scrolls to more items — the TV has no
+     visible scrollbar, so without this the off-screen nav tabs look like all there is. */
+  .edge-fade {
+    position: relative;
+  }
+  .edge-fade::before,
+  .edge-fade::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 26px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .edge-fade::before {
+    left: 0;
+    background: linear-gradient(to right, rgb(var(--c-ink)), transparent);
+  }
+  .edge-fade::after {
+    right: 0;
+    background: linear-gradient(to left, rgb(var(--c-ink)), transparent);
   }
 
   /* Loading shimmer */

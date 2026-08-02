@@ -31,7 +31,7 @@ export default function Games() {
   return (
     <div className="px-4 pb-8 pt-4 sm:px-10">
       <Heading label="♛ Arcade" emoji="🎮" size="lg" className="mb-3">
-        Games, Anime &amp; Rides
+        Games, Cars &amp; Rides
       </Heading>
 
       {/* Featured games + cars at the very top. Full-length (not shorts-only) so

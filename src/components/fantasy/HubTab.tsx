@@ -4,6 +4,7 @@ import MyTeams from "./MyTeams";
 import Heading from "../ui/Heading";
 import LaunchTile, { type Tile } from "../LaunchTile";
 import { FANTASY_SITES } from "../../lib/services";
+import { useSettings } from "../../lib/settings";
 
 // Leagues come from the single source of truth (FANTASY_SITES).
 const LEAGUES: Tile[] = FANTASY_SITES.map((f) => ({
@@ -15,6 +16,7 @@ const LEAGUES: Tile[] = FANTASY_SITES.map((f) => ({
 
 /** The Fantasy home tab — draft CTA, league launchers, and your teams. */
 export default function HubTab() {
+  const { accessCode } = useSettings();
   return (
     <div>
       {/* Draft Room CTA */}
@@ -23,11 +25,11 @@ export default function HubTab() {
           whileHover={{ y: -4 }}
           className="frame overflow-hidden bg-gradient-to-r from-spraylo via-spray to-purple p-6"
         >
-          <div className="u-label !rotate-0 text-ink">Live · AI Powered</div>
+          <div className="u-label !rotate-0 text-ink">{accessCode ? "Live · AI Powered" : "Built-in draft brain"}</div>
           <div className="u-display text-4xl text-cream sm:text-5xl">Enter the Draft Room →</div>
           <p className="mt-1 max-w-xl text-sm text-cream/90">
-            Big-screen draft board with an AI assistant that recommends your pick, answers questions,
-            and scouts players live. Mark picks as they happen and it tracks your roster &amp; needs.
+            Big-screen draft board that recommends your pick, tracks your roster &amp; needs, and scouts
+            players. Add your AI access code in Settings to turn on live answers &amp; scouting reports.
           </p>
         </motion.div>
       </Link>

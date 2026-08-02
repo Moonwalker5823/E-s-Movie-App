@@ -2,10 +2,12 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDraft, myRoster, available, bestAvailable } from "../../lib/fantasy/draft";
 import { useLeague, starterCount } from "../../lib/fantasy/league";
+import { useSettings } from "../../lib/settings";
 
 /** Draft launcher + a quick resume summary of the draft in progress. */
 export default function DraftTab() {
   useDraft();
+  const { accessCode } = useSettings();
   const { roster: slots, teams } = useLeague();
   const roster = myRoster();
   const pool = available();
@@ -20,7 +22,7 @@ export default function DraftTab() {
           whileHover={{ y: -4 }}
           className="frame overflow-hidden bg-gradient-to-r from-spraylo via-spray to-purple p-6"
         >
-          <div className="u-label !rotate-0 text-ink">{teams}-team · Live · AI Powered</div>
+          <div className="u-label !rotate-0 text-ink">{teams}-team · {accessCode ? "Live · AI Powered" : "Built-in draft brain"}</div>
           <div className="u-display text-4xl text-cream sm:text-5xl">
             {started ? "Back to the Draft Room →" : "Enter the Draft Room →"}
           </div>
@@ -36,9 +38,9 @@ export default function DraftTab() {
           <div className="u-label mb-1">Your roster</div>
           <div className="font-display text-3xl text-cream">
             {roster.length}
-            <span className="text-lg text-cream/40"> / {totalStarters + slots.BENCH}</span>
+            <span className="text-lg text-cream/60"> / {totalStarters + slots.BENCH}</span>
           </div>
-          <div className="mt-1 text-xs text-cream/40">{totalStarters} starters + {slots.BENCH} bench</div>
+          <div className="mt-1 text-xs text-cream/60">{totalStarters} starters + {slots.BENCH} bench</div>
         </div>
         <div className="card p-4 sm:col-span-2">
           <div className="u-label mb-1">On the clock — best available</div>
@@ -47,7 +49,7 @@ export default function DraftTab() {
               <div className="font-display text-2xl text-cream">{pick.recommendation}</div>
               <p className="mt-1 text-sm text-cream/70">{pick.reason}</p>
               {pick.alternates.length > 0 && (
-                <p className="mt-1 text-xs text-cream/40">Also: {pick.alternates.join(" · ")}</p>
+                <p className="mt-1 text-xs text-cream/60">Also: {pick.alternates.join(" · ")}</p>
               )}
             </>
           ) : (

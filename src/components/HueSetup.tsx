@@ -186,7 +186,7 @@ export default function HueSetup() {
       )}
 
       {status && <p className="mt-3 text-xs text-cream/60">{status}</p>}
-      <p className="mt-2 text-[11px] text-cream/40">
+      <p className="mt-2 text-[11px] text-cream/60">
         Works in the TV app and on local Wi-Fi. On the public website, browsers block calls to the
         local bridge — that&apos;s expected; use the sideloaded app for lighting.
       </p>

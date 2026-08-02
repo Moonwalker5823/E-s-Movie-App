@@ -96,7 +96,7 @@ export default function Settings() {
             Pulls the latest version without restarting the TV — use this after an update ships. The
             <b> Build</b> code below changes once the new version loads.
           </div>
-          <div className="u-label !rotate-0 shrink-0 text-cream/40">Build {__APP_VERSION__}</div>
+          <div className="u-label !rotate-0 shrink-0 text-cream/60">Build {__APP_VERSION__}</div>
         </div>
       </section>
 
@@ -135,7 +135,7 @@ export default function Settings() {
                     {svc.name}
                     {svc.free ? " · FREE" : ""}
                   </div>
-                  <div className={`text-xs ${owned ? "text-live" : "text-cream/40"}`}>
+                  <div className={`text-xs ${owned ? "text-live" : "text-cream/60"}`}>
                     {owned ? "✓ Signed in" : "Not connected"}
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function Settings() {
           </button>
           <div className="flex-1">
             <div className="font-semibold text-cream">Hide the “X” tab</div>
-            <div className="text-xs text-cream/40">
+            <div className="text-xs text-cream/60">
               {s.hideX ? "The adult (18+) tab is hidden from the nav bar." : "The adult (18+) tab is visible in the nav bar."}
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function Settings() {
             placeholder="Access code (optional)"
             className="mt-3 w-full max-w-xs rounded-lg border-2 border-line bg-white/5 px-3 py-2 text-sm outline-none focus:border-spray/50"
           />
-          <p className="mt-2 text-xs text-cream/40">
+          <p className="mt-2 text-xs text-cream/60">
             Owner: set the allowed codes in Vercel → Environment Variables → <code className="font-mono">APP_ACCESS_CODES</code>
             {" "}(comma-separated). Remove someone&apos;s code and redeploy to block just them.
           </p>
@@ -224,7 +224,7 @@ export default function Settings() {
             Clear Draft
           </button>
         </div>
-        <p className="mt-2 text-xs text-cream/40">All your data lives only in this browser — nothing is uploaded.</p>
+        <p className="mt-2 text-xs text-cream/60">All your data lives only in this browser — nothing is uploaded.</p>
       </section>
     </div>
   );

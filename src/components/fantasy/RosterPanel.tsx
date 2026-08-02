@@ -54,10 +54,10 @@ export default function RosterPanel() {
         {roster.length === 0 && <p className="text-sm text-cream/50">No picks yet. Draft your first player →</p>}
         {roster.map((p, i) => (
           <div key={p.id} className="flex items-center gap-3 rounded-lg border border-line bg-white/5 px-3 py-2">
-            <span className="w-5 text-xs text-cream/40">{i + 1}</span>
+            <span className="w-5 text-xs text-cream/60">{i + 1}</span>
             <span className="font-display text-cream">{p.pos}</span>
             <span className="flex-1 text-sm font-semibold text-cream">{p.name}</span>
-            <span className="text-xs text-cream/40">{p.team}</span>
+            <span className="text-xs text-cream/60">{p.team}</span>
           </div>
         ))}
       </div>

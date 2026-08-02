@@ -65,6 +65,7 @@ export default async function handler(req: any, res: any) {
   }
 
   let nodes: Node[] = [];
+  let ok = false; // did JustWatch actually answer? (don't cache a failure as "no links")
   try {
     const r = await fetch(JW_ENDPOINT, {
       method: "POST",
@@ -74,11 +75,13 @@ export default async function handler(req: any, res: any) {
         variables: { country: "US", language: "en", first: 8, filter: { searchQuery: title } },
         query: QUERY,
       }),
+      signal: AbortSignal.timeout(7000), // fail fast instead of hanging the function
     });
     const data = await r.json();
     nodes = (data?.data?.popularTitles?.edges || []).map((e: any) => e.node).filter(Boolean);
+    ok = true;
   } catch {
-    /* JustWatch unreachable — client falls back to its search URL */
+    /* JustWatch unreachable / timed out — client falls back to its search URL */
   }
 
   const wantType = type === "tv" ? "SHOW" : type === "movie" ? "MOVIE" : null;
@@ -112,6 +115,8 @@ export default async function handler(req: any, res: any) {
   }
 
   const body = { links, matched: byTmdb ? "tmdb" : byMeta ? "meta" : node ? "loose" : "none" };
-  cache[cacheKey] = { at: Date.now(), body };
+  // Only cache a real answer — never a fetch failure, or a transient JustWatch outage
+  // would suppress deep links for the full 6h TTL.
+  if (ok) cache[cacheKey] = { at: Date.now(), body };
   res.status(200).json(body);
 }

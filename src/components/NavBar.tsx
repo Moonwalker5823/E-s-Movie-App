@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useSettings } from "../lib/settings";
 
@@ -21,7 +21,9 @@ export default function NavBar() {
   const [q, setQ] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const nav = useNavigate();
+  const { pathname } = useLocation();
   const { hideX } = useSettings();
 
   // The adult "X" tab is appended only when it isn't hidden in Settings.
@@ -31,6 +33,12 @@ export default function NavBar() {
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
+
+  // Keep the active tab in view — with 12–13 tabs most are scrolled off-screen on the
+  // TV, so on every route change center the current one in the strip.
+  useEffect(() => {
+    navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [pathname]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,23 +65,25 @@ export default function NavBar() {
           </span>
         </NavLink>
 
-        <nav className="no-scrollbar -my-2 flex items-center gap-1 overflow-x-auto py-2 sm:gap-2">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.end}
-              data-focusable
-              className={({ isActive }) =>
-                `shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition sm:px-4 ${
-                  isActive ? "bg-spray/15 text-spray" : "text-cream/60 hover:text-cream"
-                }`
-              }
-            >
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="edge-fade min-w-0 flex-1">
+          <nav ref={navRef} className="no-scrollbar -my-2 flex items-center gap-1 overflow-x-auto py-2 sm:gap-2">
+            {links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                end={l.end}
+                data-focusable
+                className={({ isActive }) =>
+                  `shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition sm:px-4 ${
+                    isActive ? "bg-spray text-cream shadow-piece" : "text-cream/80 hover:text-cream"
+                  }`
+                }
+              >
+                {l.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
 
         {/* Search stays a compact icon until pressed, then expands to an input. */}
         <form onSubmit={submit} className="ml-auto flex shrink-0 items-center">
@@ -85,7 +95,7 @@ export default function NavBar() {
               onBlur={() => !q.trim() && setSearchOpen(false)}
               data-focusable
               placeholder="Search movies, TV…"
-              className="w-44 rounded-full border border-line bg-white/10 px-4 py-2 text-sm outline-none transition placeholder:text-cream/30 focus:border-spray/40 sm:w-72"
+              className="w-44 rounded-full border border-line bg-white/10 px-4 py-2 text-sm outline-none transition placeholder:text-cream/55 focus:border-spray/40 sm:w-72"
             />
           ) : (
             <button
@@ -106,7 +116,7 @@ export default function NavBar() {
           aria-label="Settings"
           className={({ isActive }) =>
             `grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg transition ${
-              isActive ? "bg-spray/15 text-spray" : "text-cream/60 hover:text-cream"
+              isActive ? "bg-spray text-cream shadow-piece" : "text-cream/80 hover:text-cream"
             }`
           }
         >

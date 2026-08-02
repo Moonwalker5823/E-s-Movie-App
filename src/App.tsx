@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import SetupNotice from "./components/SetupNotice";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import LiveTV from "./pages/LiveTV";
@@ -70,6 +71,7 @@ export default function App() {
     <div className="min-h-full pb-16">
       <div className="tab-bg" data-tab={tab} aria-hidden />
       <NavBar />
+      <ErrorBoundary>
       <Routes>
         <Route path="/" element={gated(<Landing />)} />
         <Route path="/settings" element={<SettingsPage />} />
@@ -89,6 +91,7 @@ export default function App() {
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/title/:media/:id" element={gated(<Title />)} />
       </Routes>
+      </ErrorBoundary>
     </div>
   );
 }

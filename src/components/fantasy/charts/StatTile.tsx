@@ -6,7 +6,7 @@ export default function StatTile({ label, value, sub }: { label: string; value: 
     <div className="rounded-xl border border-line bg-white/5 p-3">
       <div className="u-label !rotate-0 text-[10px]">{label}</div>
       <div className="font-display text-2xl text-cream">{value}</div>
-      {sub && <div className="text-xs text-cream/40">{sub}</div>}
+      {sub && <div className="text-xs text-cream/60">{sub}</div>}
     </div>
   );
 }

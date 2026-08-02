@@ -19,7 +19,7 @@ export default function MyTeamTab() {
               <span key={p.id} className="rounded-lg border border-line bg-white/5 px-3 py-1.5 text-sm">
                 <b className="font-display text-cream">{p.pos}</b>{" "}
                 <span className="text-cream/80">{p.name}</span>{" "}
-                <span className="text-cream/40">{p.team}</span>
+                <span className="text-cream/60">{p.team}</span>
               </span>
             ))}
           </div>

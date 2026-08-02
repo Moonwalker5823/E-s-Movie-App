@@ -168,7 +168,7 @@ export default function LeagueSettings() {
               <Stepper label="Fumble lost" value={scoring.fumble} onChange={(v) => setScoringStat("fumble", v)} min={-10} max={0} step={1} suffix=" pt" />
             </div>
           )}
-          <p className="mt-2 text-xs text-cream/40">
+          <p className="mt-2 text-xs text-cream/60">
             {scoring.preset === "standard"
               ? "No points per reception — leans RB-heavy."
               : scoring.preset === "half"

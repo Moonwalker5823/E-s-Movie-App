@@ -30,11 +30,11 @@ export default function StartSitCard() {
           </div>
           {res.sit.length > 0 && (
             <div>
-              <span className="u-label !text-cream/40">Bench</span> <span className="text-cream/50">{res.sit.join(", ")}</span>
+              <span className="u-label !text-cream/60">Bench</span> <span className="text-cream/50">{res.sit.join(", ")}</span>
             </div>
           )}
           <p className="text-xs text-cream/60">{res.reason}</p>
-          <span className="text-[10px] uppercase tracking-wide text-cream/40">{res.source === "claude" ? "AI" : "offline"}</span>
+          <span className="text-[10px] uppercase tracking-wide text-cream/60">{res.source === "claude" ? "AI" : "offline"}</span>
         </div>
       )}
     </div>

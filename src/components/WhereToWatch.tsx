@@ -142,7 +142,7 @@ export default function WhereToWatch({
           <ProviderGroup label="Free with ads" list={wp.ads} title={title} deepLinks={deepLinks} />
           <ProviderGroup label="Rent" list={wp.rent} title={title} deepLinks={deepLinks} />
           <ProviderGroup label="Buy" list={wp.buy} title={title} deepLinks={deepLinks} />
-          <p className="mt-1 text-xs text-cream/40">
+          <p className="mt-1 text-xs text-cream/60">
             Tapping a service opens it (and hands off to the app on your TV). Set what you subscribe to
             in Settings → My Services to highlight what you can watch free.
           </p>

@@ -78,8 +78,9 @@ export default function AssistantPanel() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           data-focusable
-          placeholder="Ask… e.g. 'RB or WR here?'"
-          className="w-full rounded-lg border-2 border-line bg-white/5 px-4 py-2 text-sm outline-none focus:border-spray/50"
+          disabled={locked}
+          placeholder={locked ? "🔒 Add your access code to ask live questions" : "Ask… e.g. 'RB or WR here?'"}
+          className="w-full rounded-lg border-2 border-line bg-white/5 px-4 py-2 text-sm outline-none focus:border-spray/50 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </form>
     </div>

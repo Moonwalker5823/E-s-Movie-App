@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "../lib/fetchTimeout";
+
 export interface Team {
   displayName: string;
   abbreviation: string;
@@ -46,7 +48,7 @@ export interface TeamInfo {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function teamInfo(path: string, id: string): Promise<TeamInfo> {
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${path}/teams/${id}`);
+  const res = await fetchWithTimeout(`https://site.api.espn.com/apis/site/v2/sports/${path}/teams/${id}`);
   if (!res.ok) throw new Error(`ESPN ${res.status}`);
   const t = (await res.json())?.team || {};
   const next = t.nextEvent?.[0];
@@ -133,7 +135,7 @@ async function leagueCards(lg: RailLeague): Promise<ScoreCard[]> {
   // July). Racing/combat are weekly & sparse, so we take their current/next event and
   // let the date window in railScores() decide whether it's close enough to show.
   const q = lg.kind === "team" ? `?dates=${ymd(-1)}-${ymd(0)}` : "";
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${lg.path}/scoreboard${q}`);
+  const res = await fetchWithTimeout(`https://site.api.espn.com/apis/site/v2/sports/${lg.path}/scoreboard${q}`);
   if (!res.ok) return [];
   const data = await res.json();
   const events = data.events || [];
@@ -213,7 +215,7 @@ async function leagueCards(lg: RailLeague): Promise<ScoreCard[]> {
 async function boxingCards(): Promise<ScoreCard[]> {
   const TSDB = "https://www.thesportsdb.com/api/v1/json/3";
   const LEAGUE = "4445"; // TheSportsDB "Boxing"
-  const grab = (u: string) => fetch(u).then((r) => (r.ok ? r.json() : { events: [] })).catch(() => ({ events: [] }));
+  const grab = (u: string) => fetchWithTimeout(u).then((r) => (r.ok ? r.json() : { events: [] })).catch(() => ({ events: [] }));
   const [next, past] = await Promise.all([
     grab(`${TSDB}/eventsnextleague.php?id=${LEAGUE}`),
     grab(`${TSDB}/eventspastleague.php?id=${LEAGUE}`),
@@ -287,7 +289,7 @@ export async function liveGames(): Promise<Game[]> {
 }
 
 export async function scoreboard(path: string): Promise<Game[]> {
-  const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`);
+  const res = await fetchWithTimeout(`https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`);
   if (!res.ok) throw new Error(`ESPN ${res.status}`);
   const data = await res.json();
 

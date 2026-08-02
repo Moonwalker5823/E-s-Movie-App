@@ -25,7 +25,12 @@ import type {
 // draft brain if the AI endpoint isn't configured/available (local dev, no key,
 // network hiccup) or if this device is blocked/rate-limited — so the tool
 // always works, just without live AI.
-export async function askAssistant(question?: string): Promise<AssistantPick> {
+//
+// `offlineReason`: when the caller's question is player/topic-specific (scouting a
+// named player, a free-text Q&A) the generic "best available pick" fallback would be
+// misleading — it answers a different question. Pass an honest, on-topic offline
+// message here and it's returned verbatim instead of a bogus recommendation.
+export async function askAssistant(question?: string, offlineReason?: string): Promise<AssistantPick> {
   const roster = myRoster().map((p) => `${p.name} (${p.pos})`);
   const pool = available()
     .slice(0, 40)
@@ -58,7 +63,17 @@ export async function askAssistant(question?: string): Promise<AssistantPick> {
     /* fall through to offline */
   }
 
-  // Graceful fallback — offline value-based recommendation.
+  // Graceful fallback. For a topic-specific ask, return the honest offline message
+  // (not a generic pick about some other player).
+  if (offlineReason) {
+    return {
+      recommendation: "",
+      reason: `${note ? note + " " : ""}${offlineReason}`.trim(),
+      alternates: [],
+      source: "offline",
+    };
+  }
+  // Otherwise (the "who should I pick?" button) a value-based recommendation is correct.
   const pick = bestAvailable();
   pick.reason = `${note || "AI offline — using the built-in draft brain."} ${pick.reason}`.trim();
   return pick;

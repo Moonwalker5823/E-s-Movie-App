@@ -2,6 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import Chip from "./ui/Chip";
 import Skeleton from "./ui/Skeleton";
 import { videos, type Video } from "../api/videos";
+import { saveResume, getResume, type ResumePoint } from "../lib/resume";
+
+// mm:ss for the resume label.
+function fmtTime(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
 
 export interface HubTab {
   key: string;
@@ -119,6 +127,7 @@ export default function VideoHub({
   const [items, setItems] = useState<Video[] | null>(null);
   const [order, setOrder] = useState<Video[]>([]); // shuffled play order (the viewer's playlist)
   const [current, setCurrent] = useState(0); // index in `order` currently playing
+  const [resume, setResume] = useState<ResumePoint | null>(null); // "pick up where you left off" offer
   const [error, setError] = useState(false);
   const [errMissing, setErrMissing] = useState(false); // 404 = no /api (local dev) vs a transient error
   const [fullVid, setFullVid] = useState<Video | null>(null);
@@ -516,11 +525,13 @@ export default function VideoHub({
   // search box) OR when the ACTIVE tab carries its own `q` (e.g. Sports "PTI", Arcade
   // "My BMW"). Otherwise the tab loads its curated channel set.
   const effQuery = query ?? tabs.find((t) => t.key === tab)?.q;
+  const isSearch = !!effQuery;
 
   useEffect(() => {
     setItems(null);
     setOrder([]);
     setCurrent(0);
+    setResume(null);
     setError(false);
     setErrMissing(false);
     setFull(false);
@@ -528,7 +539,6 @@ export default function VideoHub({
     setMuted(false);
     setCc(false);
     let alive = true;
-    const isSearch = !!effQuery;
     videos(isSearch ? "search" : tab, isSearch ? { q: effQuery, music: musicSearch } : { short, hours: freshHours })
       .then((v) => {
         if (!alive) return;
@@ -536,7 +546,14 @@ export default function VideoHub({
         // Shuffle the play order per visit so the same clip doesn't greet you every time
         // — EXCEPT search, which keeps YouTube's relevance order (best match first).
         // `freshHours` keeps the CONTENT pool fresh; this just varies the ORDER.
-        setOrder(autoplay ? (isSearch ? v : shuffle(v)) : []);
+        const ord = autoplay ? (isSearch ? v : shuffle(v)) : [];
+        setOrder(ord);
+        // Offer to resume this tab's reel if we have a recent spot AND that clip is still
+        // in the (rotated) lineup. Not for searches — those aren't a continuous reel.
+        if (autoplay && !isSearch) {
+          const r = getResume(tab);
+          setResume(r && ord.some((o) => o.videoId === r.videoId) ? r : null);
+        }
       })
       .catch((e) => {
         if (!alive) return;
@@ -550,6 +567,42 @@ export default function VideoHub({
       alive = false;
     };
   }, [tab, short, autoplay, freshHours, effQuery, musicSearch]);
+
+  // Periodically remember where you are in the reel (per tab) so you can resume next
+  // session. Reads the LIVE playlist index straight from the player, not React state.
+  useEffect(() => {
+    if (!autoplay || !order.length || isSearch) return;
+    const id = window.setInterval(() => {
+      const p = playerRef.current;
+      if (!p || !p.getCurrentTime || !p.getPlaylistIndex) return;
+      try {
+        const i = p.getPlaylistIndex();
+        const v = typeof i === "number" && i >= 0 ? order[i] : null;
+        const t = p.getCurrentTime() || 0;
+        if (v && t > 5) saveResume(tab, { videoId: v.videoId, seconds: t, title: v.title });
+      } catch {
+        /* ignore */
+      }
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [autoplay, order, tab, isSearch]);
+
+  // Jump to the saved spot and seek there (reuses the main player's seek-on-start path).
+  function doResume() {
+    if (!resume) return;
+    const idx = order.findIndex((o) => o.videoId === resume.videoId);
+    if (idx >= 0) {
+      mainSeekRef.current = resume.seconds > 3 ? resume.seconds : null;
+      try {
+        playerRef.current?.playVideoAt(idx);
+      } catch {
+        /* ignore */
+      }
+      setCurrent(idx);
+      (heroPlayerRef.current ?? heroWrapRef.current)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    setResume(null);
+  }
 
   // Load a picked clip into the MAIN VIEWER (not fullscreen) and center it on screen.
   function playInHero(v: Video) {
@@ -682,7 +735,7 @@ export default function VideoHub({
   const meta = feat ? (
     <>
       <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
-      <div className="text-xs text-cream/40">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
+      <div className="text-xs text-cream/60">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
     </>
   ) : null;
 
@@ -695,6 +748,13 @@ export default function VideoHub({
           ref={heroWrapRef}
           className={`mx-auto mb-5 w-full ${cinema ? "max-w-[min(96rem,168vh)]" : rail ? "max-w-[min(78rem,165vh)]" : "max-w-[min(64rem,150vh)]"} ${full ? "pointer-events-none" : ""}`}
         >
+          {resume && (
+            <div className="mb-3 flex justify-center">
+              <button onClick={doResume} data-focusable className="btn-ghost !py-1.5 text-sm" title={`Resume ${resume.title}`}>
+                ▶ Resume “{resume.title.length > 48 ? resume.title.slice(0, 47) + "…" : resume.title}” · {fmtTime(resume.seconds)}
+              </button>
+            </div>
+          )}
           {items === null ? (
             cinema ? (
               <Skeleton className="aspect-video rounded-2xl" />
@@ -833,7 +893,7 @@ export default function VideoHub({
                 <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-cream">▶ {autoplay ? "Play here" : "Play"}</span>
               </div>
               <div className="mt-1.5 line-clamp-2 text-sm font-semibold text-cream">{v.title}</div>
-              <div className="text-xs text-cream/40">
+              <div className="text-xs text-cream/60">
                 {v.channel}
                 {v.published ? ` · ${timeAgo(v.published)}` : ""}
               </div>

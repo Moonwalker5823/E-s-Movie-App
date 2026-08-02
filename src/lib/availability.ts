@@ -25,8 +25,21 @@ const disk: Persisted = (() => {
   }
 })();
 
+const MAX_ENTRIES = 1500; // backstop so the blob can't grow toward the ~5MB quota
+
 function saveDisk(k: string, keys: string[]) {
   disk[k] = { at: Date.now(), keys };
+  // Prune on write: the TTL was only enforced on read before, so expired entries
+  // accumulated forever. Drop them here, then cap the total as a quota backstop.
+  const now = Date.now();
+  for (const key in disk) if (now - disk[key].at >= TTL) delete disk[key];
+  const all = Object.keys(disk);
+  if (all.length > MAX_ENTRIES) {
+    all
+      .sort((a, b) => disk[a].at - disk[b].at) // oldest first
+      .slice(0, all.length - MAX_ENTRIES)
+      .forEach((old) => delete disk[old]);
+  }
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(disk));
   } catch {

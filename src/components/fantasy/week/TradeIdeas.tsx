@@ -36,7 +36,7 @@ export default function TradeIdeas() {
                 <p className="mt-0.5 text-xs text-cream/50">{idea.reason}</p>
               </div>
             ))}
-            <span className="text-[10px] uppercase tracking-wide text-cream/40">{res.source === "claude" ? "AI" : "offline"}</span>
+            <span className="text-[10px] uppercase tracking-wide text-cream/60">{res.source === "claude" ? "AI" : "offline"}</span>
           </div>
         ))}
     </div>

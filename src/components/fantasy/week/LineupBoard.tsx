@@ -58,15 +58,15 @@ export default function LineupBoard({ week }: { week: number }) {
                 {p ? (
                   <span className="flex-1 truncate">
                     <span className="font-semibold text-cream">{p.name}</span>{" "}
-                    <span className="text-xs text-cream/40">
+                    <span className="text-xs text-cream/60">
                       {p.pos}-{p.team}
                       {onBye ? " · BYE" : ""}
                     </span>
                   </span>
                 ) : (
-                  <span className="flex-1 text-cream/40">Empty — tap to fill</span>
+                  <span className="flex-1 text-cream/60">Empty — tap to fill</span>
                 )}
-                <span className="text-cream/30">{open ? "▲" : "▼"}</span>
+                <span className="text-cream/55">{open ? "▲" : "▼"}</span>
               </button>
               {open && (
                 <div className="ml-14 mt-1 flex flex-wrap gap-1.5">
@@ -79,7 +79,7 @@ export default function LineupBoard({ week }: { week: number }) {
                         lineup[slot.id] === cp.id ? "border-spray bg-spray/20 text-cream" : "border-line bg-white/5 text-cream/80"
                       }`}
                     >
-                      {cp.name} <span className="text-cream/40">{cp.pos}{week > 0 && cp.bye === week ? "·BYE" : ""}</span>
+                      {cp.name} <span className="text-cream/60">{cp.pos}{week > 0 && cp.bye === week ? "·BYE" : ""}</span>
                     </button>
                   ))}
                   {lineup[slot.id] && (
@@ -100,11 +100,11 @@ export default function LineupBoard({ week }: { week: number }) {
         <div className="flex flex-wrap gap-1.5">
           {roster.filter((p) => !assignedIds.has(p.id)).map((p) => (
             <span key={p.id} className="rounded-lg border border-line bg-white/5 px-2 py-1 text-xs text-cream/70">
-              {p.name} <span className="text-cream/40">{p.pos}</span>
+              {p.name} <span className="text-cream/60">{p.pos}</span>
             </span>
           ))}
           {roster.filter((p) => !assignedIds.has(p.id)).length === 0 && (
-            <span className="text-xs text-cream/40">Everyone's starting.</span>
+            <span className="text-xs text-cream/60">Everyone's starting.</span>
           )}
         </div>
       </div>

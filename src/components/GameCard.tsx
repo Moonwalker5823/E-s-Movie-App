@@ -113,7 +113,7 @@ export default function GameCard({ g }: { g: Game }) {
 
       {live ? (
         <div className="mt-3">
-          <div className="mb-1.5 truncate text-xs text-cream/40">{g.venue || ""}</div>
+          <div className="mb-1.5 truncate text-xs text-cream/60">{g.venue || ""}</div>
           {myLive.length > 0 ? (
             // Open the game on YOUR services that carry this network. There's no public
             // per-game deep link, so this lands on the service's live area (where the
@@ -149,7 +149,7 @@ export default function GameCard({ g }: { g: Game }) {
         </div>
       ) : (
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="truncate text-xs text-cream/40">{g.venue || ""}</span>
+          <span className="truncate text-xs text-cream/60">{g.venue || ""}</span>
           <a
             href={watchLink(g.broadcasts, g.home.displayName, g.away.displayName)}
             target="_blank"

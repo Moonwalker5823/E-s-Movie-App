@@ -27,7 +27,7 @@ function Grid({ items, list }: { items: FavoriteItem[]; list: "favorites" | "wat
               {f.poster_path ? (
                 <img src={IMG.poster(f.poster_path, "w500")} alt={f.title} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center p-2 text-center text-xs text-cream/40">
+                <div className="flex h-full items-center justify-center p-2 text-center text-xs text-cream/60">
                   {f.title}
                 </div>
               )}
@@ -40,7 +40,7 @@ function Grid({ items, list }: { items: FavoriteItem[]; list: "favorites" | "wat
                 toggleSave({ id: f.id, media_type: f.media_type, title: f.title, poster_path: f.poster_path }, list)
               }
               data-focusable
-              className="text-cream/40 transition hover:text-spray"
+              className="text-cream/60 transition hover:text-spray"
               aria-label="remove"
             >
               ✕
