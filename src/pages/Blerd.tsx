@@ -13,6 +13,7 @@ const BLERD_TABS: HubTab[] = [
   { key: "ted", label: "🎤 TED" },
   { key: "aliens", label: "👽 Aliens & UFOs" },
   { key: "code", label: "💻 Code" },
+  { key: "anime", label: "🥋 Anime" }, // moved here from Arcade — action/shonen (Baki, etc.)
 ];
 
 // Nerd news, gear drops, and dev culture — one tap opens the site.
@@ -33,8 +34,9 @@ export default function Blerd() {
         Black Nerd HQ
       </Heading>
 
-      {/* Featured video at the very top */}
-      <VideoHub tabs={BLERD_TABS} autoplay short daily />
+      {/* Featured video at the very top. `freshHours={12}` rotates a fresh lineup
+          twice a day, cycling the whole catalog (not the same clips reshuffled). */}
+      <VideoHub tabs={BLERD_TABS} autoplay short freshHours={12} />
 
       {/* Fact of the Day — rotates daily */}
       <section className="mt-10">

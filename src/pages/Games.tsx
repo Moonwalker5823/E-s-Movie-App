@@ -3,15 +3,13 @@ import LaunchTile, { type Tile } from "../components/LaunchTile";
 import VideoHub, { type HubTab } from "../components/VideoHub";
 
 // Video games + cars — auto-plays the top clip of the day. Car-heavy: real car
-// shows (Top Gear feels) and racing alongside the gaming tabs.
+// shows (Top Gear feels) and racing alongside the gaming tabs. His BMW and the Stage 2
+// build he's planning share one tab; Cars & Racing share one too.
 const CLIP_TABS: HubTab[] = [
   { key: "gaming", label: "🎮 Games" },
-  { key: "mybmw", label: "🚗 My BMW 640i", q: "BMW 640i" }, // Eric's ride
-  { key: "stage2", label: "⚙️ Stage 2 Tune", q: "BMW 640i stage 2 tune" }, // the build he's planning
+  { key: "mybmw", label: "🚗 My BMW · Stage 2", q: "BMW 640i stage 2" }, // Eric's ride + the tune he's planning
   { key: "xbox", label: "🟢 Xbox" },
-  { key: "cars", label: "🏎️ Cars & Top Gear" },
-  { key: "racing", label: "🏁 Racing" },
-  { key: "anime", label: "🥋 Anime" },
+  { key: "motors", label: "🏎️ Cars & Racing" }, // car shows (Top Gear feels) + motorsport + racing games
 ];
 
 // Browser-based cloud gaming — play right on the TV, no console hookup needed.
@@ -37,9 +35,9 @@ export default function Games() {
       </Heading>
 
       {/* Featured games + cars at the very top. Full-length (not shorts-only) so
-          car shows / Top Gear segments and anime episodes play in full. `daily`
-          rotates a fresh lineup each day. */}
-      <VideoHub tabs={CLIP_TABS} autoplay daily />
+          car shows / Top Gear segments play in full. `freshHours={12}` rotates a
+          fresh lineup twice a day, cycling the whole catalog. */}
+      <VideoHub tabs={CLIP_TABS} autoplay freshHours={12} />
 
       <Heading emoji="🟢" className="mb-2 mt-10">
         Xbox

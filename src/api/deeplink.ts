@@ -33,8 +33,15 @@ export function deepLinkFor(providerName: string, links?: DeepLinks): string | u
   const safe = (u?: string) => (u && u.startsWith("https://") ? u : undefined); // href guard (defense in depth)
   if (links[n]) return safe(links[n]);
   // Tolerate naming drift ("Tubi TV" vs "Tubi", "Peacock Premium" vs "Peacock",
-  // "Disney Plus" vs "Disney+"). Prefix-only so short names don't cross-match
-  // (e.g. "Max" must not grab "Cinemax").
-  const k = Object.keys(links).find((key) => key.startsWith(n) || n.startsWith(key));
+  // "Disney Plus" vs "Disney+", "Amazon Prime Video" vs "Prime Video"). Prefix match,
+  // plus a substring match gated to names ≥5 chars so a pill's own service name
+  // ("Prime Video") still finds JustWatch's "amazonprimevideo" key — while short names
+  // never cross-match (e.g. "Max" must not grab "Cinemax").
+  const k = Object.keys(links).find(
+    (key) =>
+      key.startsWith(n) ||
+      n.startsWith(key) ||
+      (n.length >= 5 && (key.includes(n) || n.includes(key)))
+  );
   return k ? safe(links[k]) : undefined;
 }

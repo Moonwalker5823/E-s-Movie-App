@@ -3,6 +3,7 @@ import { useAvailability } from "../lib/availability";
 import { serviceByKey } from "../lib/services";
 import { launchUrlFor } from "../lib/providers";
 import { useSettings } from "../lib/settings";
+import type { DeepLinks } from "../api/deeplink";
 import type { MediaType } from "../lib/types";
 
 interface Props {
@@ -14,6 +15,9 @@ interface Props {
    *  detail page — in grids/rails the badges are display-only (you select the movie
    *  first, then launch from its detail page). */
   clickable?: boolean;
+  /** Exact per-title deep links (from /api/deeplink) so a clickable badge lands on the
+   *  precise title — the SAME link the "Play on X" buttons use, not a search page. */
+  deepLinks?: DeepLinks;
   /** Defer the provider lookup until the badges scroll near the viewport — used on the
    *  poster grids so a screen full of posters doesn't fire dozens of lookups at once. */
   lazy?: boolean;
@@ -23,7 +27,7 @@ interface Props {
 // Small "on Hulu / Prime / Tubi" brand badges — shows which of YOUR services carry
 // this title (from TMDB watch-provider data). Shown on every poster card + My List as
 // plain labels; only the detail page passes `clickable` so tapping one plays it there.
-export default function ServiceBadges({ media, id, title, clickable = false, lazy = false, className = "" }: Props) {
+export default function ServiceBadges({ media, id, title, clickable = false, deepLinks, lazy = false, className = "" }: Props) {
   const { myServices } = useSettings();
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(!lazy);
@@ -61,7 +65,7 @@ export default function ServiceBadges({ media, id, title, clickable = false, laz
         return clickable && title ? (
           <a
             key={k}
-            href={launchUrlFor(svc.name, title)}
+            href={launchUrlFor(svc.name, title, deepLinks)}
             target="_blank"
             rel="noreferrer"
             data-focusable

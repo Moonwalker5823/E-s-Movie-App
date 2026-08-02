@@ -99,8 +99,10 @@ export default function Title() {
             </div>
 
             {/* The same brand badges as My List — which of YOUR services carry this;
-                clickable here (the detail page) to play on that service. */}
-            {data && <ServiceBadges media={media} id={numId} title={name} clickable className="mt-3" />}
+                clickable here (the detail page) to play on that service. Pass the exact
+                deep links so a pill lands on the precise title, exactly like the
+                "Play on X" buttons below (not a search page the TV apps mishandle). */}
+            {data && <ServiceBadges media={media} id={numId} title={name} clickable deepLinks={deepLinks} className="mt-3" />}
           </div>
         </div>
 

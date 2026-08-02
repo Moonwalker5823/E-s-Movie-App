@@ -150,13 +150,11 @@ const COMEDY_CENTRAL = { id: "UCUsN5ZwHx2kILm84-jPDeXw", name: "Comedy Central" 
 const NETFLIX_JOKE = { id: "UCObk_g1hQBy0RKKriVX_zOQ", name: "Netflix Is A Joke" };
 const WILD_N_OUT = { id: "UCrkzfc2yf-7q6pd7EtzgNaQ", name: "Wild 'N Out" };
 const DRY_BAR = { id: "UCvlVuntLjdURVD3b3Hx7kxw", name: "Dry Bar Comedy" };
-// Kevin Hart & Katt Williams — the two Eric named. Hart has his official company channel
-// (Hartbeat) plus an active stand-up clip channel; Katt has no official channel of his own,
-// so his stand-up rides in via active clip channels. RSS-verified fresh (2026 uploads).
-const HARTBEAT = { id: "UCp_jO_W5c51EidQzvk0mSEA", name: "Hartbeat · Kevin Hart" };
+// Kevin Hart & Katt Williams — the two Eric named. Neither has a reliable official
+// channel of their own, so their stand-up rides in via active clip channels; these feed
+// the Comedy "Mix" alongside KevOnStage, Tony Baker & co. RSS-verified fresh (2026 uploads).
 const KEVIN_HART_STANDUP = { id: "UCk--v_ne2Q7lVvyK9jwiWsQ", name: "Kevin Hart Stand-Up" };
 const KATT_LAUGHS = { id: "UCBPxEaX4HD3rkB30U4MVVZw", name: "Katt Williams" };
-const KATT_UNTOLD = { id: "UCvsS9EiyGpZf-clfoNt88KA", name: "Katt Williams · Untold" };
 
 // News — top US broadcast news, for the "News" set + The Mix feed. Verified active.
 const ABC_NEWS = { id: "UCBi2mrWuNuyYy4gbM6fU18Q", name: "ABC News" };
@@ -279,8 +277,8 @@ const SETS: Record<string, Channel[]> = {
   // sports games.
   gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, CARWOW, PLAYSTATION],
   xbox: [XBOX],
-  cars: [TOP_GEAR, GRAND_TOUR, CARWOW, DONUT], // car shows & reviews — Top Gear feels
-  racing: [F1, NASCAR, FORZA, ROCKET_LEAGUE], // motorsport + racing games
+  // Arcade "Cars & Racing" — car shows (Top Gear feels) + motorsport + racing games.
+  motors: [TOP_GEAR, GRAND_TOUR, CARWOW, DONUT, F1, NASCAR, FORZA, ROCKET_LEAGUE],
   gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // sports games
   anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
   ridiculousness: [RIDICULOUSNESS, ROB_DYRDEK, AFV, DAILY_DOSE, PEOPLE_AWESOME], // wind-down clip comedy (Comedy page)
@@ -288,8 +286,6 @@ const SETS: Record<string, Channel[]> = {
   comedy: [KEVIN_HART_STANDUP, KATT_LAUGHS, KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR],
   standup: [KEVIN_HART_STANDUP, KATT_LAUGHS, NETFLIX_JOKE, DRY_BAR, COMEDY_CENTRAL, KARLOUS], // stand-up specials & sets
   skits: [KEV_ON_STAGE, TONY_BAKER, COMEDY_CENTRAL, WILD_N_OUT, DC_YOUNG_FLY], // sketches & roasts
-  kevinhart: [KEVIN_HART_STANDUP, HARTBEAT], // 🎤 Kevin Hart — stand-up clips + his official channel
-  kattwilliams: [KATT_LAUGHS, KATT_UNTOLD], // 👑 Katt Williams — active stand-up clip channels
   news: [ABC_NEWS, NBC_NEWS, CBS_NEWS], // top US news — feeds The Mix
 };
 
@@ -420,11 +416,15 @@ async function durationsFor(ids: string[]): Promise<Record<string, number>> {
   return out;
 }
 
-// A "fresh daily" rotation: a deterministic shuffle seeded by today's date, so the
-// reel presents a different on-topic lineup each day but stays consistent all day.
-function dailySeed(): number {
-  const s = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); // YYYY-MM-DD (ET)
-  return Number(s.slice(0, 10).replace(/-/g, "")) || 20260101;
+// A stable per-set seed — gives each set its own FIXED catalog order so the moving
+// window walks a consistent shuffle (not re-randomized every request). FNV-1a.
+function strSeed(s: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -487,8 +487,7 @@ async function searchVideos(query: string, music = false): Promise<Item[]> {
 export default async function handler(req: any, res: any) {
   const set = (req.query?.set || "all").toString().toLowerCase();
   const short = String(req.query?.short || "") === "1";
-  const daily = String(req.query?.daily || "") === "1"; // date-seeded fresh-daily rotation
-  const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3)
+  const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3, hubs: 12)
   const query = (req.query?.q || "").toString().trim();
 
   // Search mode — scrape YouTube for the query, bypassing the channel sets. `music=1`
@@ -508,10 +507,11 @@ export default async function handler(req: any, res: any) {
   }
 
   const channels = set === "mix" ? mixChannels() : SETS[set] || SETS.all;
-  const rotate = daily || hours > 0;
-  // Seed the rotation: an N-hour time bucket when `hours` is set, else today's date (ET).
-  const seed = hours > 0 ? Math.floor(Date.now() / (hours * 3600_000)) : dailySeed();
-  const cacheKey = `${set}${short ? ":short" : ""}${rotate ? `:r${seed}` : ""}`;
+  // Rotate every N hours (Sports = 3, content hubs = 12). `period` is monotonic — it
+  // both invalidates the cache and advances the moving window below.
+  const rotate = hours > 0;
+  const period = rotate ? Math.floor(Date.now() / (hours * 3600_000)) : 0;
+  const cacheKey = `${set}${short ? ":short" : ""}${rotate ? `:r${period}` : ""}`;
 
   const hit = cache[cacheKey];
   if (hit && Date.now() - hit.at < TTL) {
@@ -538,9 +538,26 @@ export default async function handler(req: any, res: any) {
     .flat()
     .filter((it) => (seen.has(it.videoId) ? false : (seen.add(it.videoId), true)))
     .sort((a, b) => (a.published < b.published ? 1 : -1));
-  // Daily rotation: shuffle a larger recent pool with today's seed, then take 48 — so
-  // the featured lineup changes day to day. Otherwise just take the newest.
-  let items = rotate ? seededShuffle(fresh.slice(0, 90), mulberry32(seed)).slice(0, 48) : fresh.slice(0, 48);
+  // Rotation: give the WHOLE catalog a stable pseudo-random order, then take a window
+  // of 48 that ADVANCES each period — so every rotation surfaces a genuinely different
+  // slice, cycling the entire library instead of reshuffling the same "newest" clips.
+  // This is what keeps Music fresh: its channels rarely upload, so "newest 90" barely
+  // moved and the lineup felt static; now the deep catalog rotates through, period to
+  // period (every 12h), with no repeats until the whole set has cycled.
+  const WINDOW = 48;
+  let items: Item[];
+  if (rotate) {
+    const pool = seededShuffle(fresh.slice(0, 600), mulberry32(strSeed(set)));
+    const n = pool.length;
+    if (n <= WINDOW) {
+      items = pool;
+    } else {
+      const start = (((period * WINDOW) % n) + n) % n;
+      items = Array.from({ length: WINDOW }, (_, k) => pool[(start + k) % n]);
+    }
+  } else {
+    items = fresh.slice(0, 48);
+  }
 
   // Shorts-only tabs (Lounge / Blerd / Games): prefer clips 5 min and under.
   // If duration lookup is unavailable (rate-limited) OR a feed has no short clips

@@ -5,7 +5,7 @@ import { byKeyword } from "../api/tmdb";
 import { dedupe } from "../lib/interests";
 
 // A full cannabis hub — sessions & culture, weed-inspired recipes, and growers tips —
-// not just Snoop and smoking vlogs. `daily` keeps each tab fresh day to day.
+// not just Snoop and smoking vlogs. `freshHours={12}` rotates each tab twice a day.
 const BUD_TABS: HubTab[] = [
   { key: "lounge", label: "🔥 Mix" },
   { key: "sessions", label: "🌿 Sessions" },
@@ -21,7 +21,7 @@ export default function SmokersLounge() {
       </Heading>
 
       {/* Featured lounge content at the top — full-length sessions, recipes & grow tips. */}
-      <VideoHub tabs={BUD_TABS} autoplay daily />
+      <VideoHub tabs={BUD_TABS} autoplay freshHours={12} />
 
       {/* Stoner movies from TMDB (hidden automatically if no TMDB key is set) */}
       <section className="mt-10 space-y-8">

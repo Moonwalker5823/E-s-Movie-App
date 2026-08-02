@@ -64,11 +64,13 @@ export default function Music() {
       </form>
 
       {/* Search results play in the viewer (relevance order); otherwise the tabbed reel
-          (`daily` rotates a fresh on-topic lineup each day, shuffled per visit). */}
+          (`freshHours={12}` rotates a fresh lineup twice a day, cycling your whole
+          catalog — these artist channels rarely post, so the reel walks the deep
+          library instead of replaying the same handful — shuffled per visit). */}
       {search ? (
         <VideoHub key={`search-${search}`} tabs={[{ key: "search", label: `🔎 ${search}` }]} autoplay query={search} musicSearch />
       ) : (
-        <VideoHub tabs={MUSIC_TABS} autoplay daily />
+        <VideoHub tabs={MUSIC_TABS} autoplay freshHours={12} />
       )}
 
       {/* Your streaming services */}
@@ -81,9 +83,9 @@ export default function Music() {
         </div>
         <p className="mt-4 text-sm text-cream/50">
           <b className="text-cream/70">🎧 My Mix</b> plays straight from your own YouTube playlists — Ol&apos; Skool,
-          maxwell, R&amp;B, The King, 2Pac, B.I.G, Rock &amp; more — and they feed the genre tabs too, rotating fresh
-          each day. Grown &amp; lyrical, no ratchet or drill. Your deep catalog also lives in Tidal (you stay signed in
-          on the TV).
+          maxwell, R&amp;B, The King, 2Pac, B.I.G, Rock &amp; more — and they feed the genre tabs too, cycling fresh
+          through the whole catalog (a new lineup every 12h). Grown &amp; lyrical, no ratchet or drill. Your deep
+          catalog also lives in Tidal (you stay signed in on the TV).
         </p>
       </section>
     </div>

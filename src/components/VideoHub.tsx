@@ -99,7 +99,6 @@ export default function VideoHub({
   defaultKey,
   autoplay = false,
   short = false,
-  daily = false,
   freshHours,
   cinema = false,
   query,
@@ -110,8 +109,7 @@ export default function VideoHub({
   defaultKey?: string;
   autoplay?: boolean;
   short?: boolean;
-  daily?: boolean; // fresh daily rotation (server orders it by date; keep that order)
-  freshHours?: number; // rotate every N hours instead of daily (Sports = 3); server-ordered
+  freshHours?: number; // rotate every N hours (Sports = 3, content hubs = 12); server-ordered
   cinema?: boolean; // The Mix: one big compilation player — no up-next tiles or browse grid
   query?: string; // search — when set, load search results instead of the tab's set (whole hub)
   musicSearch?: boolean; // bias searches (the `query` prop or a tab's `q`) toward songs
@@ -531,13 +529,13 @@ export default function VideoHub({
     setCc(false);
     let alive = true;
     const isSearch = !!effQuery;
-    videos(isSearch ? "search" : tab, isSearch ? { q: effQuery, music: musicSearch } : { short, daily, hours: freshHours })
+    videos(isSearch ? "search" : tab, isSearch ? { q: effQuery, music: musicSearch } : { short, hours: freshHours })
       .then((v) => {
         if (!alive) return;
         setItems(v);
         // Shuffle the play order per visit so the same clip doesn't greet you every time
         // — EXCEPT search, which keeps YouTube's relevance order (best match first).
-        // `daily`/`freshHours` keep the CONTENT pool fresh; this just varies the ORDER.
+        // `freshHours` keeps the CONTENT pool fresh; this just varies the ORDER.
         setOrder(autoplay ? (isSearch ? v : shuffle(v)) : []);
       })
       .catch((e) => {
@@ -551,7 +549,7 @@ export default function VideoHub({
     return () => {
       alive = false;
     };
-  }, [tab, short, autoplay, daily, freshHours, effQuery, musicSearch]);
+  }, [tab, short, autoplay, freshHours, effQuery, musicSearch]);
 
   // Load a picked clip into the MAIN VIEWER (not fullscreen) and center it on screen.
   function playInHero(v: Video) {
