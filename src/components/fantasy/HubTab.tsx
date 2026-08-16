@@ -1,24 +1,37 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import MyTeams from "./MyTeams";
-import Heading from "../ui/Heading";
-import LaunchTile, { type Tile } from "../LaunchTile";
-import { FANTASY_SITES } from "../../lib/services";
 import { useSettings } from "../../lib/settings";
 
-// Leagues come from the single source of truth (FANTASY_SITES).
-const LEAGUES: Tile[] = FANTASY_SITES.map((f) => ({
-  name: f.name,
-  url: f.loginUrl,
-  blurb: "Open your league",
-  color: f.color,
-}));
+// Eric's actual league — the Yahoo "Jones Family League" (team: Moonwalker). Yahoo
+// needs a login to sync, so this deep-links straight into the league on Yahoo.
+const MY_LEAGUE = {
+  name: "Jones Family League",
+  team: "Moonwalker",
+  url: "https://football.fantasysports.yahoo.com/f1/1261152",
+};
 
-/** The Fantasy home tab — draft CTA, league launchers, and your teams. */
+/** The Fantasy home tab — your Yahoo league link, the Draft Room CTA, and your teams. */
 export default function HubTab() {
   const { accessCode } = useSettings();
   return (
     <div>
+      {/* Your league — one tap into the Jones Family League on Yahoo. */}
+      <a
+        href={MY_LEAGUE.url}
+        target="_blank"
+        rel="noreferrer"
+        data-focusable
+        className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-line bg-gradient-to-r from-[#2a0a4a] via-[#1a0730] to-[#0b0b12] p-5 shadow-card transition hover:brightness-110"
+      >
+        <div className="min-w-0">
+          <div className="u-label !rotate-0 text-[10px] text-cyan">Yahoo Fantasy · Team: {MY_LEAGUE.team}</div>
+          <div className="u-display truncate text-2xl text-cream sm:text-3xl">🏆 {MY_LEAGUE.name}</div>
+          <div className="mt-1 text-sm text-cream/70">Standings, matchups &amp; your roster</div>
+        </div>
+        <span className="shrink-0 rounded-full bg-spray px-4 py-2 text-sm font-bold text-ink">Open ↗</span>
+      </a>
+
       {/* Draft Room CTA */}
       <Link to="/fantasy/draft" data-focusable className="block">
         <motion.div
@@ -33,20 +46,6 @@ export default function HubTab() {
           </p>
         </motion.div>
       </Link>
-
-      {/* League launchers */}
-      <div className="mt-8">
-        <Heading emoji="🔗" className="mb-3">Open Your League</Heading>
-        <p className="mb-3 text-sm text-cream/50">
-          Yahoo &amp; ESPN need a login to sync, so the draft room runs alongside your league site
-          (mark picks as they go). Tap to open your league:
-        </p>
-        <div className="grid grid-cols-2 gap-4 sm:max-w-2xl sm:grid-cols-3">
-          {LEAGUES.map((l) => (
-            <LaunchTile key={l.name} t={l} />
-          ))}
-        </div>
-      </div>
 
       {/* My teams */}
       <div className="mt-10">

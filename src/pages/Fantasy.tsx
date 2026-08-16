@@ -5,16 +5,13 @@ import Chip from "../components/ui/Chip";
 import { isBoardStale, refreshBoard } from "../lib/fantasy/board";
 import HubTab from "../components/fantasy/HubTab";
 import DraftTab from "../components/fantasy/DraftTab";
-import MyTeamTab from "../components/fantasy/MyTeamTab";
-import ThisWeekTab from "../components/fantasy/week/ThisWeekTab";
-import AnalyticsTab from "../components/fantasy/analytics/AnalyticsTab";
 
+// Live roster/matchup/analytics sync needs a platform API. Yahoo (the Jones Family
+// League) requires OAuth we don't run, so the section is the Draft Room + player tools
+// (public data) alongside a link into the league on Yahoo — no fake "live" tabs.
 const TABS = [
   { key: "hub", label: "🏠 Hub" },
   { key: "draft", label: "📋 Draft" },
-  { key: "team", label: "🧢 My Team" },
-  { key: "week", label: "📅 This Week" },
-  { key: "analytics", label: "📊 Analytics" },
 ];
 
 export default function Fantasy() {
@@ -46,9 +43,6 @@ export default function Fantasy() {
 
       {tab === "hub" && <HubTab />}
       {tab === "draft" && <DraftTab />}
-      {tab === "team" && <MyTeamTab />}
-      {tab === "week" && <ThisWeekTab />}
-      {tab === "analytics" && <AnalyticsTab />}
     </div>
   );
 }
