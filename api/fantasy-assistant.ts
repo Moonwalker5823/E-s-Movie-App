@@ -2,7 +2,7 @@
 // waivers / trade / weekly plan). Same cost protection as api/draft-assistant.ts:
 // APP_ACCESS_CODES gate + per-IP rate limit + a hard spend limit set in the Anthropic
 // Console. Env: ANTHROPIC_API_KEY or ANTHROPIC_KEY (required), APP_ACCESS_CODES (optional).
-import { buildPrompt, type Mode } from "./_fantasyPrompts";
+import { buildPrompt, type Mode } from "./_fantasyPrompts.js";
 
 const MODEL = "claude-sonnet-5";
 const RATE_MAX = 30; // requests

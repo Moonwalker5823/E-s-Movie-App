@@ -5,7 +5,7 @@
 // the persistence layer: paste it into Vercel once and every later request mints its own
 // short-lived access token from it. The token is also cached in memory here, so fantasy
 // data works immediately — until this instance goes cold.
-import { requestTokens, rememberTokens, YahooError } from "./_yahoo";
+import { requestTokens, rememberTokens, YahooError } from "./_yahoo.js";
 
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

@@ -4,7 +4,7 @@
 // the Yahoo account that owns the league. Yahoo sends you back to /api/yahoo/callback,
 // which prints the refresh token to save as YAHOO_REFRESH_TOKEN. After that the app
 // never needs an interactive login again.
-import { AUTH_BASE, creds, redirectUri } from "./_yahoo";
+import { AUTH_BASE, creds, redirectUri } from "./_yahoo.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader("cache-control", "no-store");
