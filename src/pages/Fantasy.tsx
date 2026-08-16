@@ -5,12 +5,16 @@ import Chip from "../components/ui/Chip";
 import { isBoardStale, refreshBoard } from "../lib/fantasy/board";
 import HubTab from "../components/fantasy/HubTab";
 import DraftTab from "../components/fantasy/DraftTab";
+import YahooTeamTab from "../components/fantasy/yahoo/YahooTeamTab";
+import YahooLeagueTab from "../components/fantasy/yahoo/YahooLeagueTab";
 
-// Live roster/matchup/analytics sync needs a platform API. Yahoo (the Jones Family
-// League) requires OAuth we don't run, so the section is the Draft Room + player tools
-// (public data) alongside a link into the league on Yahoo — no fake "live" tabs.
+// My Team / League are live from Yahoo (the Jones Family League) via /api/yahoo/*. They
+// stay visible when Yahoo isn't connected — each one explains the one setup step it
+// needs instead of vanishing, since a missing tab reads as a bug from the couch.
 const TABS = [
   { key: "hub", label: "🏠 Hub" },
+  { key: "team", label: "🧢 My Team" },
+  { key: "league", label: "📊 League" },
   { key: "draft", label: "📋 Draft" },
 ];
 
@@ -42,6 +46,8 @@ export default function Fantasy() {
       </div>
 
       {tab === "hub" && <HubTab />}
+      {tab === "team" && <YahooTeamTab />}
+      {tab === "league" && <YahooLeagueTab />}
       {tab === "draft" && <DraftTab />}
     </div>
   );

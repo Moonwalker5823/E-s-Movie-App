@@ -10,7 +10,7 @@
 //  3. Also set a hard spend limit in the Anthropic Console (Billing → Limits)
 //     as the absolute backstop, independent of this app.
 //
-// Env: ANTHROPIC_API_KEY (required for AI), APP_ACCESS_CODES (optional).
+// Env: ANTHROPIC_API_KEY or ANTHROPIC_KEY (required for AI), APP_ACCESS_CODES (optional).
 
 const MODEL = "claude-sonnet-5";
 const RATE_MAX = 20; // requests
@@ -53,7 +53,10 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  // Accept either name: the Vercel project stores it as ANTHROPIC_KEY while this repo
+  // documents ANTHROPIC_API_KEY. Reading only one turns the AI off with a quiet 501 that
+  // looks like a broken assistant rather than a misnamed variable.
+  const key = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_KEY;
   if (!key) {
     res.status(501).json({ error: "AI not configured" });
     return;

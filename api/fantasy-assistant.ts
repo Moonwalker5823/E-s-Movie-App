@@ -1,7 +1,7 @@
 // Vercel serverless function — the multi-mode fantasy assistant (draft / start-sit /
 // waivers / trade / weekly plan). Same cost protection as api/draft-assistant.ts:
 // APP_ACCESS_CODES gate + per-IP rate limit + a hard spend limit set in the Anthropic
-// Console. Env: ANTHROPIC_API_KEY (required for AI), APP_ACCESS_CODES (optional).
+// Console. Env: ANTHROPIC_API_KEY or ANTHROPIC_KEY (required), APP_ACCESS_CODES (optional).
 import { buildPrompt, type Mode } from "./_fantasyPrompts";
 
 const MODEL = "claude-sonnet-5";
@@ -45,7 +45,8 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  // Either name — see the note in api/draft-assistant.ts.
+  const key = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_KEY;
   if (!key) {
     res.status(501).json({ error: "AI not configured" });
     return;
