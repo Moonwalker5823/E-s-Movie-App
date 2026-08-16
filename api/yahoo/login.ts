@@ -29,13 +29,18 @@ export default async function handler(req: any, res: any) {
   const secure = uri.startsWith("https://") ? "; Secure" : ""; // omitted on http://localhost under `vercel dev`
   res.setHeader("set-cookie", `yh_state=${state}; Path=/api/yahoo; Max-Age=600; HttpOnly; SameSite=Lax${secure}`);
 
+  // No `scope` by default. Yahoo derives the granted permissions from the app's own
+  // registration (API Permissions -> Fantasy Sports -> Read), and sending an explicit
+  // scope that doesn't match what the app was granted is rejected with `invalid_scope`.
+  // YAHOO_SCOPE is an escape hatch if a future app config ever needs one.
+  const scope = (process.env.YAHOO_SCOPE || "").trim();
   const url = `${AUTH_BASE}/request_auth?${new URLSearchParams({
     client_id: clientId,
     redirect_uri: uri,
     response_type: "code",
-    scope: "fspt-r", // Fantasy Sports, read-only
     language: "en-us",
     state,
+    ...(scope ? { scope } : {}),
   })}`;
 
   res.setHeader("location", url);
