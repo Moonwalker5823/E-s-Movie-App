@@ -9,7 +9,7 @@
 //
 // Env: YAHOO_CLIENT_ID, YAHOO_CLIENT_SECRET, YAHOO_REFRESH_TOKEN (see _yahoo.ts),
 // YAHOO_LEAGUE_KEY (optional — the league used when the client doesn't name one).
-import { YahooError, creds, findKey, isConnected, listOf, merge, yahooGet } from "./_yahoo.js";
+import { YahooError, creds, findKey, isConnected, listOf, merge, tokenInfo, yahooGet } from "./_yahoo.js";
 
 // Jones Family League. Yahoo mints a NEW league id every season, so this is only a
 // fallback — the client discovers the live key with `op=mine` and passes it back.
@@ -195,6 +195,7 @@ export default async function handler(req: any, res: any) {
       configured: creds().configured,
       connected: isConnected(),
       leagueKey: (process.env.YAHOO_LEAGUE_KEY || FALLBACK_LEAGUE_KEY).trim(),
+      token: tokenInfo(), // shape only (source + length), never the value
     });
     return;
   }

@@ -119,9 +119,19 @@ export function storedRefreshToken(): string {
   return store.tok?.refresh || (process.env.YAHOO_REFRESH_TOKEN || "").trim();
 }
 
-/** True once a one-time sign-in has happened (token in memory or in the env var). */
+/** True once a one-time sign-in has happened (token in memory or in the env var). Note
+ *  this only says a token EXISTS — the first refresh is what proves it still works. */
 export function isConnected(): boolean {
   return Boolean(storedRefreshToken());
+}
+
+/** Where the refresh token came from and how long it is — never the value itself. Enough
+ *  to tell a real token from a placeholder or a truncated paste without reading a secret
+ *  out of the env var by hand. */
+export function tokenInfo(): { source: "memory" | "env" | "none"; length: number } {
+  if (store.tok?.refresh) return { source: "memory", length: store.tok.refresh.length };
+  const env = (process.env.YAHOO_REFRESH_TOKEN || "").trim();
+  return env ? { source: "env", length: env.length } : { source: "none", length: 0 };
 }
 
 async function accessToken(req: any): Promise<string> {

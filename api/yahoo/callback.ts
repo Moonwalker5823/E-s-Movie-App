@@ -70,13 +70,27 @@ export default async function handler(req: any, res: any) {
     const tokens = await requestTokens({ grant_type: "authorization_code", code }, req);
     rememberTokens(tokens);
 
+    // Yahoo can complete the exchange and still hand back no refresh token — that's what
+    // a grant with no Fantasy Sports permission looks like. Say so, rather than printing
+    // a placeholder that gets pasted into Vercel and rejected an hour later.
+    if (!tokens.refresh_token) {
+      fail(
+        502,
+        "No refresh token returned",
+        "Yahoo approved the sign-in but issued no refresh token. That usually means the app " +
+          "registration is missing the Fantasy Sports permission — open developer.yahoo.com/apps, " +
+          "edit this app, tick API Permissions → Fantasy Sports → Read, save, and sign in again."
+      );
+      return;
+    }
+
     res.status(200).send(
       page(
         "Yahoo connected",
         `<h1>✅ Yahoo connected</h1>
          <p>Fantasy data works right now. To keep it working after this server instance
             goes cold, save the refresh token below — it doesn't expire.</p>
-         <span class="tok" id="tok">${esc(tokens.refresh_token || "(none returned)")}</span>
+         <span class="tok" id="tok">${esc(tokens.refresh_token)}</span>
          <p><button onclick="navigator.clipboard.writeText(document.getElementById('tok').textContent.trim()).then(()=>{this.textContent='Copied ✓'})">Copy token</button></p>
          <ol>
            <li>Vercel → project <b>erics-movies</b> → Settings → Environment Variables</li>
