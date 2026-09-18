@@ -11,6 +11,7 @@ import VideoHub, { type HubTab } from "../components/VideoHub";
 const HIGHLIGHT_TABS: HubTab[] = [
   { key: "all", label: "🔥 Top Plays" },
   { key: "wrap", label: "🌅 Daily Wrap" },
+  { key: "pivot", label: "🎙️ The Pivot" }, // featured: its own tab, not buried in Podcasts
   { key: "nfl", label: "NFL" },
   { key: "nba", label: "NBA" },
   { key: "mlb", label: "MLB" },

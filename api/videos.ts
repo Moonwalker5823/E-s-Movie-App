@@ -215,6 +215,9 @@ const SETS: Record<string, Channel[]> = {
   // 🎙️ Podcasts — the barbershop sit-down shows Eric watches, in one place: Club Shay Shay,
   // Nightcap (Sharpe & Ochocinco), The Pivot, All The Smoke, New Heights, KG Certified, …
   podcasts: [CLUB_SHAY_SHAY, NIGHTCAP, THE_PIVOT, ALL_THE_SMOKE, NEW_HEIGHTS, KG_CERTIFIED, GILS_ARENA, DRAYMOND],
+  // 🎙️ The Pivot on its own — featured as a Sports destination rather than buried in
+  // the 8-channel podcast mix, where its episodes were one voice among many.
+  pivot: [THE_PIVOT],
   and1: [AND1, PROFESSOR, BALLISLIFE], // AND1 mixtape streetball + The Professor
   // Smokers Lounge — a full cannabis hub, not just Snoop + smoking vlogs. The daily
   // rotation keeps each tab fresh day to day.
