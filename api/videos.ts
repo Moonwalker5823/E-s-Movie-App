@@ -265,7 +265,7 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
     { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" }, // was HISTORY (posts true-crime); keep the Mix pure nerd
     VSAUCE, // big-ideas/science — keeps the Mix fresh
-    { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },,
+    { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
     STARTALK, NEWTECH
   ],
   science: [
@@ -273,13 +273,13 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" },
     { id: "UCq6OAftTQOuUBRdtUDq5SUA", name: "PBS Space Time" },
     { id: "UC9SM7V7J1pAhPabOUST01fw", name: "NASA" },
-    { id: "UCoxcjq-8xIDTYp3uz647V5A", name: "Computerphile" },,
+    { id: "UCoxcjq-8xIDTYp3uz647V5A", name: "Computerphile" },
     STARTALK
   ],
   tech: [
     { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
     { id: "UCddiUEpeqJcYeBxX1IVBKvQ", name: "The Verge" },
-    { id: "UCdBK94H6oZT2Q7l0-b0xmMg", name: "Linus Tech Tips" },,
+    { id: "UCdBK94H6oZT2Q7l0-b0xmMg", name: "Linus Tech Tips" },
     NEWTECH
   ],
   ted: [{ id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" }],
@@ -404,6 +404,12 @@ const FEED_CONCURRENCY = 4;
 const feeds: Record<string, { at: number; items: Item[] }> = ((globalThis as any).__feedCache ||= {});
 
 async function fetchFeed(c: Channel): Promise<Item[]> {
+  // Defensive: a stray double comma in a SETS array leaves an elision, so `c` arrives
+  // undefined and `c.id` throws OUTSIDE the try below — which rejected the whole
+  // Promise.all and 500'd the endpoint for that set. One typo shouldn't be able to
+  // take a tab down, so bad entries are skipped instead.
+  if (!c || typeof c.id !== "string" || !c.id) return [];
+
   const hit = feeds[c.id];
   if (hit && Date.now() - hit.at < FEED_TTL) return hit.items;
 
