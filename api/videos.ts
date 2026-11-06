@@ -462,7 +462,17 @@ const lastGood: Record<string, Item[]> = ((globalThis as any).__vidLastGood ||= 
  *  Previously this route sent no cache headers at all, so Vercel defaulted to
  *  `max-age=0, must-revalidate` and every single request ran the full fan-out. */
 function sendCached(res: any, items: Item[], extra: Record<string, unknown> = {}) {
-  res.setHeader("cache-control", "public, s-maxage=900, stale-while-revalidate=86400");
+  // NEVER edge-cache a failure. Caching the happy path is the whole win here, but an
+  // empty payload cached for 15 minutes — and served stale for a day after that —
+  // turns one throttled moment into a long outage for that tab, which is the exact
+  // bug this caching exists to fix. Empty responses are marked uncacheable so the
+  // next request retries upstream instead of being handed the same empty shelf.
+  res.setHeader(
+    "cache-control",
+    items.length
+      ? "public, s-maxage=900, stale-while-revalidate=86400"
+      : "public, s-maxage=0, must-revalidate"
+  );
   res.status(200).json({ items, ...extra });
 }
 const TTL = 15 * 60 * 1000; // 15 min
