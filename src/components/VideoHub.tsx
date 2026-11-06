@@ -162,7 +162,7 @@ export default function VideoHub({
   const belowPreviews: Video[] = [];
   if (len) {
     const seen = new Set<string | undefined>([feat?.videoId]);
-    for (let k = 1; k <= len && belowPreviews.length < 3; k++) {
+    for (let k = 1; k <= len && belowPreviews.length < 4; k++) {
       const v = order[(current + k) % len];
       if (v && !seen.has(v.videoId)) {
         seen.add(v.videoId);
@@ -398,6 +398,17 @@ export default function VideoHub({
       /* ignore */
     }
   }
+  /** Scrub the INLINE player by ±seconds. Mirrors fsSeek for the fullscreen one. */
+  function seek(delta: number) {
+    const p = playerRef.current;
+    if (!p) return;
+    try {
+      const t = (p.getCurrentTime && p.getCurrentTime()) || 0;
+      p.seekTo(Math.max(0, t + delta), true);
+    } catch {
+      /* ignore */
+    }
+  }
   function fsSeek(delta: number) {
     const p = fullPlayerRef.current;
     if (!p) return;
@@ -579,7 +590,8 @@ export default function VideoHub({
         const i = p.getPlaylistIndex();
         const v = typeof i === "number" && i >= 0 ? order[i] : null;
         const t = p.getCurrentTime() || 0;
-        if (v && t > 5) saveResume(tab, { videoId: v.videoId, seconds: t, title: v.title });
+        if (v && t > 5)
+          saveResume(tab, { videoId: v.videoId, seconds: t, title: v.title, path: window.location.pathname });
       } catch {
         /* ignore */
       }
@@ -695,7 +707,7 @@ export default function VideoHub({
   const viewer = feat ? (
     <div
       ref={heroPlayerRef}
-      className="relative aspect-video w-full overflow-hidden rounded-2xl border border-line shadow-card scroll-mt-24"
+      className="screen relative aspect-video w-full overflow-hidden rounded-2xl scroll-mt-24"
     >
       <div ref={hostRef} className="absolute inset-0 h-full w-full [&>iframe]:pointer-events-none" />
       <div style={fadeStyle} className="absolute inset-0 z-20 pointer-events-none [&>*]:pointer-events-auto">
@@ -710,21 +722,33 @@ export default function VideoHub({
         >
           CC
         </button>
-        <button onClick={playPrev} data-focusable aria-label="Previous clip" className={`absolute bottom-2 left-2 text-sm ${ctrlCls}`}>
-          ⏮
-        </button>
-        <button onClick={togglePlay} data-focusable aria-label={playing ? "Pause" : "Play"} className={`absolute bottom-2 left-14 text-base ${ctrlCls}`}>
-          {playing ? "⏸" : "▶"}
-        </button>
-        <button onClick={playNext} data-focusable aria-label="Next clip" className={`absolute bottom-2 left-[6.5rem] text-sm ${ctrlCls}`}>
-          ⏭
-        </button>
+        {/* Full transport, in-app. The inline player used to offer only prev/play/next
+            as three buttons spaced along the bottom edge — ±10s existed solely inside
+            fullscreen, so scrubbing meant going fullscreen and coming back. These sit
+            in one bar, in the order a remote expects, and every one is D-pad focusable. */}
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-2.5 pt-10">
+          <button onClick={playPrev} data-focusable aria-label="Previous clip" className={`text-sm ${ctrlCls}`}>
+            ⏮
+          </button>
+          <button onClick={() => seek(-10)} data-focusable aria-label="Back 10 seconds" className={`text-sm ${ctrlCls}`}>
+            ⏪
+          </button>
+          <button onClick={togglePlay} data-focusable aria-label={playing ? "Pause" : "Play"} className={`text-xl ${ctrlCls} !h-11 !w-11 bg-gold !text-ink`}>
+            {playing ? "⏸" : "▶"}
+          </button>
+          <button onClick={() => seek(10)} data-focusable aria-label="Forward 10 seconds" className={`text-sm ${ctrlCls}`}>
+            ⏩
+          </button>
+          <button onClick={playNext} data-focusable aria-label="Next clip" className={`text-sm ${ctrlCls}`}>
+            ⏭
+          </button>
+        </div>
         <button
           onClick={() => feat && openFull(feat)}
           data-focusable
           data-autofocus
           aria-label={`Watch ${feat.title} full screen`}
-          className="absolute bottom-2 right-2 z-20 flex scroll-mt-24 items-center gap-1 rounded bg-spray px-2.5 py-1 text-[11px] font-bold text-cream shadow-piece transition hover:brightness-110"
+          className="absolute bottom-3 right-3 z-30 flex scroll-mt-24 items-center gap-1 rounded-lg bg-black/70 px-2.5 py-1.5 text-[11px] font-bold text-cream transition hover:bg-black/90"
         >
           ⛶ Fullscreen
         </button>
@@ -735,7 +759,7 @@ export default function VideoHub({
   const meta = feat ? (
     <>
       <div className="mt-1.5 line-clamp-1 text-sm font-semibold text-cream">{feat.title}</div>
-      <div className="text-xs text-cream/60">{feat.channel} · ⏸ pause · ⏮ ⏭ skip · 🔊 mute · ⛶ full</div>
+      <div className="text-xs text-cream/60">{feat.channel} · ⏮ ⏪ ⏸ ⏩ ⏭ · 🔊 mute · ⛶ full</div>
     </>
   ) : null;
 
@@ -746,7 +770,7 @@ export default function VideoHub({
       {autoplay && (
         <div
           ref={heroWrapRef}
-          className={`mx-auto mb-5 w-full ${cinema ? "max-w-[min(96rem,168vh)]" : rail ? "max-w-[min(78rem,165vh)]" : "max-w-[min(64rem,150vh)]"} ${full ? "pointer-events-none" : ""}`}
+          className={`mx-auto mb-5 w-full ${cinema ? "max-w-[min(110rem,176vh)]" : rail ? "max-w-[min(88rem,170vh)]" : "max-w-[min(110rem,176vh)]"} ${full ? "pointer-events-none" : ""}`}
         >
           {resume && (
             <div className="mb-3 flex justify-center">
@@ -764,10 +788,13 @@ export default function VideoHub({
                 <Skeleton className="min-h-[16rem] rounded-2xl" />
               </div>
             ) : (
-              <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
-                <Skeleton className="aspect-video rounded-xl" />
+              <div>
                 <Skeleton className="aspect-video rounded-2xl" />
-                <Skeleton className="aspect-video rounded-xl" />
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="aspect-video rounded-xl" />
+                  ))}
+                </div>
               </div>
             )
           ) : feat ? (
@@ -786,7 +813,7 @@ export default function VideoHub({
                   {meta}
                   {belowPreviews.length > 0 && (
                     <div className="mt-3 grid grid-cols-3 gap-3">
-                      {belowPreviews.map((v) => (
+                      {belowPreviews.slice(0, 3).map((v) => (
                         <UpNextTile key={v.videoId} v={v} onPlay={playInHero} />
                       ))}
                     </div>
@@ -797,13 +824,19 @@ export default function VideoHub({
                 </aside>
               </div>
             ) : (
-              <div className="grid grid-cols-[1fr_3fr_1fr] items-start gap-3">
-                {previews[0] && <UpNextTile v={previews[0]} onPlay={playInHero} />}
-                <div>
-                  {viewer}
-                  {meta}
-                </div>
-                {previews[1] && <UpNextTile v={previews[1]} onPlay={playInHero} />}
+              // Full-width screen with "up next" in a row underneath — the same shape
+              // the rail layout already used, minus the aside. Nothing competes with
+              // the video for horizontal space.
+              <div>
+                {viewer}
+                {meta}
+                {belowPreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {belowPreviews.map((v) => (
+                      <UpNextTile key={v.videoId} v={v} onPlay={playInHero} />
+                    ))}
+                  </div>
+                )}
               </div>
             )
           ) : null}

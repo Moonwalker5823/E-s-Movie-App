@@ -116,12 +116,25 @@ const EA_SPORTS = { id: "UCcpK2UHpfhfc23SC8TU16BA", name: "EA SPORTS" };
 
 // Car / motorsport — "Top Gear feels": car shows, reviews, and racing.
 // RSS-verified live (July 2026 uploads).
+// Benched from the car tabs: modern Top Gear is studio/tech talk more than driving.
+// Kept here so it's a one-word restore if it ever gets good again.
 const TOP_GEAR = { id: "UCjOl2AUblVmg2rA_cRgZkFg", name: "Top Gear" };
 const GRAND_TOUR = { id: "UCZ1Sc5xjWpUnp_o_lUTkvgQ", name: "The Grand Tour" };
 const CARWOW = { id: "UCUhFaUpnq31m6TNX2VKVSVA", name: "carwow" };
+// Benched alongside Top Gear — Donut is produced explainer/garage content, not driving.
 const DONUT = { id: "UCL6JmiMXKoXS6bpP1D3bk8g", name: "Donut Media" };
 const F1 = { id: "UCB_qr75-ydFVKSF9Dmo6izg", name: "Formula 1" };
+// Benched: not Eric's thing. Racing is F1 + IndyCar.
 const NASCAR = { id: "UCuN9hYw2RpoAW8rZ3VK3isA", name: "NASCAR" };
+// Real cars, actually driven — drag races, road tests, new metal and classics.
+// RSS-verified live (Sept 2026). NOTE: the @carwow handle resolves to carwow.de
+// (German); CARWOW above is the English channel — don't "correct" it to the handle.
+const THROTTLE_HOUSE = { id: "UCyXiDU5qjfOPxgOPeFWGwKw", name: "Throttle House" }; // reviews + drag races
+const STRAIGHT_PIPES = { id: "UC86SBFIAgnYL3ll2ZDgmsuA", name: "TheStraightPipes" }; // new-car road tests
+const SAVAGEGEESE = { id: "UCgUvk6jVaf-1uKOqG8XNcaQ", name: "savagegeese" }; // in-depth driving reviews
+const HAGERTY = { id: "UCLgEVx4mzk3T3mzgbKG54Eg", name: "Hagerty" }; // classics — driven, not parked
+const INDYCAR = { id: "UCy1F61QvUUQXAXi2Voa_fUw", name: "NTT INDYCAR SERIES" };
+const IGN = { id: "UCKy1dAqELo0zrOtPkf0eTMw", name: "IGN" }; // trailers — what's actually new
 
 // Anime — action / shonen leaning (Baki lives on Netflix Anime): official clips,
 // trailers, and (where licensed) full episodes. RSS-verified live (2026 uploads).
@@ -192,6 +205,26 @@ const GREAT_BIG_STORY = { id: "UCajXeitgFL-rb5-gXI-aG8Q", name: "Great Big Story
 const YES_THEORY = { id: "UCvK4bOhULCpmLabd2pDMtnA", name: "Yes Theory" };
 
 // A curated set of channels for each hub tab. Verified active (2026 uploads).
+// ── Eric's own YouTube subscriptions ────────────────────────────────────────
+// Pulled from his actual subscription list (Nov 2026). The app can't read that feed
+// directly — it's per-account and needs Google OAuth — so the channels are mirrored
+// into the sets below instead. Same result on screen, no tokens to keep alive.
+// Resolved via each channel's own page (og:title verified against his sidebar), not
+// by guessing handles: @JonB, for instance, is a different artist entirely.
+const BALD_BROTHERS = { id: "UCggckS-FZlPTjX5UG2TLRiA", name: "Bald Brothers" };
+const RNB_ONLY = { id: "UCUTrJHDv4dz9ekV2wZx8IMw", name: "R&B ONLY" };
+const DJ_AFROSIA = { id: "UCDbe17qoSluqRf99javbXUA", name: "DJ Afrosia" };
+const PLAY_THIS_PLAYLIST = { id: "UCqz5CHdDa0mnYxVj3Z-MKEw", name: "Play This Playlist" };
+const JANELLE_MONAE = { id: "UCdxFg3dVeT50SsT1v3ptxTQ", name: "Janelle Monáe" };
+const TGT_LIFE = { id: "UCsKAoqlyBIWihGRTEv-b_Ag", name: "TGTlife" }; // Tank, Ginuwine, Tyrese
+const TREY_SONGZ = { id: "UC7DpParfqYQEbFGt5eTX5pQ", name: "Trey Songz" };
+const FKA_TWIGS = { id: "UCXwsBnDQtx1i2qbgcHoQWNA", name: "FKA twigs" };
+const DJLASS = { id: "UCI2YeqXt5lNuuNhtESwJXjw", name: "DJLass Angel Vibes" }; // reggae / lovers rock
+const NEWTECH = { id: "UCOQVoYzsSlRnDNIBWe2dY4g", name: "newtechevolution" }; // streaming-device how-tos
+const STARTALK = { id: "UCqoAEDirJPjEUFcF2FklnBA", name: "StarTalk" }; // Neil deGrasse Tyson
+const GARDEN_TALK = { id: "UC5ty0o7ASPpj4Lu2vW2QKsA", name: "Garden Talk Clips" };
+const MR_CANUCKS = { id: "UCtU2-cpxx18iQ4BvracrxDQ", name: "Mr. Canucks Grow" };
+
 const SETS: Record<string, Channel[]> = {
   // Sports "Highlights" tabs
   all: [HOH, ESPN, BR, NFL, NBA, MLB, NHL],
@@ -214,17 +247,17 @@ const SETS: Record<string, Channel[]> = {
   ],
   // 🎙️ Podcasts — the barbershop sit-down shows Eric watches, in one place: Club Shay Shay,
   // Nightcap (Sharpe & Ochocinco), The Pivot, All The Smoke, New Heights, KG Certified, …
-  podcasts: [CLUB_SHAY_SHAY, NIGHTCAP, THE_PIVOT, ALL_THE_SMOKE, NEW_HEIGHTS, KG_CERTIFIED, GILS_ARENA, DRAYMOND],
+  podcasts: [CLUB_SHAY_SHAY, NIGHTCAP, THE_PIVOT, ALL_THE_SMOKE, NEW_HEIGHTS, KG_CERTIFIED, GILS_ARENA, DRAYMOND, BALD_BROTHERS],
   // 🎙️ The Pivot on its own — featured as a Sports destination rather than buried in
   // the 8-channel podcast mix, where its episodes were one voice among many.
   pivot: [THE_PIVOT],
   and1: [AND1, PROFESSOR, BALLISLIFE], // AND1 mixtape streetball + The Professor
   // Smokers Lounge — a full cannabis hub, not just Snoop + smoking vlogs. The daily
   // rotation keeps each tab fresh day to day.
-  lounge: [GGN, BREAL, HIGH_TIMES, BERNER, EMILY_KYLE, COOKING_CANNABIS, MR_GROW_IT, MUNCH_MAKERS, DEBACCO], // 🔥 all smoker content
+  lounge: [GGN, BREAL, HIGH_TIMES, BERNER, EMILY_KYLE, COOKING_CANNABIS, MR_GROW_IT, MUNCH_MAKERS, DEBACCO, GARDEN_TALK, MR_CANUCKS], // 🔥 all smoker content
   sessions: [GGN, BREAL, HIGH_TIMES, BERNER], // 🌿 celebrity sessions & culture
   edibles: [EMILY_KYLE, COOKING_CANNABIS], // 🍽️ weed-inspired recipes
-  grow: [MR_GROW_IT, DEBACCO], // 🌱 growers tips & cultivation
+  grow: [MR_GROW_IT, DEBACCO, GARDEN_TALK, MR_CANUCKS], // 🌱 growers tips & cultivation
   // Blerd — the black nerd in you: science, tech, TED, ancient aliens, code.
   blerd: [
     { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
@@ -232,19 +265,22 @@ const SETS: Record<string, Channel[]> = {
     { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
     { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" }, // was HISTORY (posts true-crime); keep the Mix pure nerd
     VSAUCE, // big-ideas/science — keeps the Mix fresh
-    { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },
+    { id: "UCUyeluBRhGPCW4rPe_UvBZQ", name: "ThePrimeagen" },,
+    STARTALK, NEWTECH
   ],
   science: [
     { id: "UCin0m13qWv3-051xlWlHamA", name: "Veritasium" },
     { id: "UCq8ZAAsI89IoJ-fn1gYpO3g", name: "Kurzgesagt" },
     { id: "UCq6OAftTQOuUBRdtUDq5SUA", name: "PBS Space Time" },
     { id: "UC9SM7V7J1pAhPabOUST01fw", name: "NASA" },
-    { id: "UCoxcjq-8xIDTYp3uz647V5A", name: "Computerphile" },
+    { id: "UCoxcjq-8xIDTYp3uz647V5A", name: "Computerphile" },,
+    STARTALK
   ],
   tech: [
     { id: "UCG7J20LhUeLl6y_Emi7OJrA", name: "Marques Brownlee" },
     { id: "UCddiUEpeqJcYeBxX1IVBKvQ", name: "The Verge" },
-    { id: "UCdBK94H6oZT2Q7l0-b0xmMg", name: "Linus Tech Tips" },
+    { id: "UCdBK94H6oZT2Q7l0-b0xmMg", name: "Linus Tech Tips" },,
+    NEWTECH
   ],
   ted: [{ id: "UCsT0YIqwnpJCM-mx7-gSA4Q", name: "TED" }],
   // Alien-inspired (not one specific show): UFOs, aliens, unexplained, alien worlds.
@@ -265,10 +301,10 @@ const SETS: Record<string, Channel[]> = {
   // ratchet or drill). Tidal covers the personalized / deep-catalog library.
   // Eric's own YouTube playlists, combined — his personal music taste in the app.
   myplaylists: ERIC_PLAYLISTS,
-  music: [MJ, KENDRICK, TPAIN, JAYZ, BENNY, USHER, PRINCE, FABOLOUS, YT_KING, MIGUEL, NAS, RKELLY, GAMBINO, MASS_APPEAL, YT_OL_SKOOL, TEMS, JCOLE, COLORS, YT_RNB, RNB_NATION, LUPE, NPR_MUSIC],
+  music: [MJ, KENDRICK, TPAIN, JAYZ, BENNY, USHER, PRINCE, FABOLOUS, YT_KING, MIGUEL, NAS, RKELLY, GAMBINO, MASS_APPEAL, YT_OL_SKOOL, TEMS, JCOLE, COLORS, YT_RNB, RNB_NATION, LUPE, NPR_MUSIC, RNB_ONLY, DJ_AFROSIA, PLAY_THIS_PLAYLIST, JANELLE_MONAE, TGT_LIFE, TREY_SONGZ, FKA_TWIGS, DJLASS],
   golden: [JAYZ, NAS, BENNY, DMX, FABOLOUS, BIG_DADDY_KANE, MASS_APPEAL, YT_2PAC, YT_BIG, YT_COMMON, YT_RAP, YT_HIPHOP], // 90s/00s + modern golden-era hip-hop
   lyricists: [KENDRICK, JCOLE, BENNY, LUPE, GAMBINO, FABOLOUS, MASS_APPEAL, YT_COMMON], // conscious / lyrical / punchlines
-  soul: [TPAIN, MIGUEL, USHER, RKELLY, TEMS, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC, YT_OL_SKOOL, YT_MAXWELL, YT_RNB, YT_RNB2, YT_YOUNGE], // R&B / neo-soul
+  soul: [TPAIN, MIGUEL, USHER, RKELLY, TEMS, CHRIS_BROWN, RNB_NATION, COLORS, NPR_MUSIC, YT_OL_SKOOL, YT_MAXWELL, YT_RNB, YT_RNB2, YT_YOUNGE, RNB_ONLY, TGT_LIFE, TREY_SONGZ, JANELLE_MONAE], // R&B / neo-soul
   classics: [MJ, PRINCE, WHITNEY, YT_KING], // legends — the King first, then Prince & Whitney
   rock: [LINKIN_PARK, METALLICA, YT_ROCK, YT_ALT], // rock / metal — Linkin Park, Metallica
   battlerap: [URL_BATTLE], // SMACK / URL — Ultimate Rap League battles
@@ -278,15 +314,21 @@ const SETS: Record<string, Channel[]> = {
   // Games — video-game + CAR heavy. "Mix" blends games with car content; then
   // Xbox, car shows (Top Gear feels), racing (motorsport + racing games), and
   // sports games.
-  gaming: [XBOX, FORZA, TOP_GEAR, ROCKET_LEAGUE, CARWOW, PLAYSTATION],
+  // 🎮 Games — new releases and trailers, not endless gameplay. Forza lives here (it IS
+  // a game) rather than in the car tab; Top Gear and carwow no longer bleed in.
+  gaming: [XBOX, PLAYSTATION, IGN, FORZA],
   xbox: [XBOX],
   // Arcade "Cars & Racing" — car shows (Top Gear feels) + motorsport + racing games.
-  motors: [TOP_GEAR, GRAND_TOUR, CARWOW, DONUT, F1, NASCAR, FORZA, ROCKET_LEAGUE],
+  // 🏎️ Cars & Racing — REAL cars only. Forza/Rocket League are games and moved out;
+  // Top Gear and Donut are benched as talk-heavy. Each RSS feed contributes its 15
+  // newest, so the mix is roughly even per channel — stacking the drag-race/road-test
+  // crowd is what actually makes the tab feel like carwow. Racing = F1 + IndyCar.
+  motors: [CARWOW, THROTTLE_HOUSE, STRAIGHT_PIPES, SAVAGEGEESE, GRAND_TOUR, HAGERTY, F1, INDYCAR],
   gamesports: [EA_FC, NBA_2K, EA_MADDEN, ROCKET_LEAGUE, EA_SPORTS], // sports games
   anime: [CRUNCHYROLL, NETFLIX_ANIME, MUSE_ASIA, ADULT_SWIM], // action anime (Baki, etc.)
   ridiculousness: [RIDICULOUSNESS, ROB_DYRDEK, AFV, DAILY_DOSE, PEOPLE_AWESOME], // wind-down clip comedy (Comedy page)
   // Comedy page — sketches, stand-up & roasts. Legends' clips ride in via the platforms.
-  comedy: [KEVIN_HART_STANDUP, KATT_LAUGHS, KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR],
+  comedy: [KEVIN_HART_STANDUP, KATT_LAUGHS, KEV_ON_STAGE, TONY_BAKER, KARLOUS, DC_YOUNG_FLY, COMEDY_CENTRAL, NETFLIX_JOKE, WILD_N_OUT, DRY_BAR, BALD_BROTHERS],
   standup: [KEVIN_HART_STANDUP, KATT_LAUGHS, NETFLIX_JOKE, DRY_BAR, COMEDY_CENTRAL, KARLOUS], // stand-up specials & sets
   skits: [KEV_ON_STAGE, TONY_BAKER, COMEDY_CENTRAL, WILD_N_OUT, DC_YOUNG_FLY], // sketches & roasts
   news: [ABC_NEWS, NBC_NEWS, CBS_NEWS], // top US news — feeds The Mix
@@ -339,6 +381,90 @@ interface Item {
 }
 
 const cache: Record<string, { at: number; items: Item[] }> = ((globalThis as any).__vidCache ||= {});
+
+// ---------------------------------------------------------------------------
+// Feed fetching — the reliability layer.
+//
+// YouTube rate-limits by source IP, and Vercel's egress IPs are shared. The old code
+// fanned out every channel of a set on every request with no shared cache, so a single
+// TV page load could fire 20 RSS requests; YouTube started refusing them, each failure
+// became [], and whole tabs rendered "no items available". Three fixes, in order of
+// how much they matter:
+//   1. Cache per CHANNEL, not per set. `all`, `nba` and `mix` all want NBA — they now
+//      share one fetch instead of three.
+//   2. On failure, serve that channel's STALE entry at any age. A throttled minute
+//      should cost freshness, never content.
+//   3. Bound concurrency so we never burst 20 requests at once, which is what trips
+//      the limiter in the first place.
+// The edge cache headers on the response (see the handler) are what keep this from
+// running on most requests at all.
+// ---------------------------------------------------------------------------
+const FEED_TTL = 15 * 60 * 1000;
+const FEED_CONCURRENCY = 4;
+const feeds: Record<string, { at: number; items: Item[] }> = ((globalThis as any).__feedCache ||= {});
+
+async function fetchFeed(c: Channel): Promise<Item[]> {
+  const hit = feeds[c.id];
+  if (hit && Date.now() - hit.at < FEED_TTL) return hit.items;
+
+  // A source is either a channel (UC…) or a playlist (PL…) — same RSS feed, different param.
+  const param = c.id.startsWith("PL") ? "playlist_id" : "channel_id";
+  const url = `https://www.youtube.com/feeds/videos.xml?${param}=${c.id}`;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (r.ok) {
+        const items = parseFeed(await r.text(), c.name);
+        if (items.length) {
+          feeds[c.id] = { at: Date.now(), items };
+          return items;
+        }
+      }
+      // 404 means the source is genuinely gone — don't spend a second request on it.
+      // 429/5xx are the throttle signature, which a short jittered retry often clears.
+      if (r.status === 404) break;
+    } catch {
+      /* timeout or network — fall through to the retry / stale path */
+    }
+    if (attempt === 0) await new Promise((ok) => setTimeout(ok, 250 + Math.random() * 400));
+  }
+
+  // Throttled or down: stale beats empty, at any age.
+  return hit ? hit.items : [];
+}
+
+/** Fetch every source in a set with bounded concurrency (bursting is what gets us throttled). */
+async function fetchFeeds(channels: Channel[]): Promise<Item[][]> {
+  const out: Item[][] = new Array(channels.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < channels.length) {
+      const i = next++;
+      out[i] = await fetchFeed(channels[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(FEED_CONCURRENCY, channels.length) }, worker));
+  return out;
+}
+
+// Last known good payload per SET, so a set that comes back empty can still render
+// something real rather than an empty shelf.
+const lastGood: Record<string, Item[]> = ((globalThis as any).__vidLastGood ||= {});
+
+/** Answer with edge-cache headers.
+ *
+ *  `s-maxage=900` lets Vercel's CDN serve this JSON for 15 minutes WITHOUT invoking the
+ *  function — which is the single biggest win here: a TV page load stops being "20 live
+ *  RSS fetches" and becomes one cached response. `stale-while-revalidate=86400` means
+ *  that even once it's stale, the viewer still gets the last payload instantly while the
+ *  refresh happens behind them, so an upstream bad minute is never visible on screen.
+ *  Previously this route sent no cache headers at all, so Vercel defaulted to
+ *  `max-age=0, must-revalidate` and every single request ran the full fan-out. */
+function sendCached(res: any, items: Item[], extra: Record<string, unknown> = {}) {
+  res.setHeader("cache-control", "public, s-maxage=900, stale-while-revalidate=86400");
+  res.status(200).json({ items, ...extra });
+}
 const TTL = 15 * 60 * 1000; // 15 min
 
 function decode(s: string): string {
@@ -505,12 +631,12 @@ export default async function handler(req: any, res: any) {
     const key = `q:${music ? "m:" : ""}${query.toLowerCase()}`;
     const cached = cache[key];
     if (cached && Date.now() - cached.at < TTL) {
-      res.status(200).json({ items: cached.items, cached: true });
+      sendCached(res, cached.items, { cached: true });
       return;
     }
     const items = await searchVideos(query, music);
     if (items.length) cache[key] = { at: Date.now(), items }; // don't cache a failed/empty scrape for 15m
-    res.status(200).json({ items });
+    sendCached(res, items);
     return;
   }
 
@@ -523,26 +649,11 @@ export default async function handler(req: any, res: any) {
 
   const hit = cache[cacheKey];
   if (hit && Date.now() - hit.at < TTL) {
-    res.status(200).json({ items: hit.items, cached: true });
+    sendCached(res, hit.items, { cached: true });
     return;
   }
 
-  const lists = await Promise.all(
-    channels.map(async (c) => {
-      try {
-        // A source is either a channel (UC…) or a playlist (PL…) — same RSS feed, different param.
-        const param = c.id.startsWith("PL") ? "playlist_id" : "channel_id";
-        // Time out a slow feed so one hung channel can't stall the whole Promise.all.
-        const r = await fetch(`https://www.youtube.com/feeds/videos.xml?${param}=${c.id}`, {
-          signal: AbortSignal.timeout(6000),
-        });
-        if (!r.ok) return [] as Item[];
-        return parseFeed(await r.text(), c.name);
-      } catch {
-        return [] as Item[];
-      }
-    })
-  );
+  const lists = await fetchFeeds(channels);
 
   const seen = new Set<string>();
   const fresh = lists
@@ -590,6 +701,13 @@ export default async function handler(req: any, res: any) {
   // Keep Trump / MAGA politics out of The Mix.
   if (POLITICS_SETS.has(set)) items = items.filter((i) => !POLITICS_RE.test(i.title));
 
-  if (items.length) cache[cacheKey] = { at: Date.now(), items }; // don't cache an all-feeds-failed empty for 15m
-  res.status(200).json({ items });
+  // Never serve an empty shelf. If every feed was throttled this minute, fall back to
+  // the last payload this set rendered successfully — stale content beats "no items".
+  if (items.length) {
+    cache[cacheKey] = { at: Date.now(), items }; // don't cache an all-feeds-failed empty
+    lastGood[set] = items;
+  } else if (lastGood[set]?.length) {
+    items = lastGood[set];
+  }
+  sendCached(res, items);
 }

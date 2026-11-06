@@ -58,6 +58,10 @@ export default async function handler(req: any, res: any) {
   }
 
   const cacheKey = `${type}:${tmdbId}:${norm(title)}`;
+  // Deep links are stable, so let the CDN hold them too — a title the TV reopens
+  // shouldn't re-hit JustWatch, and a stale link still resolves correctly.
+  res.setHeader("cache-control", "public, s-maxage=21600, stale-while-revalidate=604800");
+
   const hit = cache[cacheKey];
   if (hit && Date.now() - hit.at < TTL) {
     res.status(200).json({ ...hit.body, cached: true });

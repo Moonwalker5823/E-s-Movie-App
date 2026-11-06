@@ -12,7 +12,9 @@ export default {
         surface2: "rgb(var(--c-surface2) / <alpha-value>)", // raised cards / inputs
         cream: "rgb(var(--c-cream) / <alpha-value>)", // primary text/foreground
         line: "var(--c-line)", // hairline borders
-        spray: "#e6392b", // primary — true subway red
+        gold: "#f5c518", // PRIMARY accent — straight from the portfolio (and movie-poster yellow)
+        goldlo: "#c89b0f",
+        spray: "#e6392b", // secondary — subway red, now reserved for live/urgent
         sprayhi: "#ff5c47", // bright red-orange highlight
         spraylo: "#a51b0f", // deep oxblood red
         blue: "#1e9bf0", // electric wildstyle blue
@@ -23,11 +25,14 @@ export default {
         purple: "#8b3ffb", // pop purple
         live: "#35d07f", // live/status green
       },
+      // Lifted from Eric's own portfolio (ea-portfolio-khaki.vercel.app) so the TV app
+      // and his work read as one identity: Bebas Neue for display, Barlow Condensed for
+      // the letter-spaced kickers, DM Sans for everything you actually read.
       fontFamily: {
-        display: ["Bangers", "Impact", "sans-serif"], // loud piece lettering
-        tag: ["'Permanent Marker'", "cursive"], // marker tags / labels
-        drip: ["'Rubik Wet Paint'", "Bangers", "cursive"], // dripping accent
-        body: ["Inter", "system-ui", "sans-serif"],
+        display: ["'Bebas Neue'", "Impact", "sans-serif"],
+        tag: ["'Barlow Condensed'", "'Bebas Neue'", "sans-serif"],
+        drip: ["'Bebas Neue'", "Impact", "sans-serif"],
+        body: ["'DM Sans'", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
       boxShadow: {

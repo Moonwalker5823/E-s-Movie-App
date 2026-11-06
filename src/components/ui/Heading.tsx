@@ -7,19 +7,15 @@ interface Props {
   accent?: string; // override the auto-picked spray color
 }
 
-// Wildstyle palette — each heading gets its own color like pieces on a wall.
-const PALETTE = ["#e6392b", "#1e9bf0", "#ffd400", "#9ee520", "#ff7a1a", "#8b3ffb", "#2bd4ff"];
-
-function pickAccent(seed: string): string {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return PALETTE[h % PALETTE.length];
-}
+// One accent, everywhere. This used to hash the heading text into a 7-color palette so
+// every section came out a different color — which is a big part of why the app read as
+// unorganized: two headings on one screen rarely agreed. Gold is the identity now, and
+// a caller that genuinely needs another color still passes `accent`.
+const ACCENT = "#f5c518";
 
 /** Section / page heading — brand display font with a colored spray-stroke underline. */
 export default function Heading({ emoji, label, children, size = "lg", className, accent }: Props) {
-  const seed = typeof children === "string" ? children : label || String(emoji);
-  const color = accent || pickAccent(seed);
+  const color = accent || ACCENT;
 
   return (
     <div className={className}>
@@ -34,13 +30,15 @@ export default function Heading({ emoji, label, children, size = "lg", className
       </h2>
       <span
         aria-hidden
-        className="mt-1.5 block rounded-full"
+        className="mt-2 block"
+        /* Trimmed from a 6px tilted slab with a hard drop shadow. The TV viewport is
+           only 540px tall — every pixel above the player is one the video doesn't get —
+           and at this weight it reads as a deliberate rule instead of a sticker. */
         style={{
-          width: size === "xl" ? "6.5rem" : "3.75rem",
-          height: size === "xl" ? "0.5rem" : "0.375rem",
+          width: size === "xl" ? "4.5rem" : "2.5rem",
+          height: size === "xl" ? "0.3rem" : "0.22rem",
           background: color,
-          transform: "rotate(-1.2deg)",
-          boxShadow: "3px 3px 0 rgba(0,0,0,0.55)",
+          borderRadius: "999px",
         }}
       />
     </div>

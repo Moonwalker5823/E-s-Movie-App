@@ -2,18 +2,19 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useSettings } from "../lib/settings";
 
+// Ordered by what actually gets opened, not by category. Roughly eight tabs fit on the
+// TV at 960px, so the first eight are the ones Eric uses — Sports and the hubs — and the
+// browse/utility destinations trail behind rather than pushing them off-screen.
 const BASE_LINKS = [
   { to: "/", label: "Home", end: true },
-  { to: "/mix", label: "The Mix" },
-  { to: "/services", label: "Browse" },
-  { to: "/live", label: "Live TV" },
   { to: "/sports", label: "Sports" },
-  { to: "/fantasy", label: "Fantasy" },
+  { to: "/music", label: "Music" },
   { to: "/games", label: "Arcade" },
   { to: "/lounge", label: "Lounge" },
-  { to: "/music", label: "Music" },
   { to: "/blerd", label: "Blerd" },
   { to: "/comedy", label: "Comedy" },
+  { to: "/live", label: "Live TV" },
+  { to: "/services", label: "Browse" },
   { to: "/favorites", label: "My List" },
 ];
 
@@ -57,7 +58,7 @@ export default function NavBar() {
     <header className="relative z-40 border-b border-line bg-ink/70 backdrop-blur-xl">
       <div className="flex items-center gap-4 px-4 py-3 sm:px-8">
         <NavLink to="/" className="mr-1 flex shrink-0 items-center gap-2.5">
-          <span className="grid h-9 w-9 -rotate-6 place-items-center rounded-lg border-2 border-cyan bg-gradient-to-br from-spraylo to-spray text-lg text-cream shadow-piece">
+          <span className="grid h-9 w-9 -rotate-6 place-items-center rounded-lg border-2 border-gold/70 bg-gradient-to-br from-spraylo to-spray text-lg text-cream">
             ♛
           </span>
           <span className="hidden u-display text-3xl lg:block">
@@ -75,7 +76,7 @@ export default function NavBar() {
                 data-focusable
                 className={({ isActive }) =>
                   `shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition sm:px-4 ${
-                    isActive ? "bg-spray text-cream shadow-piece" : "text-cream/80 hover:text-cream"
+                    isActive ? "bg-gold font-semibold text-ink" : "text-cream/75 hover:text-cream"
                   }`
                 }
               >
@@ -95,7 +96,7 @@ export default function NavBar() {
               onBlur={() => !q.trim() && setSearchOpen(false)}
               data-focusable
               placeholder="Search movies, TV…"
-              className="w-44 rounded-full border border-line bg-white/10 px-4 py-2 text-sm outline-none transition placeholder:text-cream/55 focus:border-spray/40 sm:w-72"
+              className="w-44 rounded-full border border-line bg-white/10 px-4 py-2 text-sm outline-none transition placeholder:text-cream/55 focus:border-gold/50 sm:w-72"
             />
           ) : (
             <button
@@ -116,7 +117,7 @@ export default function NavBar() {
           aria-label="Settings"
           className={({ isActive }) =>
             `grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg transition ${
-              isActive ? "bg-spray text-cream shadow-piece" : "text-cream/80 hover:text-cream"
+              isActive ? "bg-gold font-semibold text-ink" : "text-cream/75 hover:text-cream"
             }`
           }
         >

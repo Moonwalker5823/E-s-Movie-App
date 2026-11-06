@@ -8,11 +8,8 @@ import Search from "./pages/Search";
 import LiveTV from "./pages/LiveTV";
 import Services from "./pages/Services";
 import Sports from "./pages/Sports";
-import Fantasy from "./pages/Fantasy";
-import DraftRoom from "./pages/DraftRoom";
 import Games from "./pages/Games";
 import Comedy from "./pages/Comedy";
-import TheMix from "./pages/TheMix";
 import Music from "./pages/Music";
 import XZone from "./pages/XZone";
 import SmokersLounge from "./pages/SmokersLounge";
@@ -65,6 +62,11 @@ export default function App() {
   // Each section gets its own tab-inspired background tint (see .tab-bg in index.css).
   const tab = pathname === "/" ? "home" : pathname.split("/")[1] || "home";
   const ready = hasTmdbKey();
+  // Pages that are genuinely nothing without TMDB (Browse, Search, Title, My List)
+  // still swap to the setup notice. Home does NOT: it's a command center now, and most
+  // of it — resume points, live scores, The Mix, the hub cards — never calls TMDB. It
+  // scopes the notice to its own Movies & TV section instead, so one missing key can't
+  // blank the whole screen.
   const gated = (el: JSX.Element) => (ready ? el : <SetupNotice />);
 
   return (
@@ -73,20 +75,17 @@ export default function App() {
       <NavBar />
       <ErrorBoundary>
       <Routes>
-        <Route path="/" element={gated(<Landing />)} />
+        <Route path="/" element={<Landing />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/search" element={gated(<Search />)} />
         <Route path="/services" element={gated(<Services />)} />
         <Route path="/live" element={<LiveTV />} />
         <Route path="/sports" element={<Sports />} />
-        <Route path="/fantasy" element={<Fantasy />} />
-        <Route path="/fantasy/draft" element={<DraftRoom />} />
         <Route path="/games" element={<Games />} />
         <Route path="/lounge" element={<SmokersLounge />} />
         <Route path="/music" element={<Music />} />
         <Route path="/blerd" element={<Blerd />} />
         <Route path="/comedy" element={<Comedy />} />
-        <Route path="/mix" element={<TheMix />} />
         <Route path="/x" element={<XZone />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/title/:media/:id" element={gated(<Title />)} />

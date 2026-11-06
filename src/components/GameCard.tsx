@@ -6,14 +6,19 @@ import { liveServices, type Service } from "../lib/services";
 // Which of the user's streaming services carry a given broadcast network's LIVE feed.
 // Hulu + Live TV carries the major linear sports channels; the others cover their own
 // games. This keeps us from suggesting a service that doesn't actually have the game.
+// Sling is listed alongside Hulu on every linear channel: the Sling Orange/Blue base
+// packages carry ESPN, FOX, NBC, TNT, TBS and USA, which is the whole reason it's
+// replacing Hulu + Live TV here. Both stay listed while the final Hulu cycle runs —
+// `servicesForGame` only surfaces the ones actually ticked in Settings, so whichever
+// one Eric still has is the one that shows up on the card.
 const NETWORK_SERVICES: { match: RegExp; services: string[] }[] = [
-  { match: /espn|abc|sec network|acc network/i, services: ["hulu"] },
-  { match: /\bfox\b|fs1|fs2|btn|big ten/i, services: ["hulu"] },
-  { match: /\bnbc\b|usa network|cnbc|golf channel/i, services: ["hulu", "peacock"] },
+  { match: /espn|abc|sec network|acc network/i, services: ["sling", "hulu"] },
+  { match: /\bfox\b|fs1|fs2|btn|big ten/i, services: ["sling", "hulu"] },
+  { match: /\bnbc\b|usa network|cnbc|golf channel/i, services: ["sling", "hulu", "peacock"] },
   { match: /peacock/i, services: ["peacock"] },
-  { match: /\bcbs\b/i, services: ["hulu", "paramount"] },
+  { match: /\bcbs\b/i, services: ["hulu", "paramount"] }, // CBS isn't in Sling's lineup
   { match: /paramount/i, services: ["paramount"] },
-  { match: /tnt|tbs|trutv/i, services: ["hulu", "max"] },
+  { match: /tnt|tbs|trutv/i, services: ["sling", "hulu", "max"] },
   { match: /\bmax\b|bleacher|b\/r/i, services: ["max"] },
   { match: /prime video|amazon/i, services: ["prime"] },
   { match: /tubi/i, services: ["tubi"] },

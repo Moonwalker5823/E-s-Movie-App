@@ -1,16 +1,13 @@
 import { useState } from "react";
 import Heading from "../components/ui/Heading";
 import HueSetup from "../components/HueSetup";
-import { STREAMING_SERVICES, FANTASY_SITES } from "../lib/services";
+import { STREAMING_SERVICES } from "../lib/services";
 import {
   useSettings,
   setLanding,
   setTheme,
   toggleService,
-  setLeague,
-  setAccessCode,
   setHideX,
-  type LeagueKey,
 } from "../lib/settings";
 
 function clearKey(key: string, label: string) {
@@ -148,18 +145,6 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Fantasy leagues */}
-      <section className="mt-8">
-        <Heading emoji="🏈" className="mb-3">Fantasy Leagues</Heading>
-        <p className="mb-3 text-sm text-cream/50">
-          Paste your league link so you can jump straight to it. You log in on Yahoo/ESPN.
-        </p>
-        <div className="space-y-3">
-          {FANTASY_SITES.map((f) => (
-            <LeagueRow key={f.key} which={f.key as LeagueKey} name={f.name} loginUrl={f.loginUrl} saved={s.leagues[f.key as LeagueKey]} />
-          ))}
-        </div>
-      </section>
 
       {/* Theater lighting */}
       <section className="mt-8">
@@ -191,27 +176,6 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Access & sharing */}
-      <section className="mt-8">
-        <Heading emoji="🔑" className="mb-3">AI Access Code</Heading>
-        <div className="card p-4">
-          <p className="text-sm text-cream/70">
-            The AI draft assistant costs money to run, so it can be locked with a code. If Eric gave
-            you one, paste it here to unlock it on this device. Everything else works without a code.
-          </p>
-          <input
-            defaultValue={s.accessCode || ""}
-            onBlur={(e) => setAccessCode(e.target.value.trim())}
-            data-focusable
-            placeholder="Access code (optional)"
-            className="mt-3 w-full max-w-xs rounded-lg border-2 border-line bg-white/5 px-3 py-2 text-sm outline-none focus:border-spray/50"
-          />
-          <p className="mt-2 text-xs text-cream/60">
-            Owner: set the allowed codes in Vercel → Environment Variables → <code className="font-mono">APP_ACCESS_CODES</code>
-            {" "}(comma-separated). Remove someone&apos;s code and redeploy to block just them.
-          </p>
-        </div>
-      </section>
 
       {/* Data */}
       <section className="mt-8">
@@ -230,22 +194,3 @@ export default function Settings() {
   );
 }
 
-function LeagueRow({ which, name, loginUrl, saved }: { which: LeagueKey; name: string; loginUrl: string; saved?: string }) {
-  const [url, setUrl] = useState(saved || "");
-  return (
-    <div className="card flex flex-wrap items-center gap-3 p-3">
-      <span className="w-28 font-semibold text-cream">{name}</span>
-      <input
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        onBlur={() => setLeague(which, url.trim())}
-        data-focusable
-        placeholder="Paste your league URL…"
-        className="min-w-[12rem] flex-1 rounded-lg border-2 border-line bg-white/5 px-3 py-2 text-sm outline-none focus:border-spray/50"
-      />
-      <a href={saved || loginUrl} target="_blank" rel="noreferrer" data-focusable className="btn-spray !px-3 !py-1 text-xs">
-        Open ↗
-      </a>
-    </div>
-  );
-}

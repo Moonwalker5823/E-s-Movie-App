@@ -4,8 +4,6 @@ export type Landing = "home" | "browse";
 
 export type Theme = "dark" | "light" | "system";
 
-export type LeagueKey = "yahoo" | "espn" | "sleeper";
-
 // Philips Hue theater-lighting config. The user pairs their local bridge once;
 // we store the bridge IP + app key and which room/scenes to drive. Color-follow
 // is handled by the user's Hue Sync Box — the app only triggers scenes/dimming.
@@ -21,8 +19,6 @@ export interface Settings {
   landing: Landing;
   theme: Theme; // dark (default) / light / follow the system
   myServices: string[]; // service keys the user subscribes to / is signed into
-  leagues: Partial<Record<LeagueKey, string>>;
-  accessCode?: string; // sent to the AI endpoint when it's gated
   hideX?: boolean; // hide the adult "X" tab from the nav
   hue?: HueConfig; // theater lighting
 }
@@ -31,8 +27,9 @@ const KEY = "ema.settings.v1";
 const DEFAULTS: Settings = {
   landing: "home",
   theme: "dark",
-  myServices: ["hulu", "prime", "tubi"], // Eric's services by default
-  leagues: {},
+  // Hulu stays on until the final billing cycle actually lapses; Sling runs alongside
+  // it. Untick whichever one goes away in Settings → My Services.
+  myServices: ["hulu", "sling", "prime", "tubi"],
   hideX: false,
   hue: { bridgeIp: "10.168.168.216" }, // Eric's Hue bridge — just press Pair to link
 };
@@ -97,14 +94,6 @@ export function toggleService(key: string) {
 
 export function hasService(key: string | null): boolean {
   return key ? state.myServices.includes(key) : false;
-}
-
-export function setLeague(which: LeagueKey, url: string) {
-  commit({ ...state, leagues: { ...state.leagues, [which]: url } });
-}
-
-export function setAccessCode(code: string) {
-  commit({ ...state, accessCode: code });
 }
 
 export function setHideX(hidden: boolean) {

@@ -14,6 +14,11 @@ export interface Service {
 }
 
 export const STREAMING_SERVICES: Service[] = [
+  // Sling replaced Hulu (Nov 2026). Hulu stays listed so it can still be used until the
+  // final billing cycle lapses — untick it in Settings → My Services when it does.
+  // No tmdbId for Sling: its catalog id isn't verified, and a wrong one would browse the
+  // wrong service's library. Live TV is what it's for, and liveUrl covers that.
+  { key: "sling", name: "Sling TV", match: /sling/i, loginUrl: "https://watch.sling.com/", color: "#f47b20", liveUrl: "https://watch.sling.com/" },
   { key: "hulu", name: "Hulu", match: /hulu/i, loginUrl: "https://auth.hulu.com/web/login", color: "#1ce783", tmdbId: 15, liveUrl: "https://www.hulu.com/live-tv" },
   { key: "prime", name: "Prime Video", match: /prime video/i, loginUrl: "https://www.primevideo.com/", color: "#00a8e1", tmdbId: 9, liveUrl: "https://www.amazon.com/gp/video/sports" },
   { key: "tubi", name: "Tubi", match: /tubi/i, loginUrl: "https://tubitv.com/login", free: true, color: "#fa382b", tmdbId: 73, liveUrl: "https://tubitv.com/live" },
@@ -27,12 +32,6 @@ export const STREAMING_SERVICES: Service[] = [
   { key: "youtube", name: "YouTube", match: /youtube/i, loginUrl: "https://accounts.google.com/", color: "#ff0000" },
 ];
 
-export const FANTASY_SITES = [
-  { key: "yahoo", name: "Yahoo Fantasy", loginUrl: "https://football.fantasysports.yahoo.com/", color: "#6001d2" },
-  { key: "espn", name: "ESPN Fantasy", loginUrl: "https://fantasy.espn.com/football/", color: "#c8102e" },
-  { key: "sleeper", name: "Sleeper", loginUrl: "https://sleeper.com/", color: "#ff4d6d" },
-];
-
 export function serviceKeyForProvider(providerName: string): string | null {
   return STREAMING_SERVICES.find((s) => s.match.test(providerName))?.key ?? null;
 }
@@ -42,7 +41,7 @@ export function serviceByKey(key: string): Service | undefined {
 }
 
 // The user's own services that carry LIVE sports — used to launch a live game straight
-// into a service they already have (Hulu + Live TV, Prime, Tubi, Max, Paramount+, Peacock).
+// into a service they already have (Sling, Prime, Tubi, Max, Paramount+, Peacock).
 export function liveServices(myServices: string[]): Service[] {
   return STREAMING_SERVICES.filter((s) => s.liveUrl && myServices.includes(s.key));
 }

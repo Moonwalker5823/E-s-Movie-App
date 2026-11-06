@@ -10,6 +10,10 @@ export interface ResumePoint {
   seconds: number;
   title: string;
   at: number;
+  /** Route the clip was playing on, e.g. "/sports". Lets the home screen link straight
+   *  back to it. Optional because entries saved before this existed won't have it —
+   *  those are simply skipped on the home rail rather than linking somewhere wrong. */
+  path?: string;
 }
 
 type Store = Record<string, ResumePoint>;
@@ -36,4 +40,21 @@ export function getResume(tab: string): ResumePoint | null {
   const r = read()[tab];
   if (!r || Date.now() - r.at >= TTL) return null;
   return r;
+}
+
+export interface ResumeEntry extends ResumePoint {
+  tab: string;
+}
+
+/** Every still-fresh resume point, newest first — what the home screen's "Continue
+ *  Watching" rail is built from. Entries without a `path` are dropped: they predate
+ *  route tracking, and a card that can't take you back is worse than no card. */
+export function listResume(limit = 8): ResumeEntry[] {
+  const store = read();
+  const now = Date.now();
+  return Object.entries(store)
+    .map(([tab, r]) => ({ ...r, tab }))
+    .filter((r) => r.path && now - r.at < TTL && r.seconds > 10)
+    .sort((a, b) => b.at - a.at)
+    .slice(0, limit);
 }
