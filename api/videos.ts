@@ -380,6 +380,8 @@ interface Item {
   durationSec?: number;
 }
 
+import { kvGet, kvSet, kvReady } from "./_kv.js";
+
 const cache: Record<string, { at: number; items: Item[] }> = ((globalThis as any).__vidCache ||= {});
 
 // ---------------------------------------------------------------------------
@@ -473,11 +475,16 @@ function sendCached(res: any, items: Item[], extra: Record<string, unknown> = {}
   // turns one throttled moment into a long outage for that tab, which is the exact
   // bug this caching exists to fix. Empty responses are marked uncacheable so the
   // next request retries upstream instead of being handed the same empty shelf.
+  const stale = Boolean((extra as { stale?: boolean }).stale);
   res.setHeader(
     "cache-control",
-    items.length
-      ? "public, s-maxage=900, stale-while-revalidate=86400"
-      : "public, s-maxage=0, must-revalidate"
+    !items.length
+      ? "public, s-maxage=0, must-revalidate"
+      : stale
+        ? // Served from last-known-good: real content, so cache it — but briefly, so we
+          // go back upstream in a minute instead of sitting on yesterday's clips.
+          "public, s-maxage=60, stale-while-revalidate=86400"
+        : "public, s-maxage=900, stale-while-revalidate=86400"
   );
   res.status(200).json({ items, ...extra });
 }
@@ -635,6 +642,13 @@ async function searchVideos(query: string, music = false): Promise<Item[]> {
 }
 
 export default async function handler(req: any, res: any) {
+  // `?diag=1` reports whether the durable fallback is configured. No data, no secrets.
+  if (req.query?.diag) {
+    res.setHeader("cache-control", "no-store");
+    res.status(200).json({ kv: kvReady });
+    return;
+  }
+
   const set = (req.query?.set || "all").toString().toLowerCase();
   const short = String(req.query?.short || "") === "1";
   const hours = Math.max(0, Math.min(24, Number(req.query?.hours) || 0)); // rotate every N hours (Sports: 3, hubs: 12)
@@ -717,13 +731,30 @@ export default async function handler(req: any, res: any) {
   // Keep Trump / MAGA politics out of The Mix.
   if (POLITICS_SETS.has(set)) items = items.filter((i) => !POLITICS_RE.test(i.title));
 
-  // Never serve an empty shelf. If every feed was throttled this minute, fall back to
-  // the last payload this set rendered successfully — stale content beats "no items".
+  // Never serve an empty shelf. Three fallbacks, cheapest first:
+  //   1. this instance's memory (free, but dies with the lambda)
+  //   2. the KV store (survives cold starts — the only one that actually fixes the
+  //      "no items available" case, since a cold instance has nothing in memory)
+  //   3. nothing, and we tell the truth rather than caching the failure
+  const kvKey = `vid:lastgood:${set}${short ? ":short" : ""}`;
+  let stale = false;
+
   if (items.length) {
     cache[cacheKey] = { at: Date.now(), items }; // don't cache an all-feeds-failed empty
     lastGood[set] = items;
-  } else if (lastGood[set]?.length) {
-    items = lastGood[set];
+    // Write-through so the NEXT cold instance has something to serve. Awaited rather
+    // than fire-and-forget: a lambda can be frozen the moment it responds, which would
+    // cancel an in-flight write — the one case where we actually need it to land.
+    await kvSet(kvKey, items, 7 * 24 * 3600);
+  } else {
+    const memory = lastGood[set];
+    const saved = memory?.length ? memory : await kvGet<Item[]>(kvKey);
+    if (saved?.length) {
+      items = saved;
+      stale = true;
+      lastGood[set] = saved; // warm this instance so the next hit skips the round trip
+    }
   }
-  sendCached(res, items);
+
+  sendCached(res, items, stale ? { stale: true } : {});
 }
